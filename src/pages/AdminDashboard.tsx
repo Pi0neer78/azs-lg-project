@@ -1234,7 +1234,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <TableBody>
                       {filteredOperations.map((op) => (
                         <TableRow key={op.id} className="border-b border-border">
-                          <TableCell className="font-mono text-accent py-1">{op.card_code}</TableCell>
+                          <TableCell className="font-mono py-1">
+                            <div className="flex items-center gap-2">
+                              <span className={op.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
+                                {op.card_code}
+                              </span>
+                              {op.card_code === '0000' && (
+                                <Icon name="Wallet" size={16} className="text-accent" />
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-foreground py-1">{op.station_name}</TableCell>
                           <TableCell className="text-muted-foreground text-sm py-1">{op.operation_date}</TableCell>
                           <TableCell className="py-1">
