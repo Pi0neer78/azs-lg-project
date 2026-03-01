@@ -512,6 +512,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
+  const [cardsPage, setCardsPage] = useState(1);
+  const [cardsPageSize, setCardsPageSize] = useState(20);
+  const [opsPage, setOpsPage] = useState(1);
+  const [opsPageSize, setOpsPageSize] = useState(20);
+
   const filteredCards = cards
     .filter(card => {
       if (filterCardClient !== 'all' && card.client_name !== filterCardClient) return false;
@@ -541,10 +546,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [filterDateTo, setFilterDateTo] = useState<string>('');
   const [balanceChangeDialog, setBalanceChangeDialog] = useState<{open: boolean, cardCode: string, oldBalance: number, newBalance: number}>({open: false, cardCode: '', oldBalance: 0, newBalance: 0});
 
-  const [cardsPage, setCardsPage] = useState(1);
-  const [cardsPageSize, setCardsPageSize] = useState(20);
-  const [opsPage, setOpsPage] = useState(1);
-  const [opsPageSize, setOpsPageSize] = useState(20);
+
 
   const handleDeleteOperation = async (id: number) => {
     if (confirm('Удалить операцию?')) {
