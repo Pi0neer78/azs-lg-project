@@ -68,7 +68,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor = conn.cursor()
         
         cursor.execute(
-            "SELECT id, name, admin FROM clients WHERE login = %s AND password = %s",
+            "SELECT id, name, admin, operator FROM clients WHERE login = %s AND password = %s",
             (login, password)
         )
         
@@ -77,7 +77,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn.close()
         
         if user:
-            user_id, user_name, is_admin = user
+            user_id, user_name, is_admin, is_operator = user
             return {
                 'statusCode': 200,
                 'headers': {
@@ -90,7 +90,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'id': user_id,
                         'name': user_name,
                         'login': login,
-                        'admin': is_admin
+                        'admin': is_admin,
+                        'operator': bool(is_operator)
                     }
                 }),
                 'isBase64Encoded': False

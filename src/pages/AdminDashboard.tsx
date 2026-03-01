@@ -104,7 +104,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [editingClient, setEditingClient] = useState<any>(null);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
-  const [newClient, setNewClient] = useState({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false});
+  const [newClient, setNewClient] = useState({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false, operator: false});
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [filterClientType, setFilterClientType] = useState<string>('client');
   const [clientSearch, setClientSearch] = useState<string>('');
@@ -142,7 +142,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     try {
       await adminApi.clients.create(newClient);
       loadClients();
-      setNewClient({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false});
+      setNewClient({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false, operator: false});
       setIsAddClientDialogOpen(false);
     } catch (error) {
       console.error('Error creating client:', error);
@@ -794,18 +794,33 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             </div>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-admin" className="text-right text-foreground">Это админ</Label>
+                            <Label htmlFor="new-admin" className="text-right text-foreground">Это администратор</Label>
                             <div className="col-span-3 flex items-center">
                               <input 
                                 id="new-admin" 
                                 type="checkbox" 
                                 checked={newClient.admin} 
-                                onChange={(e) => setNewClient({...newClient, admin: e.target.checked})} 
+                                onChange={(e) => setNewClient({...newClient, admin: e.target.checked, operator: e.target.checked ? newClient.operator : false})} 
                                 className="w-5 h-5 accent-accent cursor-pointer"
                               />
                               <span className="ml-3 text-sm text-muted-foreground">Отметьте, если это администратор</span>
                             </div>
                           </div>
+                          {newClient.admin && (
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="new-operator" className="text-right text-foreground">Оператор АЗС</Label>
+                              <div className="col-span-3 flex items-center gap-3">
+                                <input
+                                  id="new-operator"
+                                  type="checkbox"
+                                  checked={newClient.operator}
+                                  onChange={(e) => setNewClient({...newClient, operator: e.target.checked})}
+                                  className="w-5 h-5 accent-accent cursor-pointer"
+                                />
+                                <span className="text-sm text-muted-foreground">Доступ только к панели оператора АЗС</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">Отмена</Button>

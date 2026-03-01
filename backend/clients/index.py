@@ -45,7 +45,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if method == 'GET':
             cursor.execute("""
-                SELECT id, inn, name, address, phone, email, login, admin 
+                SELECT id, inn, name, address, phone, email, login, admin, operator
                 FROM clients 
                 ORDER BY id
             """)
@@ -60,7 +60,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'phone': row[4],
                     'email': row[5],
                     'login': row[6],
-                    'admin': row[7]
+                    'admin': row[7],
+                    'operator': bool(row[8])
                 })
             
             cursor.close()
@@ -108,9 +109,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 print(f"Conflicting records: {conflicts}")
             
             cursor.execute("""
-                INSERT INTO clients (inn, name, address, phone, email, login, password, admin)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, inn, name, address, phone, email, login, admin
+                INSERT INTO clients (inn, name, address, phone, email, login, password, admin, operator)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, inn, name, address, phone, email, login, admin, operator
             """, (
                 body_data.get('inn', '').strip() or None,
                 body_data.get('name', '').strip(),
@@ -119,7 +120,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 email,
                 login,
                 body_data.get('password'),
-                body_data.get('admin', False)
+                body_data.get('admin', False),
+                body_data.get('operator', False)
             ))
             
             row = cursor.fetchone()
@@ -133,7 +135,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'phone': row[4],
                 'email': row[5],
                 'login': row[6],
-                'admin': row[7]
+                'admin': row[7],
+                'operator': bool(row[8])
             }
             
             cursor.close()
@@ -155,9 +158,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor.execute("""
                 UPDATE clients 
-                SET inn = %s, name = %s, address = %s, phone = %s, email = %s, login = %s
+                SET inn = %s, name = %s, address = %s, phone = %s, email = %s, login = %s, operator = %s
                 WHERE id = %s
-                RETURNING id, inn, name, address, phone, email, login, admin
+                RETURNING id, inn, name, address, phone, email, login, admin, operator
             """, (
                 body_data.get('inn'),
                 body_data.get('name'),
@@ -165,6 +168,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 body_data.get('phone'),
                 body_data.get('email'),
                 body_data.get('login'),
+                body_data.get('operator', False),
                 client_id
             ))
             
@@ -180,7 +184,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'phone': row[4],
                     'email': row[5],
                     'login': row[6],
-                    'admin': row[7]
+                    'admin': row[7],
+                    'operator': bool(row[8])
                 }
                 
                 cursor.close()
