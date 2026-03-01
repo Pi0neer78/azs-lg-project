@@ -108,6 +108,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [filterClientType, setFilterClientType] = useState<string>('client');
   const [clientSearch, setClientSearch] = useState<string>('');
+  const [operatorLinkDialog, setOperatorLinkDialog] = useState<{open: boolean, client: any}>({open: false, client: null});
+  const [operatorLinkStation, setOperatorLinkStation] = useState<string>('');
+  const [operatorLinkCopied, setOperatorLinkCopied] = useState(false);
 
   const handleDeleteClient = async (id: number) => {
     if (confirm('Удалить клиента?')) {
@@ -892,6 +895,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         </TableCell>
                         <TableCell className="py-2">
                           <div className="flex gap-1">
+                            {client.operator && (
+                              <Button size="sm" variant="outline" onClick={() => { setOperatorLinkDialog({open: true, client}); setOperatorLinkStation(''); setOperatorLinkCopied(false); }} className="h-7 w-7 p-0 border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" title="Ссылка для ярлыка">
+                                <Icon name="Link" className="w-3 h-3" />
+                              </Button>
+                            )}
                             <Button size="sm" variant="outline" onClick={() => handleEditClient(client)} className="h-7 w-7 p-0 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
                               <Icon name="Pencil" className="w-3 h-3" />
                             </Button>
@@ -1488,6 +1496,67 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={operatorLinkDialog.open} onOpenChange={(open) => setOperatorLinkDialog({...operatorLinkDialog, open})}>
+        <DialogContent className="max-w-lg bg-card border-2 border-accent">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Icon name="Link" className="text-accent" />
+              Ярлык для оператора
+            </DialogTitle>
+          </DialogHeader>
+          {operatorLinkDialog.client && (
+            <div className="space-y-4 py-2">
+              <div className="p-3 rounded-lg bg-accent/10 border border-accent text-sm text-foreground">
+                <span className="font-semibold text-accent">{operatorLinkDialog.client.name}</span>
+                <span className="text-muted-foreground ml-2">(логин: {operatorLinkDialog.client.login})</span>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-foreground">Выберите АЗС</Label>
+                <Select value={operatorLinkStation} onValueChange={setOperatorLinkStation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите АЗС..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stations.filter(s => !s.name.toLowerCase().includes('склад')).map(s => (
+                      <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {operatorLinkStation && (() => {
+                const link = `${window.location.origin}/operator?station=${operatorLinkStation}&login=${encodeURIComponent(operatorLinkDialog.client.login)}&password=${encodeURIComponent(operatorLinkDialog.client.password || '')}`;
+                return (
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Ссылка для ярлыка</Label>
+                    <div className="flex gap-2">
+                      <input
+                        readOnly
+                        value={link}
+                        className="flex-1 bg-input border-2 border-border rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none select-all"
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                      />
+                      <Button
+                        onClick={() => { navigator.clipboard.writeText(link); setOperatorLinkCopied(true); setTimeout(() => setOperatorLinkCopied(false), 2000); }}
+                        className={`shrink-0 ${operatorLinkCopied ? 'bg-green-600 text-white' : 'bg-accent text-accent-foreground hover:bg-accent/90'}`}
+                      >
+                        <Icon name={operatorLinkCopied ? 'Check' : 'Copy'} className="w-4 h-4 mr-1" />
+                        {operatorLinkCopied ? 'Скопировано!' : 'Копировать'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Создайте ярлык на рабочем столе с этой ссылкой — при открытии оператор сразу попадёт на экран сканирования
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setOperatorLinkDialog({open: false, client: null})} className="border-2 border-border">Закрыть</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
         <DialogContent className="max-w-2xl bg-card border-2 border-primary">
