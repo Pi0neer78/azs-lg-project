@@ -110,6 +110,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [clientSearch, setClientSearch] = useState<string>('');
   const [operatorLinkDialog, setOperatorLinkDialog] = useState<{open: boolean, client: any}>({open: false, client: null});
   const [operatorLinkStation, setOperatorLinkStation] = useState<string>('');
+  const [operatorLinkPassword, setOperatorLinkPassword] = useState<string>('');
   const [operatorLinkCopied, setOperatorLinkCopied] = useState(false);
 
   const handleDeleteClient = async (id: number) => {
@@ -896,7 +897,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <TableCell className="py-2">
                           <div className="flex gap-1">
                             {client.operator && (
-                              <Button size="sm" variant="outline" onClick={() => { setOperatorLinkDialog({open: true, client}); setOperatorLinkStation(''); setOperatorLinkCopied(false); }} className="h-7 w-7 p-0 border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" title="Ссылка для ярлыка">
+                              <Button size="sm" variant="outline" onClick={() => { setOperatorLinkDialog({open: true, client}); setOperatorLinkStation(''); setOperatorLinkPassword(''); setOperatorLinkCopied(false); }} className="h-7 w-7 p-0 border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" title="Ссылка для ярлыка">
                                 <Icon name="Link" className="w-3 h-3" />
                               </Button>
                             )}
@@ -1505,53 +1506,63 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               Ярлык для оператора
             </DialogTitle>
           </DialogHeader>
-          {operatorLinkDialog.client && (
-            <div className="space-y-4 py-2">
-              <div className="p-3 rounded-lg bg-accent/10 border border-accent text-sm text-foreground">
-                <span className="font-semibold text-accent">{operatorLinkDialog.client.name}</span>
-                <span className="text-muted-foreground ml-2">(логин: {operatorLinkDialog.client.login})</span>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-foreground">Выберите АЗС</Label>
-                <Select value={operatorLinkStation} onValueChange={setOperatorLinkStation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите АЗС..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stations.filter(s => !s.name.toLowerCase().includes('склад')).map(s => (
-                      <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {operatorLinkStation && (() => {
-                const link = `${window.location.origin}/operator?station=${operatorLinkStation}&login=${encodeURIComponent(operatorLinkDialog.client.login)}&password=${encodeURIComponent(operatorLinkDialog.client.password || '')}`;
-                return (
+          {operatorLinkDialog.client && (() => {
+            const link = operatorLinkStation && operatorLinkPassword
+              ? `http://azs-lg.ru/operator?station=${operatorLinkStation}&login=${encodeURIComponent(operatorLinkDialog.client.login)}&password=${encodeURIComponent(operatorLinkPassword)}`
+              : '';
+            return (
+              <div className="space-y-4 py-2">
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent text-sm text-foreground">
+                  <span className="font-semibold text-accent">{operatorLinkDialog.client.name}</span>
+                  <span className="text-muted-foreground ml-2">(логин: {operatorLinkDialog.client.login})</span>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-foreground">АЗС</Label>
+                  <Select value={operatorLinkStation} onValueChange={setOperatorLinkStation}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите АЗС..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stations.filter(s => !s.name.toLowerCase().includes('склад')).map(s => (
+                        <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-foreground">Пароль оператора</Label>
+                  <Input
+                    type="text"
+                    placeholder="Введите пароль..."
+                    value={operatorLinkPassword}
+                    onChange={(e) => { setOperatorLinkPassword(e.target.value); setOperatorLinkCopied(false); }}
+                  />
+                </div>
+                {link && (
                   <div className="space-y-2">
                     <Label className="text-foreground">Ссылка для ярлыка</Label>
-                    <div className="flex gap-2">
-                      <input
-                        readOnly
-                        value={link}
-                        className="flex-1 bg-input border-2 border-border rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none select-all"
-                        onClick={(e) => (e.target as HTMLInputElement).select()}
-                      />
-                      <Button
-                        onClick={() => { navigator.clipboard.writeText(link); setOperatorLinkCopied(true); setTimeout(() => setOperatorLinkCopied(false), 2000); }}
-                        className={`shrink-0 ${operatorLinkCopied ? 'bg-green-600 text-white' : 'bg-accent text-accent-foreground hover:bg-accent/90'}`}
-                      >
-                        <Icon name={operatorLinkCopied ? 'Check' : 'Copy'} className="w-4 h-4 mr-1" />
-                        {operatorLinkCopied ? 'Скопировано!' : 'Копировать'}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Создайте ярлык на рабочем столе с этой ссылкой — при открытии оператор сразу попадёт на экран сканирования
+                    <textarea
+                      readOnly
+                      value={link}
+                      rows={3}
+                      onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                      className="w-full bg-input border-2 border-border rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none resize-none"
+                    />
+                    <Button
+                      onClick={() => { navigator.clipboard.writeText(link); setOperatorLinkCopied(true); setTimeout(() => setOperatorLinkCopied(false), 2000); }}
+                      className={`w-full ${operatorLinkCopied ? 'bg-green-600 text-white hover:bg-green-600' : 'bg-accent text-accent-foreground hover:bg-accent/90'}`}
+                    >
+                      <Icon name={operatorLinkCopied ? 'Check' : 'Copy'} className="w-4 h-4 mr-2" />
+                      {operatorLinkCopied ? 'Скопировано!' : 'Копировать ссылку'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Вставьте ссылку в ярлык на рабочем столе — оператор сразу попадёт на экран сканирования
                     </p>
                   </div>
-                );
-              })()}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
           <div className="flex justify-end">
             <Button variant="outline" onClick={() => setOperatorLinkDialog({open: false, client: null})} className="border-2 border-border">Закрыть</Button>
           </div>
