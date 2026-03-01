@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 import psycopg2
 from typing import Dict, Any
 
@@ -84,7 +85,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             email = body_data.get('email', '').strip() or None
             phone = body_data.get('phone', '').strip() or None
-            login = body_data.get('login', '').strip()
+            login = body_data.get('login', '').strip() or f'admin_{uuid.uuid4().hex[:8]}'
             
             print(f"Normalized values - email: {email}, phone: {phone}, login: {login}")
             
@@ -108,12 +109,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 conflicts = cursor.fetchall()
                 print(f"Conflicting records: {conflicts}")
             
+            inn = body_data.get('inn', '').strip() or ''
+
             cursor.execute("""
                 INSERT INTO clients (inn, name, address, phone, email, login, password, admin, operator)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, inn, name, address, phone, email, login, admin, operator
             """, (
-                body_data.get('inn', '').strip() or None,
+                inn,
                 body_data.get('name', '').strip(),
                 body_data.get('address', '').strip() or None,
                 phone,

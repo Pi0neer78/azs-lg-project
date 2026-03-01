@@ -1,0 +1,8 @@
+ALTER TABLE clients ALTER COLUMN inn TYPE VARCHAR(255);
+ALTER TABLE clients ALTER COLUMN inn SET DEFAULT NULL;
+UPDATE clients SET inn = NULL WHERE inn = '';
+ALTER TABLE clients ADD CONSTRAINT clients_inn_nullable CHECK (true);
+
+ALTER TABLE clients ALTER COLUMN login TYPE VARCHAR(255);
+ALTER TABLE clients ALTER COLUMN login SET DEFAULT NULL;
+UPDATE clients SET login = NULL WHERE login = '';
