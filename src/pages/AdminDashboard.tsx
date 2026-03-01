@@ -1546,21 +1546,26 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       value={link}
                       rows={3}
                       onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                      className="w-full bg-input border-2 border-border rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none resize-none"
+                      onFocus={(e) => (e.target as HTMLTextAreaElement).select()}
+                      className="w-full bg-input border-2 border-accent rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none resize-none cursor-pointer"
                     />
                     <Button
-                      onClick={() => {
-                        const el = document.createElement('textarea');
-                        el.value = link;
-                        el.style.position = 'fixed';
-                        el.style.opacity = '0';
-                        document.body.appendChild(el);
-                        el.focus();
-                        el.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(el);
-                        setOperatorLinkCopied(true);
-                        setTimeout(() => setOperatorLinkCopied(false), 2000);
+                      onClick={(e) => {
+                        const textarea = (e.currentTarget as HTMLElement).previousElementSibling as HTMLTextAreaElement;
+                        textarea?.select();
+                        try {
+                          document.execCommand('copy');
+                          setOperatorLinkCopied(true);
+                          setTimeout(() => setOperatorLinkCopied(false), 2000);
+                        } catch {
+                          setOperatorLinkCopied(false);
+                        }
+                        if (navigator.clipboard) {
+                          navigator.clipboard.writeText(link).then(() => {
+                            setOperatorLinkCopied(true);
+                            setTimeout(() => setOperatorLinkCopied(false), 2000);
+                          }).catch(() => {});
+                        }
                       }}
                       className={`w-full ${operatorLinkCopied ? 'bg-green-600 text-white hover:bg-green-600' : 'bg-accent text-accent-foreground hover:bg-accent/90'}`}
                     >
@@ -1568,7 +1573,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       {operatorLinkCopied ? 'Скопировано!' : 'Копировать ссылку'}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
-                      Вставьте ссылку в ярлык на рабочем столе — оператор сразу попадёт на экран сканирования
+                      Кликните на поле со ссылкой — она выделится, затем Ctrl+C для копирования
                     </p>
                   </div>
                 )}
