@@ -106,7 +106,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
   const [newClient, setNewClient] = useState({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false});
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [filterClientType, setFilterClientType] = useState<string>('all');
+  const [filterClientType, setFilterClientType] = useState<string>('client');
+  const [clientSearch, setClientSearch] = useState<string>('');
 
   const handleDeleteClient = async (id: number) => {
     if (confirm('Удалить клиента?')) {
@@ -700,17 +701,31 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <Icon name="Users" className="text-accent" />
                     Клиенты
                   </CardTitle>
-                  <div className="flex gap-2 items-center">
-                    <Select value={filterClientType} onValueChange={setFilterClientType}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Все типы" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Все типы</SelectItem>
-                        <SelectItem value="client">Клиенты</SelectItem>
-                        <SelectItem value="admin">Администраторы</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <div className="flex rounded-md border-2 border-border overflow-hidden">
+                      <button
+                        onClick={() => setFilterClientType('client')}
+                        className={`px-4 py-1.5 text-sm font-semibold transition-colors ${filterClientType === 'client' ? 'bg-accent text-accent-foreground' : 'bg-card text-foreground hover:bg-secondary'}`}
+                      >
+                        Клиенты
+                      </button>
+                      <button
+                        onClick={() => setFilterClientType('admin')}
+                        className={`px-4 py-1.5 text-sm font-semibold transition-colors border-l-2 border-border ${filterClientType === 'admin' ? 'bg-accent text-accent-foreground' : 'bg-card text-foreground hover:bg-secondary'}`}
+                      >
+                        Администраторы
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Icon name="Search" size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Поиск по ИНН или названию..."
+                        value={clientSearch}
+                        onChange={(e) => setClientSearch(e.target.value)}
+                        className="h-8 pl-8 pr-3 rounded-md border-2 border-border bg-input text-foreground text-sm outline-none focus:border-accent w-56"
+                      />
+                    </div>
                     <Button onClick={handlePrintClients} variant="outline" size="sm" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
                       <Icon name="Printer" className="w-4 h-4 mr-2" />
                       Печать
@@ -837,9 +852,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     ) : (
                       clients
                         .filter(client => {
-                          if (filterClientType === 'all') return true;
-                          if (filterClientType === 'admin') return client.admin === true;
-                          if (filterClientType === 'client') return client.admin === false;
+                          if (filterClientType === 'admin' && !client.admin) return false;
+                          if (filterClientType === 'client' && client.admin) return false;
+                          if (clientSearch.trim()) {
+                            const q = clientSearch.trim().toLowerCase();
+                            if (!client.inn?.toLowerCase().includes(q) && !client.name?.toLowerCase().includes(q)) return false;
+                          }
                           return true;
                         })
                         .map((client) => (
