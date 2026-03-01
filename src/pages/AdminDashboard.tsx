@@ -882,14 +882,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <TableCell className="text-foreground py-2">{client.email}</TableCell>
                         <TableCell className="font-mono text-foreground py-2">{client.login}</TableCell>
                         <TableCell className="py-2">
-                          <div className="flex flex-col gap-1">
+                          {client.operator ? (
+                            <Badge className="bg-accent text-accent-foreground w-fit">Оператор</Badge>
+                          ) : (
                             <Badge className={client.admin ? 'bg-destructive text-destructive-foreground w-fit' : 'bg-primary text-primary-foreground w-fit'}>
                               {client.admin ? 'Админ' : 'Клиент'}
                             </Badge>
-                            {client.operator && (
-                              <Badge className="bg-accent text-accent-foreground w-fit text-xs">Оператор</Badge>
-                            )}
-                          </div>
+                          )}
                         </TableCell>
                         <TableCell className="py-2">
                           <div className="flex gap-1">
