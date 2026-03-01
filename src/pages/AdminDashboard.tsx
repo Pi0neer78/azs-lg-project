@@ -1549,7 +1549,19 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       className="w-full bg-input border-2 border-border rounded-md px-3 py-2 text-sm text-foreground font-mono outline-none resize-none"
                     />
                     <Button
-                      onClick={() => { navigator.clipboard.writeText(link); setOperatorLinkCopied(true); setTimeout(() => setOperatorLinkCopied(false), 2000); }}
+                      onClick={() => {
+                        const el = document.createElement('textarea');
+                        el.value = link;
+                        el.style.position = 'fixed';
+                        el.style.opacity = '0';
+                        document.body.appendChild(el);
+                        el.focus();
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        setOperatorLinkCopied(true);
+                        setTimeout(() => setOperatorLinkCopied(false), 2000);
+                      }}
                       className={`w-full ${operatorLinkCopied ? 'bg-green-600 text-white hover:bg-green-600' : 'bg-accent text-accent-foreground hover:bg-accent/90'}`}
                     >
                       <Icon name={operatorLinkCopied ? 'Check' : 'Copy'} className="w-4 h-4 mr-2" />
