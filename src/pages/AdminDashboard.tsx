@@ -511,11 +511,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
-  const filteredCards = cards.filter(card => {
-    if (filterCardClient !== 'all' && card.client_name !== filterCardClient) return false;
-    if (filterCardFuelType !== 'all' && card.fuel_type !== filterCardFuelType) return false;
-    return true;
-  });
+  const filteredCards = cards
+    .filter(card => {
+      if (filterCardClient !== 'all' && card.client_name !== filterCardClient) return false;
+      if (filterCardFuelType !== 'all' && card.fuel_type !== filterCardFuelType) return false;
+      return true;
+    })
+    .sort((a, b) => a.card_code.localeCompare(b.card_code));
 
   const nonAdminClientNames = clients.filter(c => !c.admin).map(c => c.name);
   const uniqueClientNames = Array.from(new Set(cards.map(c => c.client_name).filter(name => nonAdminClientNames.includes(name))));
@@ -994,7 +996,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <TableBody>
                     {filteredCards.map((card) => (
                       <TableRow key={card.id} className="border-b border-border">
-                        <TableCell className="font-mono text-accent">{card.card_code}</TableCell>
+                        <TableCell className="font-mono">
+                          <div className="flex items-center gap-2">
+                            <span className={card.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
+                              {card.card_code}
+                            </span>
+                            {card.card_code === '0000' && (
+                              <Icon name="Wallet" size={16} className="text-accent" />
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-foreground">{card.client_name}</TableCell>
                         <TableCell className="text-foreground">{card.fuel_type}</TableCell>
                         <TableCell className="font-bold text-accent">{card.balance_liters.toFixed(3)}</TableCell>
