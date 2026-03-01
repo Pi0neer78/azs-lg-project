@@ -741,69 +741,57 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <DialogHeader>
                           <DialogTitle className="text-foreground">Добавить клиента</DialogTitle>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
+                        <div className="grid gap-3 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-inn" className="text-right text-foreground">
-                              ИНН <span className="text-destructive">*</span>
+                              ИНН {!newClient.admin && <span className="text-destructive">*</span>}
                             </Label>
-                            <Input id="new-inn" value={newClient.inn} onChange={(e) => setNewClient({...newClient, inn: e.target.value})} className="col-span-3" required />
+                            <Input id="new-inn" value={newClient.inn} onChange={(e) => setNewClient({...newClient, inn: e.target.value})} className="col-span-3" required={!newClient.admin} />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-name" className="text-right text-foreground">Название</Label>
-                            <Input id="new-name" value={newClient.name} onChange={(e) => setNewClient({...newClient, name: e.target.value})} className="col-span-3" />
+                            <Label htmlFor="new-name" className="text-right text-foreground">Название <span className="text-destructive">*</span></Label>
+                            <Input id="new-name" value={newClient.name} onChange={(e) => setNewClient({...newClient, name: e.target.value})} className="col-span-3" required />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-address" className="text-right text-foreground">Адрес</Label>
                             <Input id="new-address" value={newClient.address} onChange={(e) => setNewClient({...newClient, address: e.target.value})} className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-phone" className="text-right text-foreground">
-                              Телефон <span className="text-destructive">*</span>
-                            </Label>
-                            <Input id="new-phone" value={newClient.phone} onChange={(e) => setNewClient({...newClient, phone: e.target.value})} className="col-span-3" required />
+                            <Label className="text-right text-foreground">Email / Телефон</Label>
+                            <div className="col-span-3 flex gap-2">
+                              <Input type="email" placeholder="Email" value={newClient.email} onChange={(e) => setNewClient({...newClient, email: e.target.value})} className="flex-1" />
+                              <Input placeholder="Телефон" value={newClient.phone} onChange={(e) => setNewClient({...newClient, phone: e.target.value})} className="flex-1" />
+                            </div>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-email" className="text-right text-foreground">
-                              Email <span className="text-destructive">*</span>
-                            </Label>
-                            <Input id="new-email" type="email" value={newClient.email} onChange={(e) => setNewClient({...newClient, email: e.target.value})} className="col-span-3" required />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-login" className="text-right text-foreground">Логин</Label>
-                            <Input id="new-login" value={newClient.login} onChange={(e) => setNewClient({...newClient, login: e.target.value})} className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-password" className="text-right text-foreground">Пароль</Label>
-                            <div className="col-span-3 relative">
-                              <Input 
-                                id="new-password" 
-                                type={showNewPassword ? "text" : "password"} 
-                                value={newClient.password} 
-                                onChange={(e) => setNewClient({...newClient, password: e.target.value})} 
-                                className="pr-10"
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                                onClick={() => setShowNewPassword(!showNewPassword)}
-                              >
-                                <Icon name={showNewPassword ? "EyeOff" : "Eye"} className="w-4 h-4 text-muted-foreground" />
-                              </Button>
+                            <Label className="text-right text-foreground">Логин / Пароль</Label>
+                            <div className="col-span-3 flex gap-2">
+                              <Input placeholder="Логин" value={newClient.login} onChange={(e) => setNewClient({...newClient, login: e.target.value})} className="flex-1" />
+                              <div className="relative flex-1">
+                                <Input
+                                  placeholder="Пароль"
+                                  type={showNewPassword ? "text" : "password"}
+                                  value={newClient.password}
+                                  onChange={(e) => setNewClient({...newClient, password: e.target.value})}
+                                  className="pr-9 w-full"
+                                />
+                                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2 hover:bg-transparent" onClick={() => setShowNewPassword(!showNewPassword)}>
+                                  <Icon name={showNewPassword ? "EyeOff" : "Eye"} className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-admin" className="text-right text-foreground">Это администратор</Label>
                             <div className="col-span-3 flex items-center">
-                              <input 
-                                id="new-admin" 
-                                type="checkbox" 
-                                checked={newClient.admin} 
-                                onChange={(e) => setNewClient({...newClient, admin: e.target.checked, operator: e.target.checked ? newClient.operator : false})} 
+                              <input
+                                id="new-admin"
+                                type="checkbox"
+                                checked={newClient.admin}
+                                onChange={(e) => setNewClient({...newClient, admin: e.target.checked, operator: e.target.checked ? newClient.operator : false})}
                                 className="w-5 h-5 accent-accent cursor-pointer"
                               />
-                              <span className="ml-3 text-sm text-muted-foreground">Отметьте, если это администратор</span>
+                              <span className="ml-3 text-sm text-muted-foreground">Доступ к панели администратора</span>
                             </div>
                           </div>
                           {newClient.admin && (
@@ -824,9 +812,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">Отмена</Button>
-                          <Button 
-                            onClick={handleCreateClient} 
-                            disabled={!newClient.inn || !newClient.phone || !newClient.email || !newClient.name || !newClient.login || !newClient.password}
+                          <Button
+                            onClick={handleCreateClient}
+                            disabled={(!newClient.inn && !newClient.admin) || !newClient.name || !newClient.password}
                             className="bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Создать
@@ -847,7 +835,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       <TableHead className="text-foreground font-bold py-2">Телефон</TableHead>
                       <TableHead className="text-foreground font-bold py-2">Email</TableHead>
                       <TableHead className="text-foreground font-bold py-2">Логин</TableHead>
-                      <TableHead className="text-foreground font-bold py-2">Тип</TableHead>
+                      <TableHead className="text-foreground font-bold py-2">Роль</TableHead>
                       <TableHead className="text-foreground font-bold py-2">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -894,9 +882,14 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <TableCell className="text-foreground py-2">{client.email}</TableCell>
                         <TableCell className="font-mono text-foreground py-2">{client.login}</TableCell>
                         <TableCell className="py-2">
-                          <Badge className={client.admin ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground'}>
-                            {client.admin ? 'Админ' : 'Клиент'}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={client.admin ? 'bg-destructive text-destructive-foreground w-fit' : 'bg-primary text-primary-foreground w-fit'}>
+                              {client.admin ? 'Админ' : 'Клиент'}
+                            </Badge>
+                            {client.operator && (
+                              <Badge className="bg-accent text-accent-foreground w-fit text-xs">Оператор</Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="py-2">
                           <div className="flex gap-1">
