@@ -115,6 +115,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         card_code = body.get('card_code', '').strip()
         quantity = body.get('quantity', 0)
+        station_id = body.get('station_id', 1)
 
         if not card_code:
             conn.close()
@@ -133,6 +134,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
 
         quantity = float(quantity)
+        station_id = int(station_id)
 
         try:
             conn.autocommit = False
@@ -175,7 +177,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"""
                     INSERT INTO card_operations
                     (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-                    VALUES ({card_id}, 1, '{operation_date}', 'заправка', {quantity}, 0, 0, 'Панель оператора')
+                    VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, 0, 0, 'Панель оператора')
                 """)
 
                 conn.commit()

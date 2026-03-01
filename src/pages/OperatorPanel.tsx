@@ -7,6 +7,14 @@ import Icon from '@/components/ui/icon';
 
 const OPERATOR_API = 'https://functions.poehali.dev/63d97170-36d0-4590-bf1f-e247777c20db';
 const AUTH_API = 'https://functions.poehali.dev/9f5ff2f8-a6c2-489f-8a85-40f260bbac9e';
+const STATIONS_API = 'https://functions.poehali.dev/80fb772c-a848-45ed-84c5-780c2b3e690c';
+
+interface Station {
+  id: number;
+  name: string;
+  code_1c: string;
+  address: string;
+}
 
 interface CardInfo {
   card_code: string;
@@ -55,12 +63,12 @@ function NumpadModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-card border-2 border-accent rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 flex flex-col gap-4">
         <div className="text-center text-muted-foreground text-lg font-medium">Введите количество (л)</div>
-
-        <div className="bg-input border-2 border-accent rounded-xl px-4 py-3 text-center font-mono font-bold text-foreground"
-          style={{ fontSize: '3rem', letterSpacing: '0.05em', minHeight: '5rem', lineHeight: 1 }}>
+        <div
+          className="bg-input border-2 border-accent rounded-xl px-4 py-3 text-center font-mono font-bold text-foreground"
+          style={{ fontSize: '3rem', letterSpacing: '0.05em', minHeight: '5rem', lineHeight: 1 }}
+        >
           {input || <span className="text-muted-foreground/50">0</span>}
         </div>
-
         <div className="grid grid-cols-3 gap-3">
           {keys.map((row, ri) =>
             row.map((k) => (
@@ -79,7 +87,6 @@ function NumpadModal({
             ))
           )}
         </div>
-
         <button
           onClick={() => press('DEL')}
           className="w-full rounded-xl border-2 border-border bg-secondary text-foreground hover:bg-muted font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
@@ -88,13 +95,8 @@ function NumpadModal({
           <Icon name="Delete" size={20} />
           Стереть
         </button>
-
         <div className="flex gap-3 mt-1">
-          <Button
-            onClick={onCancel}
-            variant="outline"
-            className="flex-1 h-14 text-lg font-bold border-2 border-border"
-          >
+          <Button onClick={onCancel} variant="outline" className="flex-1 h-14 text-lg font-bold border-2 border-border">
             Отмена
           </Button>
           <Button
@@ -114,6 +116,10 @@ export default function OperatorPanel() {
   const navigate = useNavigate();
 
   const [stage, setStage] = useState<Stage>('login');
+
+  const [stations, setStations] = useState<Station[]>([]);
+  const [stationsLoading, setStationsLoading] = useState(true);
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
@@ -135,11 +141,18 @@ export default function OperatorPanel() {
   const quantityRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (stage === 'scan' && barcodeRef.current) {
-      barcodeRef.current.focus();
+    fetch(STATIONS_API)
+      .then((r) => r.json())
+      .then((d) => setStations(d.stations || []))
+      .finally(() => setStationsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (stage === 'scan') {
+      setTimeout(() => barcodeRef.current?.focus(), 50);
     }
-    if (stage === 'card' && quantityRef.current) {
-      quantityRef.current.focus();
+    if (stage === 'card') {
+      setTimeout(() => quantityRef.current?.focus(), 50);
     }
   }, [stage]);
 
@@ -192,7 +205,7 @@ export default function OperatorPanel() {
       } else {
         setCardError(data.error || 'Карта не найдена');
         setBarcode('');
-        if (barcodeRef.current) barcodeRef.current.focus();
+        setTimeout(() => barcodeRef.current?.focus(), 50);
       }
     } catch {
       setCardError('Ошибка соединения с сервером');
@@ -216,7 +229,7 @@ export default function OperatorPanel() {
   };
 
   const handleConfirmYes = async () => {
-    if (!cardInfo) return;
+    if (!cardInfo || !selectedStation) return;
     setDispenseError('');
     setDispenseLoading(true);
     const qty = parseFloat(quantity.replace(',', '.'));
@@ -224,7 +237,11 @@ export default function OperatorPanel() {
       const res = await fetch(OPERATOR_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_code: cardInfo.card_code, quantity: qty }),
+        body: JSON.stringify({
+          card_code: cardInfo.card_code,
+          quantity: qty,
+          station_id: selectedStation.id,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -268,6 +285,29 @@ export default function OperatorPanel() {
         <Card className="w-full max-w-sm border-2 border-accent shadow-xl bg-card/95">
           <CardContent className="pt-6">
             <form onSubmit={handleLogin} className="space-y-4">
+
+              <div className="space-y-1">
+                <label className="text-sm text-foreground font-medium">АЗС</label>
+                {stationsLoading ? (
+                  <div className="h-11 flex items-center text-muted-foreground text-sm px-2">Загрузка...</div>
+                ) : (
+                  <select
+                    value={selectedStation?.id ?? ''}
+                    onChange={(e) => {
+                      const st = stations.find((s) => s.id === Number(e.target.value)) || null;
+                      setSelectedStation(st);
+                    }}
+                    required
+                    className="w-full h-11 rounded-md border-2 border-border bg-input text-foreground px-3 text-base focus:border-accent outline-none"
+                  >
+                    <option value="" disabled>Выберите АЗС...</option>
+                    {stations.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
               <div className="space-y-1">
                 <label className="text-sm text-foreground font-medium">Логин</label>
                 <Input
@@ -276,10 +316,10 @@ export default function OperatorPanel() {
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
                   className="h-11 bg-input border-2 border-border focus:border-accent text-foreground"
-                  autoFocus
                   required
                 />
               </div>
+
               <div className="space-y-1">
                 <label className="text-sm text-foreground font-medium">Пароль</label>
                 <Input
@@ -291,15 +331,17 @@ export default function OperatorPanel() {
                   required
                 />
               </div>
+
               {authError && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
                   {authError}
                 </div>
               )}
+
               <Button
                 type="submit"
-                disabled={authLoading}
-                className="w-full h-11 font-semibold bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={authLoading || !selectedStation}
+                className="w-full h-11 font-semibold bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
               >
                 {authLoading ? 'Вход...' : 'Войти'}
               </Button>
@@ -322,7 +364,15 @@ export default function OperatorPanel() {
 
       <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80">
-          <h1 className="text-2xl font-bold text-accent tracking-wide">Панель оператора</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-accent tracking-wide">Панель оператора</h1>
+            {selectedStation && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Icon name="MapPin" size={14} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground font-medium">{selectedStation.name}</span>
+              </div>
+            )}
+          </div>
           <Button
             variant="outline"
             onClick={() => navigate('/')}
