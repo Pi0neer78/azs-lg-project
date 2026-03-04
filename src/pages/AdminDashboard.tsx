@@ -439,7 +439,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
   const [newCard, setNewCard] = useState({card_code: '', card_index: 0, client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
   const [cardSuccessDialog, setCardSuccessDialog] = useState<{open: boolean, card: any}>({open: false, card: null});
-  const [cardDuplicateDialog, setCardDuplicateDialog] = useState<{open: boolean, card_code: string, card_index: number}>({open: false, card_code: '', card_index: 0});
+  const [cardDuplicateDialog, setCardDuplicateDialog] = useState<{open: boolean, card_code: string, card_index: number, source: 'create' | 'edit'}>({open: false, card_code: '', card_index: 0, source: 'create'});
   const [fuelTypeWarningDialog, setFuelTypeWarningDialog] = useState(false);
   const [filterCardClient, setFilterCardClient] = useState<string>('all');
   const [filterCardFuelType, setFilterCardFuelType] = useState<string>('all');
@@ -468,8 +468,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         loadCards();
         setIsCardDialogOpen(false);
         setEditingCard(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error updating card:', error);
+        if (error?.data?.error === 'duplicate') {
+          setIsCardDialogOpen(false);
+          setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index, source: 'edit'});
+        }
       }
     }
   };
@@ -527,7 +531,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       console.error('Error creating card:', error);
       if (error?.data?.error === 'duplicate') {
         setIsAddCardDialogOpen(false);
-        setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index});
+        setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index, source: 'create'});
       }
     }
   };
@@ -1811,7 +1815,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           </div>
           <div className="flex justify-center pb-2">
             <Button
-              onClick={() => { setCardDuplicateDialog({open: false, card_code: '', card_index: 0}); setIsAddCardDialogOpen(true); }}
+              onClick={() => {
+                const src = cardDuplicateDialog.source;
+                setCardDuplicateDialog({open: false, card_code: '', card_index: 0, source: 'create'});
+                if (src === 'edit') setIsCardDialogOpen(true);
+                else setIsAddCardDialogOpen(true);
+              }}
               className="h-12 px-8 text-lg font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               Изменить данные

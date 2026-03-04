@@ -184,40 +184,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if method == 'PUT':
             body_data = json.loads(event.get('body', '{}'))
-            card_id = body_data.get('id')
+            card_id = int(body_data.get('id', 0))
             
-            update_fields = []
-            update_values = []
+            update_parts = []
             
             if 'card_code' in body_data:
-                update_fields.append('card_code = %s')
-                update_values.append(body_data['card_code'])
+                v = str(body_data['card_code']).replace("'", "''")
+                update_parts.append(f"card_code = '{v}'")
             if 'card_index' in body_data:
-                update_fields.append('card_index = %s')
-                update_values.append(int(body_data['card_index']))
+                update_parts.append(f"card_index = {int(body_data['card_index'])}")
             if 'client_id' in body_data:
-                update_fields.append('client_id = %s')
-                update_values.append(body_data['client_id'])
+                update_parts.append(f"client_id = {int(body_data['client_id'])}")
             if 'fuel_type_id' in body_data:
-                update_fields.append('fuel_type_id = %s')
-                update_values.append(body_data['fuel_type_id'])
+                update_parts.append(f"fuel_type_id = {int(body_data['fuel_type_id'])}")
             if 'balance_liters' in body_data:
-                update_fields.append('balance_liters = %s')
-                update_values.append(body_data['balance_liters'])
+                update_parts.append(f"balance_liters = {float(body_data['balance_liters'])}")
             if 'pin_code' in body_data:
-                update_fields.append('pin_code = %s')
-                update_values.append(body_data['pin_code'])
+                v = str(body_data['pin_code']).replace("'", "''")
+                update_parts.append(f"pin_code = '{v}'")
             if 'status' in body_data:
-                update_fields.append('status = %s')
-                update_values.append(body_data['status'])
+                v = str(body_data['status']).replace("'", "''")
+                update_parts.append(f"status = '{v}'")
             if 'block_reason' in body_data:
-                update_fields.append('block_reason = %s')
-                update_values.append(body_data['block_reason'])
+                v = str(body_data['block_reason']).replace("'", "''")
+                update_parts.append(f"block_reason = '{v}'")
             if 'daily_limit' in body_data:
-                update_fields.append('daily_limit = %s')
-                update_values.append(body_data['daily_limit'])
+                update_parts.append(f"daily_limit = {float(body_data['daily_limit'])}")
             
-            if not update_fields:
+            if not update_parts:
                 cursor.close()
                 conn.close()
                 return {
@@ -227,23 +221,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            update_values.append(card_id)
-            update_query = f"""
-                UPDATE fuel_cards
-                SET {', '.join(update_fields)}
-                WHERE id = %s
-                RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
-            """
-            
-            cursor.execute(update_query, tuple(update_values))
+            try:
+                cursor.execute(f"""
+                    UPDATE fuel_cards
+                    SET {', '.join(update_parts)}
+                    WHERE id = {card_id}
+                    RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
+                """)
+            except psycopg2.errors.UniqueViolation:
+                conn.rollback()
+                new_code = body_data.get('card_code', '')
+                new_index = int(body_data.get('card_index', 0))
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 409,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'duplicate', 'card_code': new_code, 'card_index': new_index}),
+                    'isBase64Encoded': False
+                }
+
             row = cursor.fetchone()
             
             if row:
-                cursor.execute("""
+                cursor.execute(f"""
                     SELECT c.name, ft.name
                     FROM clients c, fuel_types ft
-                    WHERE c.id = %s AND ft.id = %s
-                """, (row[3], row[4]))
+                    WHERE c.id = {row[3]} AND ft.id = {row[4]}
+                """)
                 
                 names = cursor.fetchone()
                 conn.commit()

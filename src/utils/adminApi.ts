@@ -131,9 +131,11 @@ export const adminApi = {
         body: JSON.stringify(card)
       });
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Card update error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status} : ${API_URLS.cards}`);
+        const errorData = await response.json().catch(() => ({}));
+        const err = new Error(errorData.error || `HTTP ${response.status}`);
+        (err as any).status = response.status;
+        (err as any).data = errorData;
+        throw err;
       }
       return response.json();
     },
