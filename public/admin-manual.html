@@ -5,242 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Инструкция администратора - СОЮЗ</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            line-height: 1.6; color: #333;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             padding: 20px;
         }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        .section h3 {
-            color: #764ba2;
-            font-size: 1.4em;
-            margin-top: 25px;
-            margin-bottom: 15px;
-        }
-        
-        .section p {
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-        
-        .feature-box {
-            background: #f8f9ff;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        
-        .feature-box strong {
-            color: #667eea;
-            font-size: 1.1em;
-        }
-        
-        .steps {
-            counter-reset: step-counter;
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .steps li {
-            counter-increment: step-counter;
-            margin-bottom: 20px;
-            padding-left: 50px;
-            position: relative;
-        }
-        
-        .steps li:before {
-            content: counter(step-counter);
-            position: absolute;
-            left: 0;
-            top: 0;
-            background: #667eea;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        
-        .warning {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        
-        .warning strong {
-            color: #856404;
-        }
-        
-        .tip {
-            background: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        
-        .tip strong {
-            color: #0c5460;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        
-        table th,
-        table td {
-            padding: 12px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        
-        table th {
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-        }
-        
-        table tr:nth-child(even) {
-            background: #f8f9ff;
-        }
-        
-        .button-example {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 5px;
-            border-radius: 4px;
-            font-weight: 500;
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-        
-        .back-link:hover {
-            background: #764ba2;
-        }
-        
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            
-            .container {
-                box-shadow: none;
-            }
-            
-            .back-link {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .section h2 {
-                font-size: 1.4em;
-            }
-            
-            .steps li {
-                padding-left: 45px;
-            }
-        }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 40px; }
+        .section h2 { color: #667eea; font-size: 1.8em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
+        .section h3 { color: #764ba2; font-size: 1.4em; margin-top: 25px; margin-bottom: 15px; }
+        .section p { margin-bottom: 15px; text-align: justify; }
+        .feature-box { background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .feature-box strong { color: #667eea; font-size: 1.1em; }
+        .new-box { background: #f0fff4; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .new-box strong { color: #155724; font-size: 1.1em; }
+        .steps { counter-reset: step-counter; list-style: none; padding-left: 0; }
+        .steps li { counter-increment: step-counter; margin-bottom: 20px; padding-left: 50px; position: relative; }
+        .steps li:before { content: counter(step-counter); position: absolute; left: 0; top: 0; background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .warning strong { color: #856404; }
+        .tip { background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .tip strong { color: #0c5460; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        table th, table td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        table th { background: #667eea; color: white; font-weight: 600; }
+        table tr:nth-child(even) { background: #f8f9ff; }
+        .button-example { display: inline-block; padding: 6px 14px; margin: 3px; border-radius: 4px; font-weight: 500; text-align: center; font-size: 0.9em; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .code { background: #f4f4f4; border: 1px solid #ddd; border-radius: 3px; padding: 2px 6px; font-family: monospace; font-size: 0.95em; }
+        .back-link { display: inline-block; margin-top: 30px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.3s; }
+        .back-link:hover { background: #764ba2; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } .back-link { display: none; } }
+        @media (max-width: 768px) { .header h1 { font-size: 1.8em; } .content { padding: 20px; } .section h2 { font-size: 1.4em; } .steps li { padding-left: 45px; } }
     </style>
 </head>
 <body>
@@ -249,8 +54,9 @@
             <h1>⛽ СОЮЗ</h1>
             <p>Инструкция для администратора системы учёта топливных карт</p>
         </div>
-        
+
         <div class="content">
+
             <div class="section">
                 <h2>📋 Содержание</h2>
                 <ol style="padding-left: 20px;">
@@ -258,8 +64,9 @@
                     <li><a href="#clients">Управление клиентами</a></li>
                     <li><a href="#cards">Управление картами</a>
                         <ul style="padding-left: 20px; margin-top: 5px;">
-                            <li>Просмотр карт и фильтрация</li>
-                            <li>Создание карты с дневным лимитом</li>
+                            <li>Нумерация карт: код и индекс</li>
+                            <li>Просмотр и фильтрация</li>
+                            <li>Создание карты</li>
                             <li>Пополнение баланса</li>
                             <li>Блокировка и разблокировка</li>
                             <li>Редактирование и пересчёт баланса</li>
@@ -267,580 +74,241 @@
                     </li>
                     <li><a href="#operations">Управление операциями</a></li>
                     <li><a href="#stations">Управление АЗС</a></li>
-                    <li><a href="#fueltypes">Управление видами топлива</a></li>
+                    <li><a href="#fueltypes">Виды топлива и единицы измерения</a></li>
+                    <li><a href="#operator">Панель оператора</a></li>
                     <li><a href="#tips">Полезные советы и интеграция с 1С</a></li>
                 </ol>
             </div>
 
+            <!-- OVERVIEW -->
             <div class="section" id="overview">
                 <h2>1. Общий обзор системы</h2>
-                <p>
-                    Система СОЮЗ предназначена для учёта топливных карт и контроля операций по заправке. 
-                    Администратор имеет полный доступ ко всем функциям системы и может управлять клиентами, 
-                    картами, операциями, АЗС и видами топлива.
-                </p>
-                
+                <p>Система СОЮЗ предназначена для учёта топливных карт и контроля операций по заправке. Администратор имеет полный доступ ко всем функциям системы.</p>
+
                 <div class="feature-box">
                     <strong>Основные возможности:</strong>
                     <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li>Создание и редактирование клиентов</li>
-                        <li>Выпуск топливных карт с начальным балансом и дневным лимитом</li>
+                        <li>Создание и редактирование клиентов, операторов АЗС</li>
+                        <li>Выпуск топливных карт с кодом, индексом, балансом и дневным лимитом</li>
                         <li>Блокировка и разблокировка карт с указанием причины</li>
                         <li>Пополнение баланса карт</li>
                         <li>Учёт операций (заправка, пополнение, списание, оприходование)</li>
-                        <li>Автоматический пересчёт балансов</li>
+                        <li>Пересчёт балансов по истории операций</li>
                         <li>Контроль дневных лимитов заправки</li>
-                        <li>Просмотр кабинетов клиентов</li>
-                        <li>Управление справочниками (АЗС, виды топлива)</li>
+                        <li>Управление справочниками (АЗС, виды топлива с единицами измерения)</li>
+                        <li>Просмотр кабинетов клиентов из панели администратора</li>
+                        <li>Панель оператора АЗС с поддержкой сканера штрихкодов</li>
                         <li>Интеграция с 1С через API</li>
                     </ul>
                 </div>
             </div>
 
+            <!-- CLIENTS -->
             <div class="section" id="clients">
                 <h2>2. Управление клиентами</h2>
-                
-                <h3>2.1. Просмотр списка клиентов</h3>
-                <p>
-                    На вкладке <strong>"Клиенты"</strong> отображается полный список всех клиентов системы. 
-                    В таблице показаны: ИНН, название, адрес, телефон, email, логин и тип (клиент или админ).
-                </p>
-                
-                <h3>2.2. Добавление нового клиента</h3>
+
+                <h3>2.1. Просмотр и фильтрация</h3>
+                <p>На вкладке <strong>"Клиенты"</strong> отображается список клиентов. Переключатель вверху позволяет выбрать режим: <strong>Клиенты</strong> или <strong>Администраторы</strong>. Есть строка поиска по ИНН или названию.</p>
+
+                <h3>2.2. Добавление клиента</h3>
                 <ol class="steps">
-                    <li>Нажмите кнопку <span class="button-example btn-success">+ Добавить</span> в правом верхнем углу</li>
-                    <li>Заполните обязательные поля:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>ИНН</strong> — идентификационный номер налогоплательщика</li>
-                            <li><strong>Название</strong> — наименование организации</li>
-                            <li><strong>Адрес</strong> — юридический или фактический адрес</li>
-                            <li><strong>Телефон</strong> — контактный телефон</li>
-                            <li><strong>Email</strong> — электронная почта</li>
-                            <li><strong>Логин</strong> — уникальное имя для входа в систему</li>
-                            <li><strong>Пароль</strong> — пароль для входа</li>
-                        </ul>
-                    </li>
-                    <li>При необходимости отметьте галочку <strong>"Это админ"</strong>, если создаёте администратора</li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Создать</span></li>
+                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
+                    <li>Заполните поля: ИНН, Название, Адрес, Телефон, Email, Логин, Пароль</li>
+                    <li>При необходимости отметьте <strong>"Это администратор"</strong>, а для операторов АЗС — дополнительно <strong>"Оператор АЗС"</strong></li>
+                    <li>Нажмите <strong>Создать</strong></li>
                 </ol>
-                
-                <div class="warning">
-                    <strong>⚠️ Важно:</strong> Логин должен быть уникальным. Если логин уже используется, 
-                    система не позволит создать клиента.
-                </div>
-                
-                <h3>2.3. Редактирование клиента</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой карандаша <span class="button-example btn-warning">✏️</span> в строке клиента</li>
-                    <li>Измените необходимые данные</li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Сохранить</span></li>
-                </ol>
-                
-                <h3>2.4. Удаление клиента</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой корзины <span class="button-example btn-danger">🗑️</span></li>
-                    <li>Подтвердите удаление в диалоговом окне</li>
-                </ol>
-                
-                <div class="warning">
-                    <strong>⚠️ Внимание:</strong> Удаление клиента необратимо. Убедитесь, что у клиента нет активных карт.
-                </div>
-                
-                <h3>2.5. Переход в кабинет клиента</h3>
-                <p>
-                    Нажмите на <strong>название клиента</strong> (синяя ссылка) в таблице, чтобы открыть его кабинет. 
-                    В кабинете клиента вы увидите все его карты и операции. Для возврата в админпанель используйте 
-                    кнопку <span class="button-example btn-primary">← Админпанель</span>.
-                </p>
-                
-                <h3>2.6. Печать списка клиентов</h3>
-                <p>
-                    Нажмите кнопку <span class="button-example btn-primary">🖨️ Печать</span> для печати списка клиентов.
-                </p>
+
+                <h3>2.3. Ярлык для оператора</h3>
+                <p>Для учётных записей операторов доступна кнопка <strong>Ярлык для оператора</strong> (иконка ссылки). В диалоге выберите АЗС, введите пароль оператора — система сформирует ссылку, которую можно скопировать и открыть сразу в нужном режиме на планшете или ПК кассира.</p>
+
+                <h3>2.4. Просмотр кабинета клиента</h3>
+                <p>Кликните по названию клиента в таблице — откроется его кабинет от лица администратора. Кнопка <strong>"Админпанель"</strong> вернёт вас обратно.</p>
             </div>
 
+            <!-- CARDS -->
             <div class="section" id="cards">
                 <h2>3. Управление картами</h2>
-                
-                <h3>3.1. Просмотр списка карт</h3>
-                <p>
-                    На вкладке <strong>"Карты"</strong> отображаются все выпущенные топливные карты. 
-                </p>
-                
+
+                <h3>3.1. Нумерация карт: код и индекс</h3>
+                <div class="new-box">
+                    <strong>Новое: система кода/индекса</strong>
+                    <p style="margin-top: 8px;">Каждая карта идентифицируется парой <strong>код / индекс</strong>, например <span class="code">0002/1</span>. Это позволяет выпускать несколько карт с одинаковым кодом (например, для разных видов топлива одного клиента):</p>
+                    <ul style="margin-top: 8px; padding-left: 20px;">
+                        <li><span class="code">0002/0</span> и <span class="code">0002/1</span> — допустимо</li>
+                        <li><span class="code">0002/1</span> и <span class="code">0002/1</span> — <strong>недопустимо</strong>, система выдаст предупреждение</li>
+                    </ul>
+                    <p style="margin-top: 8px;">Индекс — число от 0 до 9. При стандартном использовании оставляйте индекс <strong>0</strong>.</p>
+                </div>
+
+                <h3>3.2. Просмотр и фильтрация</h3>
+                <p>Вкладка <strong>"Карты"</strong> содержит три фильтра:</p>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Столбец</th>
-                            <th>Описание</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Код карты</strong></td>
-                            <td>Уникальный номер карты</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Клиент</strong></td>
-                            <td>Владелец карты</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Вид топлива</strong></td>
-                            <td>Тип топлива для карты (АИ-92, АИ-95, ДТ и т.д.)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Баланс (л)</strong></td>
-                            <td>Текущий баланс карты в литрах</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Дневной лимит (л)</strong></td>
-                            <td>Максимальное количество литров для заправки за день. "Без лимита" = нет ограничений</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Статус</strong></td>
-                            <td>Статус карты (активна / заблокирована). Для заблокированной карты отображается причина блокировки</td>
-                        </tr>
-                        <tr>
-                            <td><strong>PIN-код</strong></td>
-                            <td>Секретный код карты</td>
-                        </tr>
-                    </tbody>
+                    <tr><th>Фильтр</th><th>Описание</th></tr>
+                    <tr><td>Код карты</td><td>Текстовый ввод — фильтрует по вхождению кода (например, введите «0002» чтобы увидеть все карты с этим кодом)</td></tr>
+                    <tr><td>Клиент</td><td>Выбор из списка клиентов</td></tr>
+                    <tr><td>Вид топлива</td><td>Выбор из списка видов топлива</td></tr>
                 </table>
-                
-                <div class="feature-box">
-                    <strong>Фильтрация карт:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li><strong>По клиенту</strong> — выберите клиента из выпадающего списка</li>
-                        <li><strong>По виду топлива</strong> — выберите тип топлива (АИ-92, АИ-95, ДТ и т.д.)</li>
-                    </ul>
-                </div>
-                
-                <h3>3.2. Создание новой карты</h3>
+                <p>Таблица карт отображает код/индекс, клиента, вид топлива, баланс, дневной лимит, статус и PIN-код. Единицы измерения (л, ₽, кг, шт) берутся из настроек вида топлива.</p>
+
+                <h3>3.3. Создание карты</h3>
                 <ol class="steps">
-                    <li>Нажмите кнопку <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Заполните поля:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Код карты</strong> — уникальный номер карты</li>
-                            <li><strong>Клиент</strong> — выберите владельца карты</li>
-                            <li><strong>Вид топлива</strong> — выберите тип топлива</li>
-                            <li><strong>Баланс (л)</strong> — начальный баланс в литрах</li>
-                            <li><strong>PIN-код</strong> — секретный код карты</li>
-                            <li><strong>Дневной лимит (л)</strong> — максимальное количество литров для заправки в день (0 = без ограничений)</li>
-                        </ul>
-                    </li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Создать</span></li>
+                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
+                    <li>Введите <strong>Код карты</strong> (4 цифры, например <span class="code">0005</span>)</li>
+                    <li>Выберите <strong>Индекс</strong> (0–9). В списке отображается итоговый вид карты: <span class="code">0005/0</span></li>
+                    <li>Выберите <strong>Клиента</strong> и <strong>Вид топлива</strong></li>
+                    <li>Укажите <strong>Начальный баланс</strong> (если > 0, автоматически создаётся операция пополнения)</li>
+                    <li>Введите <strong>PIN-код</strong> и при необходимости <strong>Дневной лимит</strong></li>
+                    <li>Нажмите <strong>Создать</strong></li>
                 </ol>
-                
-                <div class="tip">
-                    <strong>💡 Совет:</strong> Если вы укажете начальный баланс больше 0, система автоматически 
-                    создаст операцию пополнения со Склада с комментарием "Первоначальное пополнение карты". 
-                    Новая карта создаётся со статусом "активна".
-                </div>
-                
-                <div class="feature-box">
-                    <strong>О дневном лимите:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li><strong>0</strong> — карта работает без ограничений по дневным заправкам</li>
-                        <li><strong>Больше 0</strong> — максимальное количество литров, которое можно заправить за текущий день</li>
-                        <li>Система автоматически рассчитывает доступный баланс с учётом всех заправок за день</li>
-                        <li>Используется для интеграции с 1С и контроля расхода топлива</li>
-                    </ul>
-                </div>
-                
-                <p style="margin-top: 20px;">
-                    После создания откроется окно с информацией о новой карте, включая все введённые данные 
-                    и PIN-код. Обязательно сохраните или запишите PIN-код!
-                </p>
-                
-                <h3>3.3. Пополнение баланса карты</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой плюса <span class="button-example btn-primary">➕</span> в действиях карты</li>
-                    <li>Откроется окно с информацией о карте (клиент, номер, вид топлива, текущий баланс)</li>
-                    <li>Введите данные пополнения:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Количество (литров)</strong> — объём пополнения</li>
-                            <li><strong>Цена (руб/л)</strong> — цена за литр</li>
-                            <li><strong>Сумма (руб)</strong> — общая сумма</li>
-                            <li><strong>Комментарий</strong> — пояснение к операции (необязательно)</li>
-                        </ul>
-                    </li>
-                    <li>Поля автоматически пересчитываются: если вы введёте количество и цену, сумма рассчитается автоматически</li>
-                    <li>Нажмите кнопку <span class="button-example btn-primary">➕ Пополнить</span></li>
-                </ol>
-                
-                <div class="feature-box">
-                    <strong>Что происходит при пополнении:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li>Создаётся операция с типом "пополнение" со Склада</li>
-                        <li>Баланс карты увеличивается на указанное количество литров</li>
-                        <li>Появляется окно подтверждения с новым балансом и весёлой иконкой</li>
-                    </ul>
-                </div>
-                
-                <h3>3.4. Блокировка и разблокировка карты</h3>
-                <p>
-                    Функция блокировки позволяет временно запретить использование карты без её удаления.
-                </p>
-                
-                <h4>Блокировка карты:</h4>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой замка <span class="button-example btn-danger">🔒</span> напротив активной карты</li>
-                    <li>В открывшемся окне введите <strong>причину блокировки</strong> (обязательное поле)</li>
-                    <li>Нажмите кнопку <span class="button-example btn-danger">🔒 Заблокировать</span></li>
-                </ol>
-                
-                <h4>Разблокировка карты:</h4>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой открытого замка <span class="button-example btn-primary">🔓</span> напротив заблокированной карты</li>
-                    <li>Подтвердите разблокировку в открывшемся окне</li>
-                    <li>Нажмите кнопку <span class="button-example btn-primary">🔓 Разблокировать</span></li>
-                </ol>
-                
-                <div class="feature-box">
-                    <strong>Особенности блокировки:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li>Заблокированная карта не может использоваться для заправки</li>
-                        <li>Статус карты изменяется на "заблокирована" и отображается красным цветом</li>
-                        <li>Причина блокировки сохраняется и отображается в таблице карт</li>
-                        <li>История операций по заблокированной карте сохраняется</li>
-                        <li>Баланс карты остаётся неизменным</li>
-                        <li>Карту можно разблокировать в любой момент</li>
-                    </ul>
-                </div>
-                
-                <h3>3.5. Редактирование карты</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой карандаша <span class="button-example btn-warning">✏️</span></li>
-                    <li>Измените необходимые данные:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Код карты</strong></li>
-                            <li><strong>Клиент</strong></li>
-                            <li><strong>Вид топлива</strong></li>
-                            <li><strong>Баланс</strong></li>
-                            <li><strong>PIN-код</strong></li>
-                            <li><strong>Дневной лимит</strong></li>
-                            <li><strong>Статус</strong> (активна / заблокирована)</li>
-                            <li><strong>Причина блокировки</strong> (если статус "заблокирована")</li>
-                        </ul>
-                    </li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Сохранить</span></li>
-                </ol>
-                
+
                 <div class="warning">
-                    <strong>⚠️ Важно:</strong> При изменении баланса вручную операции не создаются. 
-                    Для корректного учёта используйте функцию пополнения или пересчёта баланса.
+                    <strong>Защита от дублирования:</strong> если карта с таким кодом и индексом уже существует, появится окно с предупреждением. Нажмите <strong>"Изменить данные"</strong> чтобы вернуться к форме и выбрать другой индекс.
                 </div>
-                
-                <h3>3.6. Пересчёт баланса карты</h3>
-                <p>
-                    Эта функция пересчитывает баланс карты на основе всех операций, исключая возможные ошибки при ручном редактировании.
-                </p>
+
+                <h3>3.4. Пополнение баланса</h3>
                 <ol class="steps">
-                    <li>Нажмите кнопку с иконкой обновления <span class="button-example btn-primary">🔄</span></li>
-                    <li>Система предложит подтверждение с предупреждением</li>
-                    <li>Нажмите <span class="button-example btn-primary">🔄 Пересчитать</span></li>
-                    <li>Система покажет старый и новый баланс, а также разницу</li>
+                    <li>В строке нужной карты нажмите кнопку <span class="button-example btn-primary">+</span></li>
+                    <li>Введите количество и цену — сумма рассчитается автоматически (или наоборот)</li>
+                    <li>При необходимости добавьте комментарий</li>
+                    <li>Нажмите <strong>Пополнить</strong></li>
                 </ol>
-                
-                <div class="tip">
-                    <strong>💡 Совет:</strong> Используйте пересчёт баланса, если заметили несоответствие 
-                    между балансом карты и суммой операций.
-                </div>
-                
-                <h3>3.7. Удаление карты</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой корзины <span class="button-example btn-danger">🗑️</span></li>
-                    <li>Подтвердите удаление</li>
-                </ol>
-                
+
+                <h3>3.5. Блокировка и разблокировка</h3>
+                <p>Используйте кнопки <span class="button-example btn-danger">🔒</span> и <span class="button-example btn-primary">🔓</span> в строке карты. При блокировке обязательно укажите причину — она отобразится в кабинете клиента и в таблице карт.</p>
+
+                <h3>3.6. Редактирование карты</h3>
+                <p>Кнопка <span class="button-example btn-primary">✏️</span> открывает форму редактирования. Можно изменить код, индекс, PIN, лимит, статус. При изменении кода/индекса также срабатывает проверка на дублирование.</p>
+
                 <div class="warning">
-                    <strong>⚠️ Внимание:</strong> Удаление карты не удаляет операции по ней. 
-                    Рекомендуется сначала удалить все операции, затем карту. Если нужно временно отключить карту, используйте функцию блокировки.
+                    <strong>Важно:</strong> вид топлива можно изменить только если баланс карты равен нулю.
                 </div>
+
+                <h3>3.7. Пересчёт баланса</h3>
+                <p>Кнопка <span class="button-example btn-primary">↺</span> пересчитывает баланс карты на основе всей истории операций. Используйте при расхождении баланса с историей.</p>
             </div>
 
+            <!-- OPERATIONS -->
             <div class="section" id="operations">
                 <h2>4. Управление операциями</h2>
-                
-                <h3>4.1. Просмотр операций</h3>
-                <p>
-                    На вкладке <strong>"Операции"</strong> отображается полная история всех операций по картам. 
-                    В таблице показаны: карта, АЗС, дата, тип операции, литры, цена, сумма и комментарий.
-                </p>
-                
-                <h3>4.2. Типы операций</h3>
+
+                <h3>4.1. Типы операций</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Тип</th>
-                            <th>Описание</th>
-                            <th>Влияние на баланс</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="button-example btn-primary">Пополнение</span></td>
-                            <td>Пополнение карты со Склада</td>
-                            <td>Увеличивает баланс (+)</td>
-                        </tr>
-                        <tr>
-                            <td><span class="button-example btn-success">Заправка</span></td>
-                            <td>Заправка на АЗС</td>
-                            <td>Уменьшает баланс (-)</td>
-                        </tr>
-                        <tr>
-                            <td><span class="button-example btn-danger">Списание</span></td>
-                            <td>Списание топлива</td>
-                            <td>Уменьшает баланс (-)</td>
-                        </tr>
-                        <tr>
-                            <td><span class="button-example btn-warning" style="background: #6c757d; color: white;">Оприходование</span></td>
-                            <td>Оприходование топлива</td>
-                            <td>Увеличивает баланс (+)</td>
-                        </tr>
-                    </tbody>
+                    <tr><th>Тип</th><th>Влияние на баланс</th><th>Когда использовать</th></tr>
+                    <tr><td>Пополнение</td><td>+</td><td>Зачисление топлива на карту</td></tr>
+                    <tr><td>Заправка</td><td>−</td><td>Отпуск топлива через АЗС</td></tr>
+                    <tr><td>Списание</td><td>−</td><td>Ручное уменьшение баланса</td></tr>
+                    <tr><td>Оприходование</td><td>+</td><td>Перемещение между картами (приход)</td></tr>
                 </table>
-                
-                <h3>4.3. Фильтрация операций</h3>
-                <p>Используйте фильтры для быстрого поиска нужных операций:</p>
-                <ul style="padding-left: 20px;">
-                    <li><strong>По карте</strong> — выберите номер карты</li>
-                    <li><strong>По АЗС</strong> — выберите заправочную станцию</li>
-                    <li><strong>По типу операции</strong> — выберите тип (пополнение, заправка и т.д.)</li>
-                    <li><strong>Дата с / Дата по</strong> — укажите временной диапазон</li>
-                </ul>
-                
-                <h3>4.4. Добавление операции</h3>
+
+                <h3>4.2. Фильтрация операций</h3>
+                <p>Доступны фильтры: Карта, АЗС, Тип операции, Дата с, Дата по. Используйте их для формирования отчётов за период.</p>
+
+                <h3>4.3. Добавление операции вручную</h3>
                 <ol class="steps">
-                    <li>Нажмите кнопку <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Заполните поля:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Карта</strong> — выберите карту из списка</li>
-                            <li><strong>АЗС</strong> — выберите заправочную станцию</li>
-                            <li><strong>Дата</strong> — дата и время операции</li>
-                            <li><strong>Тип операции</strong> — выберите тип</li>
-                            <li><strong>Литры</strong> — количество топлива</li>
-                            <li><strong>Цена</strong> — цена за литр</li>
-                            <li><strong>Сумма</strong> — общая сумма операции</li>
-                            <li><strong>Комментарий</strong> — дополнительная информация</li>
-                        </ul>
-                    </li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Создать</span></li>
+                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
+                    <li>Выберите карту, АЗС, дату, тип операции</li>
+                    <li>Укажите количество, цену и сумму</li>
+                    <li>Нажмите <strong>Создать</strong></li>
                 </ol>
-                
-                <div class="warning">
-                    <strong>⚠️ Важно:</strong> После создания операции автоматически обновляется баланс карты. 
-                    Пополнение и оприходование увеличивают баланс, заправка и списание — уменьшают.
-                </div>
-                
-                <h3>4.5. Редактирование операции</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой карандаша <span class="button-example btn-warning">✏️</span></li>
-                    <li>Измените необходимые данные</li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Сохранить</span></li>
-                </ol>
-                
+
                 <div class="tip">
-                    <strong>💡 Совет:</strong> После редактирования операции рекомендуется пересчитать баланс карты 
-                    для обеспечения корректности данных.
+                    <strong>Совет:</strong> операции из панели оператора создаются автоматически. Ручное добавление используйте для корректировок и переносов.
                 </div>
-                
-                <h3>4.6. Удаление операции</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой корзины <span class="button-example btn-danger">🗑️</span></li>
-                    <li>Подтвердите удаление</li>
-                </ol>
-                
-                <div class="warning">
-                    <strong>⚠️ Внимание:</strong> После удаления операции баланс карты автоматически пересчитывается.
-                </div>
-                
-                <h3>4.7. Печать операций</h3>
-                <p>
-                    Нажмите кнопку <span class="button-example btn-primary">🖨️ Печать</span> для печати списка операций 
-                    с учётом текущих фильтров.
-                </p>
             </div>
 
+            <!-- STATIONS -->
             <div class="section" id="stations">
                 <h2>5. Управление АЗС</h2>
-                
-                <p>
-                    Справочник АЗС содержит список всех заправочных станций, на которых обслуживаются ваши карты.
-                </p>
-                
-                <h3>5.1. Добавление АЗС</h3>
-                <ol class="steps">
-                    <li>Перейдите на вкладку <strong>"АЗС"</strong></li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Заполните поля:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Наименование</strong> — название АЗС</li>
-                            <li><strong>Код 1С</strong> — код для интеграции с 1С (если используется)</li>
-                            <li><strong>Адрес</strong> — адрес расположения АЗС</li>
-                        </ul>
-                    </li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Создать</span></li>
-                </ol>
-                
-                <div class="feature-box">
-                    <strong>Специальная станция "Склад":</strong><br>
-                    Это виртуальная АЗС для операций пополнения баланса. Автоматически используется при 
-                    создании карт с начальным балансом и при пополнении через админпанель.
-                </div>
-                
-                <h3>5.2. Редактирование АЗС</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой карандаша <span class="button-example btn-warning">✏️</span></li>
-                    <li>Измените данные</li>
-                    <li>Нажмите <span class="button-example btn-success">Сохранить</span></li>
-                </ol>
-                
-                <h3>5.3. Удаление АЗС</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой корзины <span class="button-example btn-danger">🗑️</span></li>
-                    <li>Подтвердите удаление</li>
-                </ol>
-                
+                <p>Вкладка <strong>"АЗС"</strong> — справочник станций. Для каждой указываются наименование, Код 1С и адрес.</p>
+
                 <div class="warning">
-                    <strong>⚠️ Внимание:</strong> Нельзя удалить АЗС, если по ней есть операции.
+                    <strong>Важно:</strong> АЗС с названием, содержащим «Склад», используется как внутренняя точка для пополнений и перемещений. Она не отображается операторам в панели выбора АЗС.
                 </div>
             </div>
 
+            <!-- FUEL TYPES -->
             <div class="section" id="fueltypes">
-                <h2>6. Управление видами топлива</h2>
-                
-                <p>
-                    Справочник видов топлива содержит список всех типов топлива, доступных в системе.
-                </p>
-                
-                <h3>6.1. Добавление вида топлива</h3>
+                <h2>6. Виды топлива и единицы измерения</h2>
+
+                <div class="new-box">
+                    <strong>Новое: единицы измерения</strong>
+                    <p style="margin-top: 8px;">Каждый вид топлива теперь имеет поле <strong>Ед. изм.</strong>. Доступные значения:</p>
+                    <ul style="margin-top: 8px; padding-left: 20px;">
+                        <li><strong>л</strong> — литры (по умолчанию для топлива)</li>
+                        <li><strong>₽</strong> — рубли (для денежных карт)</li>
+                        <li><strong>кг</strong> — килограммы (для газа)</li>
+                        <li><strong>шт</strong> — штуки (для прочих позиций)</li>
+                    </ul>
+                    <p style="margin-top: 8px;">Выбранная единица автоматически отображается во всех балансах, лимитах и операциях — в панели администратора, кабинете клиента и панели оператора.</p>
+                </div>
+
+                <h3>Добавление вида топлива</h3>
                 <ol class="steps">
                     <li>Перейдите на вкладку <strong>"Виды топлива"</strong></li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Заполните поля:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li><strong>Название</strong> — тип топлива (например, АИ-92, АИ-95, ДТ)</li>
-                            <li><strong>Код 1С</strong> — код для интеграции с 1С (если используется)</li>
-                        </ul>
+                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
+                    <li>Введите название, код 1С и выберите единицу измерения</li>
+                    <li>Нажмите <strong>Создать</strong></li>
+                </ol>
+            </div>
+
+            <!-- OPERATOR -->
+            <div class="section" id="operator">
+                <h2>7. Панель оператора</h2>
+                <p>Панель оператора доступна по адресу <span class="code">/operator</span>. Она предназначена для работы на АЗС.</p>
+
+                <h3>7.1. Вход</h3>
+                <p>Оператор выбирает АЗС из списка, вводит логин и пароль. Сессия сохраняется, при следующем открытии страницы вход выполняется автоматически.</p>
+                <p>Для удобства администратор может сформировать <strong>ссылку-ярлык</strong> (раздел «Клиенты» → кнопка ссылки у оператора), которая открывает панель уже авторизованной.</p>
+
+                <h3>7.2. Отпуск топлива</h3>
+                <ol class="steps">
+                    <li>Поднесите штрихкод карты к сканеру или введите 4-значный код вручную</li>
+                    <li>
+                        <strong>Если найдена одна карта</strong> — сразу отображается информация по карте: код/индекс, клиент, вид топлива, баланс, лимит, доступный остаток
                     </li>
-                    <li>Нажмите кнопку <span class="button-example btn-success">Создать</span></li>
+                    <li>
+                        <strong>Если найдено несколько карт</strong> с одинаковым кодом — появляется окно выбора в виде сетки 3×3. Каждый слот показывает код/индекс, вид топлива, баланс, лимит и доступный остаток. Нажмите на нужную карту
+                    </li>
+                    <li>Введите количество для отпуска — с клавиатуры или через экранный цифровой блок</li>
+                    <li>Нажмите <strong>"Отпустить топливо"</strong> и подтвердите действие</li>
                 </ol>
-                
-                <h3>6.2. Редактирование вида топлива</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой карандаша <span class="button-example btn-warning">✏️</span></li>
-                    <li>Измените данные</li>
-                    <li>Нажмите <span class="button-example btn-success">Сохранить</span></li>
-                </ol>
-                
-                <h3>6.3. Удаление вида топлива</h3>
-                <ol class="steps">
-                    <li>Нажмите кнопку с иконкой корзины <span class="button-example btn-danger">🗑️</span></li>
-                    <li>Подтвердите удаление</li>
-                </ol>
-                
+
+                <div class="tip">
+                    <strong>Единицы измерения в панели оператора</strong> соответствуют настройкам вида топлива карты. Для литрового топлива — «л», для рублёвых карт — «₽» и т.д.
+                </div>
+
                 <div class="warning">
-                    <strong>⚠️ Внимание:</strong> Нельзя удалить вид топлива, если на него выпущены карты.
+                    <strong>Карта 0000</strong> является системной и не может быть использована для отпуска топлива через панель оператора.
                 </div>
             </div>
 
+            <!-- TIPS -->
             <div class="section" id="tips">
-                <h2>7. Полезные советы</h2>
-                
-                <h3>7.1. Рекомендации по работе</h3>
-                <div class="tip">
-                    <strong>💡 Последовательность настройки системы:</strong>
-                    <ol style="margin-top: 10px; padding-left: 20px;">
-                        <li>Создайте виды топлива (АИ-92, АИ-95, ДТ)</li>
-                        <li>Добавьте АЗС</li>
-                        <li>Создайте клиентов</li>
-                        <li>Выпустите карты с начальным балансом</li>
-                        <li>Начните учёт операций</li>
-                    </ol>
-                </div>
-                
-                <h3>7.2. Контроль балансов</h3>
-                <ul style="padding-left: 20px;">
-                    <li>Регулярно проверяйте соответствие балансов карт и операций</li>
-                    <li>При несоответствиях используйте функцию пересчёта баланса</li>
-                    <li>Избегайте ручного изменения баланса карты — используйте операции</li>
-                </ul>
-                
-                <h3>7.3. Безопасность</h3>
-                <ul style="padding-left: 20px;">
-                    <li>Используйте сложные пароли для клиентов</li>
-                    <li>Регулярно меняйте пароли администраторов</li>
-                    <li>Не передавайте PIN-коды карт по незащищённым каналам</li>
-                    <li>Регулярно делайте резервные копии данных</li>
-                </ul>
-                
-                <h3>7.4. Печать документов</h3>
-                <p>
-                    Во всех разделах доступна кнопка "Печать". При печати:
-                </p>
-                <ul style="padding-left: 20px;">
-                    <li>Скрываются элементы управления (кнопки, фильтры)</li>
-                    <li>Оптимизируется вёрстка для печати на бумаге</li>
-                    <li>Сохраняются текущие фильтры и сортировка</li>
-                </ul>
-                
-                <h3>7.5. Интеграция с 1С</h3>
-                <p>
-                    Система СОЮЗ предоставляет API для интеграции с 1С и другими внешними системами.
-                </p>
-                
-                <div class="feature-box">
-                    <strong>Доступные API-функции для 1С:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li><strong>Проверка баланса карты</strong> — получение текущего баланса, доступного баланса (с учётом дневного лимита), типа топлива, данных клиента</li>
-                        <li><strong>Выполнение заправки</strong> — списание топлива с карты, автоматический пересчёт баланса, запись операции в историю</li>
-                    </ul>
-                </div>
-                
-                <h4>Дневной лимит и доступный баланс:</h4>
-                <p>
-                    Система автоматически рассчитывает доступный баланс для каждой карты:
-                </p>
-                <ul style="padding-left: 20px;">
-                    <li>Если <strong>дневной лимит = 0</strong> → доступный баланс равен полному балансу карты</li>
-                    <li>Если <strong>дневной лимит > 0</strong> → доступный баланс = минимум из (баланс карты, дневной лимит - заправки за сегодня)</li>
-                    <li>При интеграции с 1С используйте значение <strong>"available_balance"</strong> для определения максимально возможной заправки</li>
-                    <li>Все заправки текущего дня учитываются автоматически</li>
-                </ul>
-                
-                <div class="tip">
-                    <strong>💡 Пример работы дневного лимита:</strong><br>
-                    Карта имеет баланс 200л и дневной лимит 50л. За сегодня уже заправлено 30л.<br>
-                    Доступный баланс = min(200, 50-30) = <strong>20л</strong><br>
-                    Завтра дневной лимит обнулится, и доступный баланс снова станет 50л (или меньше, если общий баланс уменьшился).
-                </div>
-                
-                <h4>Настройка интеграции:</h4>
-                <ol class="steps">
-                    <li>Убедитесь, что поле <strong>"Код 1С"</strong> заполнено для всех АЗС</li>
-                    <li>Убедитесь, что поле <strong>"Код 1С"</strong> заполнено для всех видов топлива</li>
-                    <li>Настройте дневные лимиты для карт при необходимости</li>
-                    <li>Свяжитесь с технической поддержкой для получения API-ключей и документации по интеграции</li>
-                </ol>
-                
-                <h3>7.6. Поддержка</h3>
-                <div class="feature-box">
-                    <strong>Если возникли проблемы:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li>Проверьте правильность введённых данных</li>
-                        <li>Убедитесь, что у вас стабильное интернет-соединение</li>
-                        <li>Попробуйте обновить страницу (F5)</li>
-                        <li>Свяжитесь с технической поддержкой</li>
-                    </ul>
-                </div>
+                <h2>8. Полезные советы и интеграция с 1С</h2>
+
+                <h3>8.1. Интеграция с 1С</h3>
+                <p>Система поддерживает синхронизацию с 1С через код 1С, который указывается для каждой АЗС и каждого вида топлива. Используйте эти коды при настройке обмена данными.</p>
+
+                <h3>8.2. Печать и экспорт</h3>
+                <p>На каждой вкладке доступна кнопка <strong>Печать</strong>. В кабинете клиента и истории операций доступен <strong>Экспорт в Excel</strong>.</p>
+
+                <h3>8.3. Пересчёт баланса</h3>
+                <p>Если баланс карты не совпадает с суммой операций, используйте кнопку <strong>↺ Пересчитать баланс</strong> в строке карты. Система пересчитает баланс по всей истории и обновит значение.</p>
+
+                <h3>8.4. Рекомендации по нумерации карт</h3>
+                <table>
+                    <tr><th>Ситуация</th><th>Рекомендация</th></tr>
+                    <tr><td>Одна карта одному клиенту</td><td>Используйте индекс 0 (по умолчанию)</td></tr>
+                    <tr><td>Несколько видов топлива по одному коду</td><td>Используйте разные индексы: 0, 1, 2...</td></tr>
+                    <tr><td>Карта утеряна, нужна замена</td><td>Заблокируйте старую, создайте новую с тем же кодом и следующим индексом</td></tr>
+                </table>
+
+                <h3>8.5. Системная карта 0000</h3>
+                <p>Карта с кодом <span class="code">0000</span> используется для учёта общего баланса склада. Она отмечается специальным значком и не предназначена для отпуска через панель оператора.</p>
+
+                <a href="javascript:window.close()" class="back-link">Закрыть инструкцию</a>
             </div>
 
-            <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 2px solid #ddd;">
-                <a href="/admin" class="back-link">← Вернуться в админпанель</a>
-                <p style="margin-top: 20px; color: #999; font-size: 0.9em;">
-                    СОЮЗ © 2024 | Система учёта топливных карт
-                </p>
-            </div>
         </div>
     </div>
 </body>
