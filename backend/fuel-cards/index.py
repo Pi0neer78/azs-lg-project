@@ -136,7 +136,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     VALUES ('{card_code}', {card_index}, {client_id}, {fuel_type_id}, {balance_liters}, '{pin_code}', '{status}', '{block_reason}', {daily_limit})
                     RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
                 """)
-            except psycopg2.errors.UniqueViolation:
+            except (psycopg2.IntegrityError, psycopg2.errors.UniqueViolation):
                 conn.rollback()
                 cursor.close()
                 conn.close()
@@ -228,7 +228,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     WHERE id = {card_id}
                     RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
                 """)
-            except psycopg2.errors.UniqueViolation:
+            except (psycopg2.IntegrityError, psycopg2.errors.UniqueViolation):
                 conn.rollback()
                 new_code = body_data.get('card_code', '')
                 new_index = int(body_data.get('card_index', 0))

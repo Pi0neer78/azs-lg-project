@@ -470,9 +470,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         setEditingCard(null);
       } catch (error: any) {
         console.error('Error updating card:', error);
-        if (error?.data?.error === 'duplicate') {
+        if (error?.status === 409 || error?.data?.error === 'duplicate') {
           setIsCardDialogOpen(false);
-          setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index, source: 'edit'});
+          setCardDuplicateDialog({open: true, card_code: error.data?.card_code || editingCard?.card_code || '', card_index: error.data?.card_index ?? editingCard?.card_index ?? 0, source: 'edit'});
         }
       }
     }
@@ -529,9 +529,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setCardSuccessDialog({open: true, card: cardToShow});
     } catch (error: any) {
       console.error('Error creating card:', error);
-      if (error?.data?.error === 'duplicate') {
+      if (error?.status === 409 || error?.data?.error === 'duplicate') {
         setIsAddCardDialogOpen(false);
-        setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index, source: 'create'});
+        setCardDuplicateDialog({open: true, card_code: error.data?.card_code || newCard.card_code, card_index: error.data?.card_index ?? newCard.card_index, source: 'create'});
       }
     }
   };
