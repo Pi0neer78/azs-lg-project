@@ -109,7 +109,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 conflicts = cursor.fetchall()
                 print(f"Conflicting records: {conflicts}")
             
-            inn = body_data.get('inn', '').strip() or ''
+            inn_raw = body_data.get('inn', '').strip()
+            if not inn_raw:
+                inn = f'adm_{uuid.uuid4().hex[:12]}'
+            else:
+                inn = inn_raw
 
             cursor.execute("""
                 INSERT INTO clients (inn, name, address, phone, email, login, password, admin, operator)
