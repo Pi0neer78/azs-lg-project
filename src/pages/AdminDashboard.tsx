@@ -426,10 +426,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
 
 
+  const cardLabel = (card: {card_code: string; card_index?: number}) =>
+    `${card.card_code}/${card.card_index ?? 0}`;
+
   const [editingCard, setEditingCard] = useState<any>(null);
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
-  const [newCard, setNewCard] = useState({card_code: '', client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
+  const [newCard, setNewCard] = useState({card_code: '', card_index: 0, client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
   const [cardSuccessDialog, setCardSuccessDialog] = useState<{open: boolean, card: any}>({open: false, card: null});
   const [fuelTypeWarningDialog, setFuelTypeWarningDialog] = useState(false);
   const [filterCardClient, setFilterCardClient] = useState<string>('all');
@@ -506,10 +509,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         fuel_type: selectedFuelType.name,
         balance_liters: newCard.balance_liters,
         card_code: newCard.card_code,
+        card_index: newCard.card_index,
         pin_code: newCard.pin_code
       };
       
-      setNewCard({card_code: '', client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
+      setNewCard({card_code: '', card_index: 0, client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
       setIsAddCardDialogOpen(false);
       setCardSuccessDialog({open: true, card: cardToShow});
     } catch (error) {
@@ -945,7 +949,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-card-code" className="text-right text-foreground">Код карты</Label>
-                            <Input id="new-card-code" value={newCard.card_code} onChange={(e) => setNewCard({...newCard, card_code: e.target.value})} className="col-span-3" />
+                            <Input id="new-card-code" value={newCard.card_code} onChange={(e) => setNewCard({...newCard, card_code: e.target.value})} className="col-span-3" placeholder="например: 0001" />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-card-index" className="text-right text-foreground">Индекс</Label>
+                            <Select value={newCard.card_index.toString()} onValueChange={(v) => setNewCard({...newCard, card_index: parseInt(v)})}>
+                              <SelectTrigger id="new-card-index" className="col-span-3">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9].map(i => (
+                                  <SelectItem key={i} value={i.toString()}>{i} — код будет: {newCard.card_code || '????'}/{i}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-card-client" className="text-right text-foreground">Клиент</Label>
@@ -1049,7 +1066,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <TableCell className="font-mono py-1">
                           <div className="flex items-center gap-2">
                             <span className={card.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
-                              {card.card_code}
+                              {cardLabel(card)}
                             </span>
                             {card.card_code === '0000' && (
                               <Icon name="Wallet" size={16} className="text-accent" />
@@ -1148,7 +1165,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               <SelectContent>
                                 {cards.map((card) => (
                                   <SelectItem key={card.id} value={card.card_code}>
-                                    {card.card_code} - {card.client_name} ({card.fuel_type})
+                                    {cardLabel(card)} - {card.client_name} ({card.fuel_type})
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1295,7 +1312,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           <TableCell className="font-mono py-1">
                             <div className="flex items-center gap-2">
                               <span className={op.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
-                                {op.card_code}
+                                {cardLabel(op)}
                               </span>
                               {op.card_code === '0000' && (
                                 <Icon name="Wallet" size={16} className="text-accent" />
@@ -1638,6 +1655,19 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Input id="edit-card-code" value={editingCard.card_code} onChange={(e) => setEditingCard({...editingCard, card_code: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-index" className="text-right text-foreground">Индекс</Label>
+                <Select value={(editingCard.card_index ?? 0).toString()} onValueChange={(v) => setEditingCard({...editingCard, card_index: parseInt(v)})}>
+                  <SelectTrigger id="edit-card-index" className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0,1,2,3,4,5,6,7,8,9].map(i => (
+                      <SelectItem key={i} value={i.toString()}>{editingCard.card_code}/{i}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-card-client" className="text-right text-foreground">Клиент</Label>
                 <Input id="edit-card-client" value={editingCard.client_name} onChange={(e) => setEditingCard({...editingCard, client_name: e.target.value})} className="col-span-3" />
               </div>
@@ -1870,7 +1900,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Номер карты:</span>
-                    <span className="font-mono text-xl font-bold text-accent">{cardSuccessDialog.card.card_code}</span>
+                    <span className="font-mono text-xl font-bold text-accent">{cardLabel(cardSuccessDialog.card)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Клиент:</span>

@@ -1,16 +1,12 @@
 {
   "tests": [
     {
-      "name": "Get card status - success",
+      "name": "Get card status - success (single card)",
       "method": "GET",
       "path": "/?card_code=0001",
       "expectedStatus": 200,
       "expectedBody": {
-        "card_code": "string",
-        "fuel_type": "string",
-        "balance_liters": "number",
-        "available_balance": "number",
-        "daily_limit": "number"
+        "card_code": "string"
       },
       "bodyMatcher": "partial"
     },

@@ -17,15 +17,18 @@ interface Station {
 }
 
 interface CardInfo {
+  id: number;
   card_code: string;
+  card_index: number;
   fuel_type: string;
   balance_liters: number;
   daily_limit: number;
   available_balance: number;
   client_name: string;
+  multiple?: boolean;
 }
 
-type Stage = 'login' | 'scan' | 'card' | 'confirm';
+type Stage = 'login' | 'scan' | 'select' | 'card' | 'confirm';
 
 function NumpadModal({
   value,
@@ -129,6 +132,7 @@ export default function OperatorPanel() {
 
   const [barcode, setBarcode] = useState('');
   const [cardInfo, setCardInfo] = useState<CardInfo | null>(null);
+  const [multipleCards, setMultipleCards] = useState<CardInfo[]>([]);
   const [cardError, setCardError] = useState('');
   const [cardLoading, setCardLoading] = useState(false);
 
@@ -271,11 +275,19 @@ export default function OperatorPanel() {
       const res = await fetch(`${OPERATOR_API}?card_code=${encodeURIComponent(code)}`);
       const data = await res.json();
       if (res.ok) {
-        setCardInfo(data);
-        setQuantity('');
-        setDispenseError('');
-        setSuccessMsg('');
-        setStage('card');
+        if (data.multiple && data.cards) {
+          setMultipleCards(data.cards);
+          setQuantity('');
+          setDispenseError('');
+          setSuccessMsg('');
+          setStage('select');
+        } else {
+          setCardInfo(data);
+          setQuantity('');
+          setDispenseError('');
+          setSuccessMsg('');
+          setStage('card');
+        }
       } else {
         setCardError(data.error || 'Карта не найдена');
         setBarcode('');
@@ -312,7 +324,7 @@ export default function OperatorPanel() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          card_code: cardInfo.card_code,
+          card_id: cardInfo.id,
           quantity: qty,
           station_id: selectedStation.id,
         }),
@@ -336,12 +348,25 @@ export default function OperatorPanel() {
   const handleReset = () => {
     setBarcode('');
     setCardInfo(null);
+    setMultipleCards([]);
     setCardError('');
     setQuantity('');
     setDispenseError('');
     setSuccessMsg('');
     setStage('scan');
   };
+
+  const handleSelectCard = (card: CardInfo) => {
+    setCardInfo(card);
+    setMultipleCards([]);
+    setQuantity('');
+    setDispenseError('');
+    setSuccessMsg('');
+    setStage('card');
+  };
+
+  const cardLabel = (card: { card_code: string; card_index: number }) =>
+    `${card.card_code}/${card.card_index}`;
 
   const handleNumpadConfirm = (val: string) => {
     setQuantity(val);
@@ -515,6 +540,53 @@ export default function OperatorPanel() {
             </div>
           )}
 
+          {stage === 'select' && multipleCards.length > 0 && (
+            <div className="w-full max-w-xl flex flex-col gap-5">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-foreground">Выберите карту</h2>
+                <p className="text-muted-foreground mt-1">Найдено несколько карт с кодом <span className="font-mono text-accent font-bold">{multipleCards[0]?.card_code}</span></p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {multipleCards.map((card) => (
+                  <button
+                    key={card.id}
+                    onClick={() => handleSelectCard(card)}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-border bg-card hover:border-accent hover:bg-accent/10 active:scale-95 transition-all text-left"
+                  >
+                    <div className="font-mono text-2xl font-black text-accent">{cardLabel(card)}</div>
+                    <div className="text-sm font-semibold text-foreground text-center leading-tight">{card.fuel_type}</div>
+                    <div className="w-full border-t border-border pt-2 mt-1 space-y-0.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Баланс</span>
+                        <span className="font-bold text-foreground">{card.balance_liters.toFixed(1)} л</span>
+                      </div>
+                      {card.daily_limit > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Лимит</span>
+                          <span className="text-foreground">{card.daily_limit.toFixed(1)} л</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Доступно</span>
+                        <span className={`font-bold ${card.available_balance > 0 ? 'text-green-500' : 'text-destructive'}`}>
+                          {card.available_balance.toFixed(1)} л
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <Button
+                onClick={handleReset}
+                variant="outline"
+                className="h-12 font-bold text-lg border-2 border-border"
+              >
+                <Icon name="ArrowLeft" size={18} className="mr-2" />
+                Назад
+              </Button>
+            </div>
+          )}
+
           {(stage === 'card' || stage === 'confirm') && cardInfo && (
             <div className="w-full max-w-xl flex flex-col gap-4">
 
@@ -522,7 +594,7 @@ export default function OperatorPanel() {
                 <CardContent className="pt-5 pb-4 grid grid-cols-2 gap-y-3 gap-x-4">
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Номер карты</div>
-                    <div className="font-mono text-2xl font-bold text-accent">{cardInfo.card_code}</div>
+                    <div className="font-mono text-2xl font-bold text-accent">{cardLabel(cardInfo)}</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Клиент</div>
@@ -561,7 +633,7 @@ export default function OperatorPanel() {
                   <div className="p-5 rounded-xl bg-accent/10 border-2 border-accent text-foreground text-center text-xl font-semibold flex flex-col gap-2">
                     <div>
                       Отпустить <span className="text-accent font-bold text-2xl">{parseFloat(quantity.replace(',', '.')).toFixed(3)} л</span> на карту{' '}
-                      <span className="font-mono text-accent">{cardInfo.card_code}</span>?
+                      <span className="font-mono text-accent">{cardLabel(cardInfo)}</span>?
                     </div>
                     <div className="text-base text-muted-foreground font-normal flex flex-col gap-0.5">
                       <span><span className="font-medium text-foreground">Клиент:</span> {cardInfo.client_name}</span>

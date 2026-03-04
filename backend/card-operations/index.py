@@ -57,7 +57,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     co.amount,
                     co.comment,
                     co.fuel_card_id,
-                    co.station_id
+                    co.station_id,
+                    fc.card_index
                 FROM card_operations co
                 LEFT JOIN fuel_cards fc ON co.fuel_card_id = fc.id
                 LEFT JOIN stations s ON co.station_id = s.id
@@ -78,7 +79,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'amount': float(row[7]) if row[7] else 0.0,
                     'comment': row[8] or '',
                     'fuel_card_id': row[9],
-                    'station_id': row[10]
+                    'station_id': row[10],
+                    'card_index': row[11] if row[11] is not None else 0
                 })
             
             cursor.close()
