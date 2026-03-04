@@ -569,6 +569,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [filterOperationType, setFilterOperationType] = useState<string>('all');
   const [filterDateFrom, setFilterDateFrom] = useState<string>('');
   const [filterDateTo, setFilterDateTo] = useState<string>('');
+  const [filterOpClient, setFilterOpClient] = useState<string>('all');
+  const [filterOpFuelType, setFilterOpFuelType] = useState<string>('all');
   const [balanceChangeDialog, setBalanceChangeDialog] = useState<{open: boolean, cardCode: string, oldBalance: number, newBalance: number}>({open: false, cardCode: '', oldBalance: 0, newBalance: 0});
 
 
@@ -630,9 +632,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   const filteredOperations = operations.filter(op => {
-    if (filterCard !== 'all' && op.card_code !== filterCard) return false;
+    if (filterCard !== 'all' && `${op.card_code}/${op.card_index ?? 0}` !== filterCard) return false;
     if (filterStation !== 'all' && op.station_name !== filterStation) return false;
     if (filterOperationType !== 'all' && op.operation_type !== filterOperationType) return false;
+    if (filterOpClient !== 'all' && op.client_name !== filterOpClient) return false;
+    if (filterOpFuelType !== 'all' && op.fuel_type !== filterOpFuelType) return false;
     const matchesDateFrom = !filterDateFrom || op.operation_date >= filterDateFrom;
     const matchesDateTo = !filterDateTo || op.operation_date <= filterDateTo + ' 23:59';
     return matchesDateFrom && matchesDateTo;
@@ -642,9 +646,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const safeOpsPage = Math.min(opsPage, opsTotalPages);
   const pagedOperations = filteredOperations.slice((safeOpsPage - 1) * opsPageSize, safeOpsPage * opsPageSize);
 
-  const uniqueCardCodes = Array.from(new Set(operations.map(o => o.card_code)));
+  const uniqueCardLabels = Array.from(new Set(operations.map(o => `${o.card_code}/${o.card_index ?? 0}`))).sort();
   const uniqueStationNames = Array.from(new Set(operations.map(o => o.station_name)));
   const uniqueOperationTypes = Array.from(new Set(operations.map(o => o.operation_type)));
+  const uniqueOpClientNames = Array.from(new Set(operations.map(o => o.client_name).filter(Boolean)));
+  const uniqueOpFuelTypes = Array.from(new Set(operations.map(o => o.fuel_type).filter(Boolean)));
 
   const handlePrintClients = () => {
     window.print();
@@ -1254,7 +1260,35 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 gap-4 mb-4">
+                <div className="grid grid-cols-4 gap-3 mb-3">
+                  <div>
+                    <Label className="text-foreground">Клиент</Label>
+                    <Select value={filterOpClient} onValueChange={setFilterOpClient}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Все клиенты" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все клиенты</SelectItem>
+                        {uniqueOpClientNames.map((name) => (
+                          <SelectItem key={name} value={name}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-foreground">Вид топлива</Label>
+                    <Select value={filterOpFuelType} onValueChange={setFilterOpFuelType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Все виды" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все виды</SelectItem>
+                        {uniqueOpFuelTypes.map((ft) => (
+                          <SelectItem key={ft} value={ft}>{ft}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div>
                     <Label className="text-foreground">Карта</Label>
                     <Select value={filterCard} onValueChange={setFilterCard}>
@@ -1263,8 +1297,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Все карты</SelectItem>
-                        {uniqueCardCodes.map((code) => (
-                          <SelectItem key={code} value={code}>{code}</SelectItem>
+                        {uniqueCardLabels.map((label) => (
+                          <SelectItem key={label} value={label}>{label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1283,6 +1317,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4">
                   <div>
                     <Label className="text-foreground">Тип операции</Label>
                     <Select value={filterOperationType} onValueChange={setFilterOperationType}>
@@ -1321,10 +1357,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <TableHeader>
                       <TableRow className="border-b-2 border-border">
                         <TableHead className="text-foreground font-bold py-1">Карта</TableHead>
+                        <TableHead className="text-foreground font-bold py-1">Клиент</TableHead>
+                        <TableHead className="text-foreground font-bold py-1">Топливо</TableHead>
                         <TableHead className="text-foreground font-bold py-1">АЗС</TableHead>
                         <TableHead className="text-foreground font-bold py-1">Дата</TableHead>
                         <TableHead className="text-foreground font-bold py-1">Операция</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Литры</TableHead>
+                        <TableHead className="text-foreground font-bold py-1">Кол-во</TableHead>
                         <TableHead className="text-foreground font-bold py-1">Цена</TableHead>
                         <TableHead className="text-foreground font-bold py-1">Сумма</TableHead>
                         <TableHead className="text-foreground font-bold py-1">Комментарий</TableHead>
@@ -1344,6 +1382,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell className="text-foreground py-1 text-sm">{op.client_name}</TableCell>
+                          <TableCell className="text-foreground py-1 text-sm">{op.fuel_type}</TableCell>
                           <TableCell className="text-foreground py-1">{op.station_name}</TableCell>
                           <TableCell className="text-muted-foreground text-sm py-1">{op.operation_date}</TableCell>
                           <TableCell className="py-1">

@@ -58,10 +58,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     co.comment,
                     co.fuel_card_id,
                     co.station_id,
-                    fc.card_index
+                    fc.card_index,
+                    cl.name as client_name,
+                    ft.name as fuel_type
                 FROM card_operations co
                 LEFT JOIN fuel_cards fc ON co.fuel_card_id = fc.id
                 LEFT JOIN stations s ON co.station_id = s.id
+                LEFT JOIN clients cl ON fc.client_id = cl.id
+                LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
                 ORDER BY co.operation_date DESC, co.id DESC
             """)
             rows = cursor.fetchall()
@@ -80,7 +84,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'comment': row[8] or '',
                     'fuel_card_id': row[9],
                     'station_id': row[10],
-                    'card_index': row[11] if row[11] is not None else 0
+                    'card_index': row[11] if row[11] is not None else 0,
+                    'client_name': row[12] or '',
+                    'fuel_type': row[13] or ''
                 })
             
             cursor.close()
