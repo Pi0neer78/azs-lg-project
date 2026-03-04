@@ -26,6 +26,7 @@ interface FuelCard {
   card_code: string;
   card_index: number;
   fuel_type: string;
+  unit: string;
   balance_liters: number;
   daily_limit: number;
   status: 'активна' | 'заблокирована';
@@ -86,6 +87,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             card_code: card.card_code,
             card_index: card.card_index ?? 0,
             fuel_type: fuelType?.name || '',
+            unit: fuelType?.unit || 'л',
             balance_liters: card.balance_liters,
             daily_limit: card.daily_limit || 0,
             status: card.status || 'активна',
@@ -428,8 +430,8 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                 <TableRow className="border-b-2 border-border">
                   <TableHead className="text-foreground font-bold py-2">Номер карты</TableHead>
                   <TableHead className="text-foreground font-bold py-2">Вид топлива</TableHead>
-                  <TableHead className="text-foreground font-bold text-right py-2">Баланс (л)</TableHead>
-                  <TableHead className="text-foreground font-bold text-right py-2">Дневной лимит (л)</TableHead>
+                  <TableHead className="text-foreground font-bold text-right py-2">Баланс</TableHead>
+                  <TableHead className="text-foreground font-bold text-right py-2">Дневной лимит</TableHead>
                   <TableHead className="text-foreground font-bold py-2">Статус</TableHead>
                   <TableHead className="text-foreground font-bold text-center py-2 no-print">Действия</TableHead>
                 </TableRow>
@@ -458,9 +460,9 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                       )}
                     </TableCell>
                     <TableCell className="text-foreground py-2">{card.fuel_type}</TableCell>
-                    <TableCell className="text-right font-bold text-accent py-2">{card.balance_liters.toFixed(3)}</TableCell>
+                    <TableCell className="text-right font-bold text-accent py-2">{card.balance_liters.toFixed(3)} {card.unit}</TableCell>
                     <TableCell className="text-right text-foreground py-2">
-                      {card.daily_limit.toFixed(3)}
+                      {card.daily_limit.toFixed(3)} {card.unit}
                       <Button
                         size="sm"
                         variant="ghost"

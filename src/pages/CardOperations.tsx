@@ -25,6 +25,7 @@ interface FuelCard {
   card_code: string;
   card_index: number;
   fuel_type: string;
+  unit: string;
   balance_liters: number;
   daily_limit: number;
   status: 'активна' | 'заблокирована';
@@ -89,6 +90,7 @@ export default function CardOperations() {
             card_code: card.card_code,
             card_index: card.card_index ?? 0,
             fuel_type: fuelType?.name || '',
+            unit: fuelType?.unit || 'л',
             balance_liters: card.balance_liters,
             daily_limit: card.daily_limit || 0,
             status: card.status,
@@ -140,10 +142,10 @@ export default function CardOperations() {
       'Дата': op.operation_date,
       'АЗС': op.station_name,
       'Тип операции': op.operation_type,
-      'Количество (л)': op.quantity.toFixed(3),
-      'Цена (руб/л)': op.price,
+      [`Количество (${selectedCardData?.unit || 'л'})`]: op.quantity.toFixed(3),
+      'Цена': op.price,
       'Сумма (руб)': op.amount,
-      'Баланс после операции (л)': op.balance.toFixed(3),
+      [`Баланс после операции (${selectedCardData?.unit || 'л'})`]: op.balance.toFixed(3),
       'Комментарий': op.comment
     }));
 
@@ -241,8 +243,8 @@ export default function CardOperations() {
             <h4 style={{ margin: '5px 0', fontSize: '12pt', fontWeight: 'bold' }}>Информация о карте</h4>
             <p style={{ margin: '3px 0' }}><strong>Номер карты:</strong> {cardLabel(selectedCardData)}</p>
             <p style={{ margin: '3px 0' }}><strong>Вид топлива:</strong> {selectedCardData.fuel_type}</p>
-            <p style={{ margin: '3px 0' }}><strong>Текущий баланс:</strong> {selectedCardData.balance_liters.toFixed(3)} л</p>
-            <p style={{ margin: '3px 0' }}><strong>Дневной лимит:</strong> {selectedCardData.daily_limit.toFixed(3)} л</p>
+            <p style={{ margin: '3px 0' }}><strong>Текущий баланс:</strong> {selectedCardData.balance_liters.toFixed(3)} {selectedCardData.unit}</p>
+            <p style={{ margin: '3px 0' }}><strong>Дневной лимит:</strong> {selectedCardData.daily_limit.toFixed(3)} {selectedCardData.unit}</p>
             <p style={{ margin: '3px 0' }}><strong>Статус:</strong> {selectedCardData.status}</p>
             {selectedCardData.status === 'заблокирована' && selectedCardData.block_reason && (
               <p style={{ margin: '3px 0' }}><strong>Причина блокировки:</strong> {selectedCardData.block_reason}</p>
@@ -284,7 +286,7 @@ export default function CardOperations() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Баланс</p>
-                    <p className="text-2xl font-bold text-primary">{selectedCardData.balance_liters.toFixed(3)} л</p>
+                    <p className="text-2xl font-bold text-primary">{selectedCardData.balance_liters.toFixed(3)} {selectedCardData.unit}</p>
                   </div>
                 </>
               )}

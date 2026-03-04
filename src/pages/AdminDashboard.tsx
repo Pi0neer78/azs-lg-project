@@ -382,7 +382,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [editingFuelType, setEditingFuelType] = useState<any>(null);
   const [isFuelTypeDialogOpen, setIsFuelTypeDialogOpen] = useState(false);
   const [isAddFuelTypeDialogOpen, setIsAddFuelTypeDialogOpen] = useState(false);
-  const [newFuelType, setNewFuelType] = useState({name: '', code_1c: ''});
+  const [newFuelType, setNewFuelType] = useState({name: '', code_1c: '', unit: 'л'});
 
   const handleDeleteFuelType = async (id: number) => {
     if (confirm('Удалить вид топлива?')) {
@@ -417,7 +417,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     try {
       await adminApi.fuelTypes.create(newFuelType);
       loadFuelTypes();
-      setNewFuelType({name: '', code_1c: ''});
+      setNewFuelType({name: '', code_1c: '', unit: 'л'});
       setIsAddFuelTypeDialogOpen(false);
     } catch (error) {
       console.error('Error creating fuel type:', error);
@@ -428,6 +428,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const cardLabel = (card: {card_code: string; card_index?: number}) =>
     `${card.card_code}/${card.card_index ?? 0}`;
+
+  const getCardUnit = (card: {fuel_type_id?: number; fuel_type?: string}) => {
+    const ft = fuelTypes.find((f) => f.id === card.fuel_type_id || f.name === card.fuel_type);
+    return ft?.unit || 'л';
+  };
 
   const [editingCard, setEditingCard] = useState<any>(null);
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
@@ -995,7 +1000,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             </Select>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-card-balance" className="text-right text-foreground">Баланс (л)</Label>
+                            <Label htmlFor="new-card-balance" className="text-right text-foreground">Баланс</Label>
                             <Input id="new-card-balance" type="number" value={newCard.balance_liters} onChange={(e) => setNewCard({...newCard, balance_liters: parseFloat(e.target.value)})} className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
@@ -1003,7 +1008,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             <Input id="new-card-pin" type="password" value={newCard.pin_code} onChange={(e) => setNewCard({...newCard, pin_code: e.target.value})} className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="new-card-daily-limit" className="text-right text-foreground">Дневной лимит (л)</Label>
+                            <Label htmlFor="new-card-daily-limit" className="text-right text-foreground">Дневной лимит</Label>
                             <Input id="new-card-daily-limit" type="number" step="0.001" placeholder="0 = без лимита" value={newCard.daily_limit} onChange={(e) => setNewCard({...newCard, daily_limit: parseFloat(e.target.value) || 0})} className="col-span-3" />
                           </div>
                         </div>
@@ -1053,8 +1058,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       <TableHead className="text-foreground font-bold">Код карты</TableHead>
                       <TableHead className="text-foreground font-bold">Клиент</TableHead>
                       <TableHead className="text-foreground font-bold">Вид топлива</TableHead>
-                      <TableHead className="text-foreground font-bold">Баланс (л)</TableHead>
-                      <TableHead className="text-foreground font-bold">Дневной лимит (л)</TableHead>
+                      <TableHead className="text-foreground font-bold">Баланс</TableHead>
+                      <TableHead className="text-foreground font-bold">Дневной лимит</TableHead>
                       <TableHead className="text-foreground font-bold">Статус</TableHead>
                       <TableHead className="text-foreground font-bold">PIN-код</TableHead>
                       <TableHead className="text-foreground font-bold">Действия</TableHead>
@@ -1075,9 +1080,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         </TableCell>
                         <TableCell className="text-foreground py-1">{card.client_name}</TableCell>
                         <TableCell className="text-foreground py-1">{card.fuel_type}</TableCell>
-                        <TableCell className="font-bold text-accent py-1">{card.balance_liters.toFixed(3)}</TableCell>
+                        <TableCell className="font-bold text-accent py-1">{card.balance_liters.toFixed(3)} {getCardUnit(card)}</TableCell>
                         <TableCell className="text-foreground py-1">
-                          {card.daily_limit > 0 ? card.daily_limit.toFixed(3) : <span className="text-muted-foreground">без лимита</span>}
+                          {card.daily_limit > 0 ? `${card.daily_limit.toFixed(3)} ${getCardUnit(card)}` : <span className="text-muted-foreground">без лимита</span>}
                         </TableCell>
                         <TableCell className="py-1">
                           <Badge className={card.status === 'активна' ? 'bg-primary text-primary-foreground' : 'bg-destructive text-destructive-foreground'}>
@@ -1471,6 +1476,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             <Label htmlFor="new-fuel-code" className="text-right text-foreground">Код 1С</Label>
                             <Input id="new-fuel-code" value={newFuelType.code_1c} onChange={(e) => setNewFuelType({...newFuelType, code_1c: e.target.value})} className="col-span-3" />
                           </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-fuel-unit" className="text-right text-foreground">Ед. изм.</Label>
+                            <Select value={newFuelType.unit} onValueChange={(v) => setNewFuelType({...newFuelType, unit: v})}>
+                              <SelectTrigger id="new-fuel-unit" className="col-span-3">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="л">л — литры</SelectItem>
+                                <SelectItem value="руб">руб — рубли</SelectItem>
+                                <SelectItem value="шт">шт — штуки</SelectItem>
+                                <SelectItem value="кг">кг — килограммы</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" onClick={() => setIsAddFuelTypeDialogOpen(false)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">Отмена</Button>
@@ -1487,6 +1506,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <TableRow className="border-b-2 border-border">
                       <TableHead className="text-foreground font-bold">Название</TableHead>
                       <TableHead className="text-foreground font-bold">Код 1С</TableHead>
+                      <TableHead className="text-foreground font-bold">Ед. изм.</TableHead>
                       <TableHead className="text-foreground font-bold">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1495,6 +1515,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       <TableRow key={fuelType.id} className="border-b border-border">
                         <TableCell className="font-medium text-foreground">{fuelType.name}</TableCell>
                         <TableCell className="font-mono text-muted-foreground">{fuelType.code_1c}</TableCell>
+                        <TableCell className="font-mono text-accent font-bold">{fuelType.unit || 'л'}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => handleEditFuelType(fuelType)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
@@ -1685,7 +1706,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-card-balance" className="text-right text-foreground">Баланс (л)</Label>
+                <Label htmlFor="edit-card-balance" className="text-right text-foreground">Баланс</Label>
                 <Input id="edit-card-balance" type="number" value={editingCard.balance_liters} onChange={(e) => setEditingCard({...editingCard, balance_liters: parseFloat(e.target.value)})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -1693,7 +1714,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Input id="edit-card-pin" type="password" value={editingCard.pin_code} onChange={(e) => setEditingCard({...editingCard, pin_code: e.target.value})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-card-daily-limit" className="text-right text-foreground">Дневной лимит (л)</Label>
+                <Label htmlFor="edit-card-daily-limit" className="text-right text-foreground">Дневной лимит</Label>
                 <Input id="edit-card-daily-limit" type="number" step="0.001" placeholder="0 = без лимита" value={editingCard.daily_limit || 0} onChange={(e) => setEditingCard({...editingCard, daily_limit: parseFloat(e.target.value) || 0})} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -1829,6 +1850,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-fuel-code" className="text-right text-foreground">Код 1С</Label>
                 <Input id="edit-fuel-code" value={editingFuelType.code_1c} onChange={(e) => setEditingFuelType({...editingFuelType, code_1c: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-fuel-unit" className="text-right text-foreground">Ед. изм.</Label>
+                <Select value={editingFuelType.unit || 'л'} onValueChange={(v) => setEditingFuelType({...editingFuelType, unit: v})}>
+                  <SelectTrigger id="edit-fuel-unit" className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="л">л — литры</SelectItem>
+                    <SelectItem value="руб">руб — рубли</SelectItem>
+                    <SelectItem value="шт">шт — штуки</SelectItem>
+                    <SelectItem value="кг">кг — килограммы</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}

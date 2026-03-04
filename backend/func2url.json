@@ -3,6 +3,7 @@
   "refuel": "https://functions.poehali.dev/0dea58ba-9689-4be9-a8a2-41cb13d92611",
   "card-status": "https://functions.poehali.dev/fddadc1c-62d5-49fb-964f-4e166ae1f857",
   "card-operations": "https://functions.poehali.dev/85e04362-ba57-45bf-8226-8b92c7bea08d",
+  "fuel-types": "https://functions.poehali.dev/7f376587-531e-4810-8ccc-b25240dd48b2",
   "fuel-cards": "https://functions.poehali.dev/8159060e-0a1a-41d4-87ad-04d9b1367d78",
   "clients": "https://functions.poehali.dev/5d6b9503-f733-4035-8881-786d1f28023b",
   "auth": "https://functions.poehali.dev/9f5ff2f8-a6c2-489f-8a85-40f260bbac9e"

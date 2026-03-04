@@ -32,10 +32,12 @@ type Stage = 'login' | 'scan' | 'select' | 'card' | 'confirm';
 
 function NumpadModal({
   value,
+  unit,
   onConfirm,
   onCancel,
 }: {
   value: string;
+  unit: string;
   onConfirm: (v: string) => void;
   onCancel: () => void;
 }) {
@@ -65,7 +67,7 @@ function NumpadModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-card border-2 border-accent rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 flex flex-col gap-4">
-        <div className="text-center text-muted-foreground text-lg font-medium">Введите количество (л)</div>
+        <div className="text-center text-muted-foreground text-lg font-medium">Введите количество ({unit})</div>
         <div
           className="bg-input border-2 border-accent rounded-xl px-4 py-3 text-center font-mono font-bold text-foreground"
           style={{ fontSize: '3rem', letterSpacing: '0.05em', minHeight: '5rem', lineHeight: 1 }}
@@ -331,7 +333,7 @@ export default function OperatorPanel() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccessMsg(`Отпущено ${qty.toFixed(3)} л. Остаток: ${data.new_balance.toFixed(3)} л`);
+        setSuccessMsg(`Отпущено ${qty.toFixed(3)} ${cardInfo.fuel_type}. Остаток: ${data.new_balance.toFixed(3)} ${cardInfo.fuel_type}`);
         setTimeout(() => handleReset(), 4000);
       } else {
         setDispenseError(data.error || 'Ошибка списания');
@@ -456,6 +458,7 @@ export default function OperatorPanel() {
       {showNumpad && (
         <NumpadModal
           value={quantity}
+          unit={cardInfo?.fuel_type || 'л'}
           onConfirm={handleNumpadConfirm}
           onCancel={() => setShowNumpad(false)}
         />
@@ -558,18 +561,18 @@ export default function OperatorPanel() {
                     <div className="w-full border-t border-border pt-2 mt-1 space-y-0.5">
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Баланс</span>
-                        <span className="font-bold text-foreground">{card.balance_liters.toFixed(1)} л</span>
+                        <span className="font-bold text-foreground">{card.balance_liters.toFixed(1)} {card.fuel_type}</span>
                       </div>
                       {card.daily_limit > 0 && (
                         <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">Лимит</span>
-                          <span className="text-foreground">{card.daily_limit.toFixed(1)} л</span>
+                          <span className="text-foreground">{card.daily_limit.toFixed(1)} {card.fuel_type}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Доступно</span>
                         <span className={`font-bold ${card.available_balance > 0 ? 'text-green-500' : 'text-destructive'}`}>
-                          {card.available_balance.toFixed(1)} л
+                          {card.available_balance.toFixed(1)} {card.fuel_type}
                         </span>
                       </div>
                     </div>
@@ -606,18 +609,18 @@ export default function OperatorPanel() {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Баланс</div>
-                    <div className="text-foreground font-bold text-xl">{cardInfo.balance_liters.toFixed(3)} л</div>
+                    <div className="text-foreground font-bold text-xl">{cardInfo.balance_liters.toFixed(3)} {cardInfo.fuel_type}</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Дневной лимит</div>
                     <div className="text-foreground text-lg">
-                      {cardInfo.daily_limit > 0 ? `${cardInfo.daily_limit.toFixed(3)} л` : 'без лимита'}
+                      {cardInfo.daily_limit > 0 ? `${cardInfo.daily_limit.toFixed(3)} ${cardInfo.fuel_type}` : 'без лимита'}
                     </div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Доступно</div>
                     <div className={`font-bold text-xl ${cardInfo.available_balance > 0 ? 'text-green-500' : 'text-destructive'}`}>
-                      {cardInfo.available_balance.toFixed(3)} л
+                      {cardInfo.available_balance.toFixed(3)} {cardInfo.fuel_type}
                     </div>
                   </div>
                 </CardContent>
