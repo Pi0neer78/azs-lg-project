@@ -1,6 +1,7 @@
 import json
 import os
 import psycopg2
+import psycopg2.errors
 from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
