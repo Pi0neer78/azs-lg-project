@@ -322,11 +322,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     except psycopg2.IntegrityError as e:
         error_msg = str(e)
-        if 'card_code_card_index' in error_msg or 'unique' in error_msg.lower():
+        if 'unique' in error_msg.lower() or 'duplicate' in error_msg.lower():
+            try:
+                body_data = json.loads(event.get('body', '{}'))
+                card_code = body_data.get('card_code', '')
+                card_index = int(body_data.get('card_index', 0))
+            except Exception:
+                card_code = ''
+                card_index = 0
             return {
                 'statusCode': 409,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Карта с таким кодом и индексом уже существует'}),
+                'body': json.dumps({'error': 'duplicate', 'card_code': card_code, 'card_index': card_index}),
                 'isBase64Encoded': False
             }
         return {
