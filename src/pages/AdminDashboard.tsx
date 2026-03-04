@@ -442,6 +442,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [fuelTypeWarningDialog, setFuelTypeWarningDialog] = useState(false);
   const [filterCardClient, setFilterCardClient] = useState<string>('all');
   const [filterCardFuelType, setFilterCardFuelType] = useState<string>('all');
+  const [filterCardCode, setFilterCardCode] = useState<string>('');
 
   const handleDeleteCard = async (id: number) => {
     if (confirm('Удалить карту?')) {
@@ -535,6 +536,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     .filter(card => {
       if (filterCardClient !== 'all' && card.client_name !== filterCardClient) return false;
       if (filterCardFuelType !== 'all' && card.fuel_type !== filterCardFuelType) return false;
+      if (filterCardCode.trim() && !card.card_code.toLowerCase().includes(filterCardCode.trim().toLowerCase())) return false;
       return true;
     })
     .sort((a, b) => a.card_code.localeCompare(b.card_code));
@@ -1022,7 +1024,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <Label className="text-foreground">Код карты</Label>
+                    <Input
+                      placeholder="Поиск по коду..."
+                      value={filterCardCode}
+                      onChange={(e) => setFilterCardCode(e.target.value)}
+                      className="bg-input border-2 border-border text-foreground"
+                    />
+                  </div>
                   <div>
                     <Label className="text-foreground">Клиент</Label>
                     <Select value={filterCardClient} onValueChange={setFilterCardClient}>
