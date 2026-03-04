@@ -24,6 +24,7 @@ interface ClientData {
 interface FuelCard {
   id: number;
   card_code: string;
+  card_index: number;
   fuel_type: string;
   balance_liters: number;
   daily_limit: number;
@@ -83,6 +84,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           return {
             id: card.id,
             card_code: card.card_code,
+            card_index: card.card_index ?? 0,
             fuel_type: fuelType?.name || '',
             balance_liters: card.balance_liters,
             daily_limit: card.daily_limit || 0,
@@ -116,6 +118,9 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
   const [statusFilter, setStatusFilter] = useState<'all' | 'активна' | 'заблокирована'>('all');
   const [fuelTypeFilter, setFuelTypeFilter] = useState<string>('all');
   const [cardSearch, setCardSearch] = useState('');
+
+  const cardLabel = (card: { card_code: string; card_index: number }) =>
+    `${card.card_code}/${card.card_index}`;
 
   const handleViewCardOperations = (cardId: number) => {
     navigate(`/card-operations?cardId=${cardId}`);
@@ -199,7 +204,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             quantity: amount,
             price: avgPrice,
             amount: amount * avgPrice,
-            comment: `Перемещение на карту ${targetCard.card_code}`
+            comment: `Перемещение на карту ${cardLabel(targetCard)}`
           };
           
           const creditOperation = {
@@ -210,7 +215,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             quantity: amount,
             price: avgPrice,
             amount: amount * avgPrice,
-            comment: `Перемещение с карты ${sourceCard.card_code}`
+            comment: `Перемещение с карты ${cardLabel(sourceCard)}`
           };
           
           await Promise.all([
@@ -442,7 +447,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                     <TableCell className="font-mono py-2">
                       <div className="flex items-center gap-2">
                         <span className={card.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
-                          {card.card_code}
+                          {cardLabel(card)}
                         </span>
                         {card.card_code === '0000' && (
                           <Icon name="Wallet" size={16} className="text-accent" title="Баланс" />
@@ -534,7 +539,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           <DialogHeader>
             <DialogTitle>Заблокировать карту</DialogTitle>
             <DialogDescription>
-              Карта {selectedCard?.card_code} будет заблокирована
+              Карта {selectedCard ? cardLabel(selectedCard) : ''} будет заблокирована
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -563,7 +568,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           <DialogHeader>
             <DialogTitle>Разблокировать карту</DialogTitle>
             <DialogDescription>
-              Карта {selectedCard?.card_code} будет разблокирована
+              Карта {selectedCard ? cardLabel(selectedCard) : ''} будет разблокирована
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -590,7 +595,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           <DialogHeader>
             <DialogTitle>Переместить топливо</DialogTitle>
             <DialogDescription>
-              Перемещение топлива с карты {selectedCard?.card_code}
+              Перемещение топлива с карты {selectedCard ? cardLabel(selectedCard) : ''}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -617,7 +622,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                     <SelectContent>
                       {availableTargetCards.map((card) => (
                         <SelectItem key={card.id} value={card.id.toString()}>
-                          {card.card_code} - {card.fuel_type} (Баланс: {card.balance_liters.toFixed(2)} л)
+                          {cardLabel(card)} - {card.fuel_type} (Баланс: {card.balance_liters.toFixed(2)} л)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -656,7 +661,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           <DialogHeader>
             <DialogTitle>Изменить дневной лимит</DialogTitle>
             <DialogDescription>
-              Карта {selectedCard?.card_code}
+              Карта {selectedCard ? cardLabel(selectedCard) : ''}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
