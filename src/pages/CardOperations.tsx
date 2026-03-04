@@ -23,6 +23,7 @@ interface ClientData {
 interface FuelCard {
   id: number;
   card_code: string;
+  card_index: number;
   fuel_type: string;
   balance_liters: number;
   daily_limit: number;
@@ -86,6 +87,7 @@ export default function CardOperations() {
           setCards([{
             id: card.id,
             card_code: card.card_code,
+            card_index: card.card_index ?? 0,
             fuel_type: fuelType?.name || '',
             balance_liters: card.balance_liters,
             daily_limit: card.daily_limit || 0,
@@ -111,6 +113,9 @@ export default function CardOperations() {
   const [opsPageSize, setOpsPageSize] = useState(20);
 
   const selectedCardData = cards.find(c => c.id === selectedCard);
+
+  const cardLabel = (card: { card_code: string; card_index: number }) =>
+    `${card.card_code}/${card.card_index}`;
   
   const cardOperations = operations.filter(op => {
     const opCardId = (op as any).fuel_card_id || op.card_id;
@@ -146,7 +151,7 @@ export default function CardOperations() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Операции');
     
-    const fileName = `operations_card_${selectedCardData?.card_code}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `operations_card_${selectedCardData ? cardLabel(selectedCardData) : 'unknown'}_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
@@ -234,7 +239,7 @@ export default function CardOperations() {
         {selectedCardData && (
           <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #333', backgroundColor: '#f5f5f5' }}>
             <h4 style={{ margin: '5px 0', fontSize: '12pt', fontWeight: 'bold' }}>Информация о карте</h4>
-            <p style={{ margin: '3px 0' }}><strong>Номер карты:</strong> {selectedCardData.card_code}</p>
+            <p style={{ margin: '3px 0' }}><strong>Номер карты:</strong> {cardLabel(selectedCardData)}</p>
             <p style={{ margin: '3px 0' }}><strong>Вид топлива:</strong> {selectedCardData.fuel_type}</p>
             <p style={{ margin: '3px 0' }}><strong>Текущий баланс:</strong> {selectedCardData.balance_liters.toFixed(3)} л</p>
             <p style={{ margin: '3px 0' }}><strong>Дневной лимит:</strong> {selectedCardData.daily_limit.toFixed(3)} л</p>
@@ -271,7 +276,7 @@ export default function CardOperations() {
                 <>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Номер карты</p>
-                    <p className="text-xl font-bold text-accent">{selectedCardData.card_code}</p>
+                    <p className="text-xl font-bold text-accent">{cardLabel(selectedCardData)}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Вид топлива</p>
