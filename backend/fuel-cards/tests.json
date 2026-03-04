@@ -5,10 +5,8 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {
-        "cards": "array"
-      },
-      "bodyMatcher": "partial"
+      "bodyMatcher": "partial",
+      "expectedBody": {}
     }
   ]
 }

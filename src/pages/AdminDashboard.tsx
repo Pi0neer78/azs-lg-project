@@ -439,6 +439,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
   const [newCard, setNewCard] = useState({card_code: '', card_index: 0, client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
   const [cardSuccessDialog, setCardSuccessDialog] = useState<{open: boolean, card: any}>({open: false, card: null});
+  const [cardDuplicateDialog, setCardDuplicateDialog] = useState<{open: boolean, card_code: string, card_index: number}>({open: false, card_code: '', card_index: 0});
   const [fuelTypeWarningDialog, setFuelTypeWarningDialog] = useState(false);
   const [filterCardClient, setFilterCardClient] = useState<string>('all');
   const [filterCardFuelType, setFilterCardFuelType] = useState<string>('all');
@@ -522,8 +523,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setNewCard({card_code: '', card_index: 0, client_id: '', fuel_type_id: '', balance_liters: 0, pin_code: '', status: 'активна', block_reason: '', daily_limit: 0});
       setIsAddCardDialogOpen(false);
       setCardSuccessDialog({open: true, card: cardToShow});
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating card:', error);
+      if (error?.data?.error === 'duplicate') {
+        setIsAddCardDialogOpen(false);
+        setCardDuplicateDialog({open: true, card_code: error.data.card_code, card_index: error.data.card_index});
+      }
     }
   };
 
@@ -1775,6 +1780,41 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cardDuplicateDialog.open} onOpenChange={(open) => setCardDuplicateDialog({...cardDuplicateDialog, open})}>
+        <DialogContent className="max-w-md bg-card border-4 border-destructive">
+          <DialogHeader>
+            <div className="flex flex-col items-center gap-4 pt-2">
+              <div className="w-20 h-20 rounded-full bg-destructive/15 border-4 border-destructive flex items-center justify-center">
+                <Icon name="CreditCard" size={42} className="text-destructive" />
+              </div>
+              <DialogTitle className="text-2xl text-destructive text-center font-black uppercase tracking-wide">
+                Карта уже существует!
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="py-4 text-center space-y-3">
+            <p className="text-foreground text-lg">
+              Карта с кодом{' '}
+              <span className="font-mono font-black text-destructive text-xl">
+                {cardDuplicateDialog.card_code}/{cardDuplicateDialog.card_index}
+              </span>{' '}
+              уже зарегистрирована в системе.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Выберите другой код карты или другой индекс.
+            </p>
+          </div>
+          <div className="flex justify-center pb-2">
+            <Button
+              onClick={() => { setCardDuplicateDialog({open: false, card_code: '', card_index: 0}); setIsAddCardDialogOpen(true); }}
+              className="h-12 px-8 text-lg font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+            >
+              Изменить данные
             </Button>
           </div>
         </DialogContent>

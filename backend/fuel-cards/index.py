@@ -120,31 +120,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
             
+            card_code = body_data.get('card_code', '').replace("'", "''")
             card_index = int(body_data.get('card_index', 0))
-            
-            cursor.execute("""
-                INSERT INTO fuel_cards (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
-            """, (
-                body_data.get('card_code'),
-                card_index,
-                body_data.get('client_id'),
-                body_data.get('fuel_type_id'),
-                body_data.get('balance_liters', 0),
-                body_data.get('pin_code'),
-                body_data.get('status', 'активна'),
-                body_data.get('block_reason', ''),
-                body_data.get('daily_limit', 0)
-            ))
+            client_id = int(body_data.get('client_id', 0))
+            fuel_type_id = int(body_data.get('fuel_type_id', 0))
+            balance_liters = float(body_data.get('balance_liters', 0))
+            pin_code = str(body_data.get('pin_code', '')).replace("'", "''")
+            status = str(body_data.get('status', 'активна')).replace("'", "''")
+            block_reason = str(body_data.get('block_reason', '')).replace("'", "''")
+            daily_limit = float(body_data.get('daily_limit', 0))
+
+            try:
+                cursor.execute(f"""
+                    INSERT INTO fuel_cards (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit)
+                    VALUES ('{card_code}', {card_index}, {client_id}, {fuel_type_id}, {balance_liters}, '{pin_code}', '{status}', '{block_reason}', {daily_limit})
+                    RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
+                """)
+            except psycopg2.errors.UniqueViolation:
+                conn.rollback()
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 409,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'duplicate', 'card_code': card_code, 'card_index': card_index}),
+                    'isBase64Encoded': False
+                }
             
             row = cursor.fetchone()
             
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT c.name, ft.name
                 FROM clients c, fuel_types ft
-                WHERE c.id = %s AND ft.id = %s
-            """, (row[3], row[4]))
+                WHERE c.id = {row[3]} AND ft.id = {row[4]}
+            """)
             
             names = cursor.fetchone()
             conn.commit()

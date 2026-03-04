@@ -110,11 +110,19 @@ export const adminApi = {
       return data.cards || [];
     },
     create: async (card: any) => {
-      await fetch(API_URLS.cards, {
+      const response = await fetch(API_URLS.cards, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(card)
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const err = new Error(errorData.error || `HTTP ${response.status}`);
+        (err as any).status = response.status;
+        (err as any).data = errorData;
+        throw err;
+      }
+      return response.json();
     },
     update: async (card: any) => {
       const response = await fetch(API_URLS.cards, {
