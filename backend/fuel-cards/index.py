@@ -131,14 +131,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             block_reason = str(body_data.get('block_reason', '')).replace("'", "''")
             daily_limit = float(body_data.get('daily_limit', 0))
 
-            try:
-                cursor.execute(f"""
-                    INSERT INTO fuel_cards (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit)
-                    VALUES ('{card_code}', {card_index}, {client_id}, {fuel_type_id}, {balance_liters}, '{pin_code}', '{status}', '{block_reason}', {daily_limit})
-                    RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
-                """)
-            except (psycopg2.IntegrityError, psycopg2.errors.UniqueViolation):
-                conn.rollback()
+            cursor.execute(f"""
+                SELECT id FROM fuel_cards
+                WHERE card_code = '{card_code}' AND card_index = {card_index}
+            """)
+            if cursor.fetchone():
                 cursor.close()
                 conn.close()
                 return {
@@ -147,6 +144,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'duplicate', 'card_code': card_code, 'card_index': card_index}),
                     'isBase64Encoded': False
                 }
+
+            cursor.execute(f"""
+                    INSERT INTO fuel_cards (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit)
+                    VALUES ('{card_code}', {card_index}, {client_id}, {fuel_type_id}, {balance_liters}, '{pin_code}', '{status}', '{block_reason}', {daily_limit})
+                    RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
+                """)
             
             row = cursor.fetchone()
             
@@ -221,26 +224,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'No fields to update'}),
                     'isBase64Encoded': False
                 }
-            
-            try:
-                cursor.execute(f"""
+
+            if 'card_code' in body_data or 'card_index' in body_data:
+                new_code = str(body_data.get('card_code', '')).replace("'", "''")
+                new_index = int(body_data.get('card_index', 0))
+                if new_code:
+                    cursor.execute(f"""
+                        SELECT id FROM fuel_cards
+                        WHERE card_code = '{new_code}' AND card_index = {new_index} AND id != {card_id}
+                    """)
+                    if cursor.fetchone():
+                        cursor.close()
+                        conn.close()
+                        return {
+                            'statusCode': 409,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'duplicate', 'card_code': new_code, 'card_index': new_index}),
+                            'isBase64Encoded': False
+                        }
+
+            cursor.execute(f"""
                     UPDATE fuel_cards
                     SET {', '.join(update_parts)}
                     WHERE id = {card_id}
                     RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
                 """)
-            except (psycopg2.IntegrityError, psycopg2.errors.UniqueViolation):
-                conn.rollback()
-                new_code = body_data.get('card_code', '')
-                new_index = int(body_data.get('card_index', 0))
-                cursor.close()
-                conn.close()
-                return {
-                    'statusCode': 409,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'duplicate', 'card_code': new_code, 'card_index': new_index}),
-                    'isBase64Encoded': False
-                }
 
             row = cursor.fetchone()
             
