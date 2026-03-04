@@ -1484,7 +1484,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="л">л — литры</SelectItem>
-                                <SelectItem value="руб">руб — рубли</SelectItem>
+                                <SelectItem value="₽">₽ — рубли</SelectItem>
                                 <SelectItem value="шт">шт — штуки</SelectItem>
                                 <SelectItem value="кг">кг — килограммы</SelectItem>
                               </SelectContent>
@@ -1859,7 +1859,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="л">л — литры</SelectItem>
-                    <SelectItem value="руб">руб — рубли</SelectItem>
+                    <SelectItem value="₽">₽ — рубли</SelectItem>
                     <SelectItem value="шт">шт — штуки</SelectItem>
                     <SelectItem value="кг">кг — килограммы</SelectItem>
                   </SelectContent>
