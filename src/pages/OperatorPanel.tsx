@@ -500,6 +500,14 @@ export default function OperatorPanel() {
           </div>
           <Button
             variant="outline"
+            onClick={() => window.open('/operator-manual.html', '_blank')}
+            className="border-2 border-border text-foreground hover:bg-secondary font-bold px-6"
+          >
+            <Icon name="BookOpen" size={16} className="mr-2" />
+            Инструкция
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => { localStorage.removeItem('operator_session'); navigate('/'); }}
             className="border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold px-6"
           >

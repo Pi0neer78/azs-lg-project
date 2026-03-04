@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкция оператора - СОЮЗ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7; color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); color: #1a1a1a; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.4em; margin-bottom: 8px; }
+        .header p { font-size: 1.15em; opacity: 0.85; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 45px; }
+        .section h2 { color: #e07b00; font-size: 1.7em; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 3px solid #ffd200; }
+        .section h3 { color: #764ba2; font-size: 1.3em; margin-top: 28px; margin-bottom: 14px; }
+        .section p { margin-bottom: 14px; }
+        .big-step { display: flex; gap: 20px; margin-bottom: 28px; align-items: flex-start; }
+        .big-step .num { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a1a; font-size: 1.6em; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(247,151,30,0.4); }
+        .big-step .body { flex: 1; }
+        .big-step .body strong { font-size: 1.1em; display: block; margin-bottom: 6px; color: #1a1a1a; }
+        .note { background: #fff8e1; border-left: 4px solid #ffc107; padding: 14px 18px; margin: 18px 0; border-radius: 6px; }
+        .note strong { color: #7d5900; }
+        .ok { background: #e8f5e9; border-left: 4px solid #43a047; padding: 14px 18px; margin: 18px 0; border-radius: 6px; }
+        .ok strong { color: #1b5e20; }
+        .danger { background: #ffeaea; border-left: 4px solid #e53935; padding: 14px 18px; margin: 18px 0; border-radius: 6px; }
+        .danger strong { color: #7f0000; }
+        .tip { background: #e3f2fd; border-left: 4px solid #1e88e5; padding: 14px 18px; margin: 18px 0; border-radius: 6px; }
+        .tip strong { color: #0d47a1; }
+        .code { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 3px 8px; font-family: monospace; font-size: 1em; font-weight: bold; }
+        .screen { background: #1a1a2e; color: #eee; border-radius: 10px; padding: 20px 24px; margin: 18px 0; font-family: monospace; font-size: 0.95em; line-height: 1.9; }
+        .screen .label { color: #aaa; font-size: 0.85em; }
+        .screen .value { color: #ffd200; font-weight: bold; font-size: 1.1em; }
+        .screen .green { color: #69f0ae; font-weight: bold; }
+        .screen .red { color: #ff5252; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        table th, table td { padding: 11px 14px; text-align: left; border: 1px solid #e0e0e0; }
+        table th { background: #f7971e; color: white; font-weight: 600; }
+        table tr:nth-child(even) { background: #fffde7; }
+        .back-link { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #f7971e; color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 1.05em; }
+        .back-link:hover { background: #e07b00; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } .back-link { display: none; } }
+        @media (max-width: 600px) { .header h1 { font-size: 1.7em; } .content { padding: 20px; } .big-step .num { width: 40px; height: 40px; font-size: 1.2em; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⛽ Инструкция оператора АЗС</h1>
+        <p>Система учёта топливных карт СОЮЗ</p>
+    </div>
+
+    <div class="content">
+
+        <div class="section">
+            <h2>📋 Содержание</h2>
+            <ol style="padding-left: 22px; line-height: 2.2;">
+                <li><a href="#login">Вход в систему</a></li>
+                <li><a href="#scan">Приём карты от клиента</a></li>
+                <li><a href="#multi">Несколько карт с одним кодом</a></li>
+                <li><a href="#dispense">Ввод количества и отпуск</a></li>
+                <li><a href="#errors">Возможные ошибки и их решение</a></li>
+                <li><a href="#examples">Примеры работы</a></li>
+                <li><a href="#faq">Часто задаваемые вопросы</a></li>
+            </ol>
+        </div>
+
+        <!-- LOGIN -->
+        <div class="section" id="login">
+            <h2>1. Вход в систему</h2>
+            <p>Перед началом смены необходимо войти в панель оператора.</p>
+
+            <div class="big-step">
+                <div class="num">1</div>
+                <div class="body">
+                    <strong>Выберите вашу АЗС</strong>
+                    В выпадающем списке найдите и выберите станцию, на которой вы работаете. Не выбирайте чужую АЗС — операции запишутся на неё.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">2</div>
+                <div class="body">
+                    <strong>Введите логин и пароль</strong>
+                    Логин и пароль выдаёт администратор. Если забыли — обратитесь к нему.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">3</div>
+                <div class="body">
+                    <strong>Нажмите «Войти»</strong>
+                    Система запомнит вас. При следующем открытии страницы вход выполнится автоматически.
+                </div>
+            </div>
+
+            <div class="tip">
+                <strong>Совет:</strong> если администратор выдал вам ссылку-ярлык — используйте её. Такая ссылка открывает панель уже с выбранной АЗС и выполняет вход автоматически. Добавьте её в закладки или на рабочий стол.
+            </div>
+
+            <div class="note">
+                <strong>Выход из системы:</strong> кнопка <strong>ВЫХОД</strong> в правом верхнем углу. После выхода потребуется повторный ввод логина и пароля.
+            </div>
+        </div>
+
+        <!-- SCAN -->
+        <div class="section" id="scan">
+            <h2>2. Приём карты от клиента</h2>
+            <p>После входа вы находитесь на экране сканирования. На нём одно большое поле ввода и кнопка «Найти карту».</p>
+
+            <h3>Способ 1: сканер штрихкода</h3>
+            <div class="big-step">
+                <div class="num">1</div>
+                <div class="body">
+                    <strong>Убедитесь, что курсор находится в поле ввода</strong>
+                    При открытии экрана курсор устанавливается автоматически. Если нет — нажмите на поле.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">2</div>
+                <div class="body">
+                    <strong>Поднесите карту к сканеру</strong>
+                    Сканер автоматически считает штрихкод и отправит форму. Вводить вручную ничего не нужно.
+                </div>
+            </div>
+
+            <h3>Способ 2: ввод кода вручную</h3>
+            <div class="big-step">
+                <div class="num">1</div>
+                <div class="body">
+                    <strong>Введите 4-значный код карты</strong>
+                    Код напечатан на карте клиента. Например: <span class="code">0002</span>
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">2</div>
+                <div class="body">
+                    <strong>Нажмите «Найти карту»</strong>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>Как читается штрихкод:</strong> карта может содержать длинный штрихкод (12 и более символов). Система автоматически извлечёт из него 4-значный код карты (символы с 9 по 12). Вводить весь штрихкод вручную не нужно.
+            </div>
+
+            <div class="danger">
+                <strong>Запрещено использовать карту с кодом 0000</strong> — это системная карта склада. Если система показала такой код, сообщите администратору.
+            </div>
+        </div>
+
+        <!-- MULTI -->
+        <div class="section" id="multi">
+            <h2>3. Несколько карт с одним кодом</h2>
+            <p>Один код карты может быть присвоен нескольким картам с разными индексами (например, <span class="code">0002/0</span> и <span class="code">0002/1</span> для разных видов топлива). В этом случае система покажет экран выбора.</p>
+
+            <div class="ok">
+                <strong>Как выглядит экран выбора:</strong> появляется сетка карточек. Каждая карточка показывает:
+                <ul style="margin-top: 8px; padding-left: 20px;">
+                    <li>Код/индекс карты, например <span class="code">0002/1</span></li>
+                    <li>Вид топлива (АИ-92, АИ-95, Дизель и т.д.)</li>
+                    <li>Баланс и дневной лимит</li>
+                    <li>Доступный остаток (зелёный — есть, красный — нет)</li>
+                </ul>
+            </div>
+
+            <div class="big-step">
+                <div class="num">1</div>
+                <div class="body">
+                    <strong>Уточните у клиента, какой вид топлива ему нужен</strong>
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">2</div>
+                <div class="body">
+                    <strong>Нажмите на нужную карточку</strong>
+                    Система перейдёт к экрану отпуска для выбранной карты.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">3</div>
+                <div class="body">
+                    <strong>Если нужно вернуться</strong> — нажмите кнопку <strong>← Назад</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISPENSE -->
+        <div class="section" id="dispense">
+            <h2>4. Ввод количества и отпуск</h2>
+            <p>После нахождения карты открывается её информация и поле ввода количества.</p>
+
+            <h3>Информация о карте</h3>
+            <div class="screen">
+                <div><span class="label">Номер карты:</span>  <span class="value">0002/0</span></div>
+                <div><span class="label">Клиент:</span>       <span class="value">ООО СОЮЗ</span></div>
+                <div><span class="label">Вид топлива:</span>  <span class="value">АИ-92</span></div>
+                <div><span class="label">Баланс:</span>       <span class="value">145.500 л</span></div>
+                <div><span class="label">Дневной лимит:</span><span class="value">50.000 л</span></div>
+                <div><span class="label">Доступно:</span>     <span class="green">32.750 л</span></div>
+            </div>
+            <p><strong>Доступно</strong> — это максимальное количество, которое можно отпустить прямо сейчас с учётом баланса и дневного лимита.</p>
+
+            <h3>Ввод количества</h3>
+            <div class="big-step">
+                <div class="num">1</div>
+                <div class="body">
+                    <strong>Введите количество с клавиатуры</strong>
+                    Используйте точку или запятую для дробной части. Например: <span class="code">32.5</span> или <span class="code">10</span>
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">2</div>
+                <div class="body">
+                    <strong>Или используйте экранный цифровой блок</strong>
+                    Нажмите кнопку <strong>Клавиши</strong> справа от поля ввода — откроется удобная цифровая клавиатура.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">3</div>
+                <div class="body">
+                    <strong>Нажмите «Отпустить топливо»</strong>
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">4</div>
+                <div class="body">
+                    <strong>Подтвердите на экране подтверждения</strong>
+                    Проверьте данные: количество, номер карты, клиента, топливо, АЗС. Нажмите <strong>«Да, отпустить»</strong>.
+                </div>
+            </div>
+            <div class="big-step">
+                <div class="num">5</div>
+                <div class="body">
+                    <strong>Дождитесь сообщения об успехе</strong>
+                    Экран покажет: «Отпущено X л. Остаток: Y л». Через несколько секунд система вернётся к сканированию автоматически.
+                </div>
+            </div>
+
+            <div class="ok">
+                <strong>Успешный результат выглядит так:</strong><br>
+                <em>«Отпущено 32.750 АИ-92. Остаток: 112.750 АИ-92»</em>
+            </div>
+
+            <div class="note">
+                <strong>Кнопка «Отмена»</strong> на любом экране возвращает к сканированию без списания топлива.
+            </div>
+        </div>
+
+        <!-- ERRORS -->
+        <div class="section" id="errors">
+            <h2>5. Возможные ошибки и их решение</h2>
+
+            <table>
+                <tr>
+                    <th>Сообщение</th>
+                    <th>Причина</th>
+                    <th>Что делать</th>
+                </tr>
+                <tr>
+                    <td>Карта не найдена</td>
+                    <td>Введён несуществующий код</td>
+                    <td>Проверьте код на карте и введите снова</td>
+                </tr>
+                <tr>
+                    <td>Карта заблокирована</td>
+                    <td>Карта заблокирована администратором</td>
+                    <td>Сообщите клиенту. Разблокировку выполняет только администратор</td>
+                </tr>
+                <tr>
+                    <td>Недостаточно топлива на карте</td>
+                    <td>Запрошено больше, чем есть на балансе</td>
+                    <td>Уменьшите количество до значения «Доступно»</td>
+                </tr>
+                <tr>
+                    <td>Превышает доступный остаток</td>
+                    <td>Превышен дневной лимит или баланс</td>
+                    <td>Введите количество не больше поля «Доступно»</td>
+                </tr>
+                <tr>
+                    <td>Недопустимый код карты</td>
+                    <td>В коде есть буквы или спецсимволы</td>
+                    <td>Код карты — только цифры. Очистите поле и введите заново</td>
+                </tr>
+                <tr>
+                    <td>Ошибка соединения с сервером</td>
+                    <td>Проблема с интернетом</td>
+                    <td>Проверьте подключение к сети и попробуйте снова</td>
+                </tr>
+            </table>
+
+            <div class="danger">
+                <strong>Если ошибка повторяется — не пытайтесь списывать вручную.</strong> Запишите данные клиента и обратитесь к администратору.
+            </div>
+        </div>
+
+        <!-- EXAMPLES -->
+        <div class="section" id="examples">
+            <h2>6. Примеры работы</h2>
+
+            <h3>Пример 1: стандартный отпуск</h3>
+            <p>Клиент подъехал, дал карту. Сканируем штрихкод. Система показала карту <span class="code">0003/0</span>, АИ-95, баланс 80 л, доступно 80 л (лимита нет). Клиент просит 40 л. Вводим <span class="code">40</span>, нажимаем «Отпустить», подтверждаем. Готово.</p>
+
+            <h3>Пример 2: дневной лимит частично израсходован</h3>
+            <p>Карта <span class="code">0001/0</span>, баланс 200 л, лимит 50 л в день. Утром уже заправляли 30 л. Поле «Доступно» показывает <strong>20 л</strong> (50 − 30 = 20). Клиент просит 50 л — вводим 20, больше нельзя. Объясните клиенту, что остаток лимита на сегодня — 20 л.</p>
+
+            <h3>Пример 3: два вида топлива по одному коду</h3>
+            <p>Клиент даёт карту, сканируем код <span class="code">0002</span>. Система показывает выбор: <span class="code">0002/0</span> (АИ-92, 100 л) и <span class="code">0002/1</span> (Дизель, 50 л). Клиент говорит «дизель» — нажимаем на карточку <span class="code">0002/1</span>. Дальше как обычно.</p>
+
+            <h3>Пример 4: карта заблокирована</h3>
+            <p>Система показала ошибку «Карта заблокирована». Сообщите клиенту: «Ваша карта заблокирована, обратитесь к менеджеру вашей компании». Сами ничего предпринимать не нужно.</p>
+
+            <h3>Пример 5: баланс равен нулю</h3>
+            <p>Поле «Доступно» показывает <strong style="color:#e53935">0.000 л</strong> (выделено красным). Кнопка «Отпустить топливо» недоступна — количество не введено или равно нулю. Сообщите клиенту, что баланс исчерпан.</p>
+        </div>
+
+        <!-- FAQ -->
+        <div class="section" id="faq">
+            <h2>7. Часто задаваемые вопросы</h2>
+
+            <h3>Что означает «код/индекс» на карте?</h3>
+            <p>Код — это 4-значный номер карты (например, <span class="code">0002</span>). Индекс — дополнительный номер (0–9), который отличает карты с одинаковым кодом. Вам нужно только сканировать или вводить код — систему сама разберётся с индексом или предложит выбор.</p>
+
+            <h3>Что значит «Баланс» и «Доступно»?</h3>
+            <table>
+                <tr><th>Поле</th><th>Что означает</th></tr>
+                <tr><td>Баланс</td><td>Общий остаток на карте</td></tr>
+                <tr><td>Дневной лимит</td><td>Максимум, который можно отпустить за сутки</td></tr>
+                <tr><td>Доступно</td><td>Сколько можно отпустить прямо сейчас (баланс, ограниченный лимитом)</td></tr>
+            </table>
+
+            <h3>Сессия завершилась сама. Что делать?</h3>
+            <p>Войдите снова с теми же логином и паролем. Если у вас есть ссылка-ярлык — просто откройте её.</p>
+
+            <h3>Ввёл не то количество и нажал «Да» — что делать?</h3>
+            <p>Сразу сообщите администратору. Он скорректирует операцию вручную. Самостоятельно ничего не исправляйте.</p>
+
+            <h3>На экране долго крутится загрузка</h3>
+            <p>Проверьте интернет-соединение. Обновите страницу (F5 или кнопка обновления браузера). Если проблема повторяется — сообщите администратору.</p>
+
+            <h3>Единица измерения не «л», а «₽» или «кг»</h3>
+            <p>Некоторые карты работают не в литрах. Всё работает так же — только в других единицах. Вводите количество в той единице, которую показывает система.</p>
+
+            <a href="javascript:window.close()" class="back-link">Закрыть инструкцию</a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
