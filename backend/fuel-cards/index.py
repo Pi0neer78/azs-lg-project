@@ -133,7 +133,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
             cursor.execute(f"""
                 SELECT id FROM fuel_cards
-                WHERE card_code = '{card_code}' AND card_index = {card_index}
+                WHERE card_code = '{card_code}' AND card_index = {card_index} AND client_id = {client_id}
             """)
             if cursor.fetchone():
                 cursor.close()
@@ -228,10 +228,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if 'card_code' in body_data or 'card_index' in body_data:
                 new_code = str(body_data.get('card_code', '')).replace("'", "''")
                 new_index = int(body_data.get('card_index', 0))
+                new_client_id = int(body_data.get('client_id', 0))
+                if not new_client_id:
+                    cursor.execute(f"SELECT client_id FROM fuel_cards WHERE id = {card_id}")
+                    row_cid = cursor.fetchone()
+                    new_client_id = row_cid[0] if row_cid else 0
                 if new_code:
                     cursor.execute(f"""
                         SELECT id FROM fuel_cards
-                        WHERE card_code = '{new_code}' AND card_index = {new_index} AND id != {card_id}
+                        WHERE card_code = '{new_code}' AND card_index = {new_index} AND client_id = {new_client_id} AND id != {card_id}
                     """)
                     if cursor.fetchone():
                         cursor.close()

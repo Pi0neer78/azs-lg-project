@@ -1,0 +1,2 @@
+ALTER TABLE fuel_cards DROP CONSTRAINT IF EXISTS fuel_cards_card_code_card_index_key;
+ALTER TABLE fuel_cards ADD CONSTRAINT fuel_cards_card_code_card_index_client_key UNIQUE (card_code, card_index, client_id);
