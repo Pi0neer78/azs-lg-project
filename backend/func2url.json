@@ -1,4 +1,5 @@
 {
+  "card-transfer": "https://functions.poehali.dev/34b0625d-9333-4a14-a32d-ecd05f6fdf30",
   "operator-dispense": "https://functions.poehali.dev/63d97170-36d0-4590-bf1f-e247777c20db",
   "refuel": "https://functions.poehali.dev/0dea58ba-9689-4be9-a8a2-41cb13d92611",
   "card-status": "https://functions.poehali.dev/fddadc1c-62d5-49fb-964f-4e166ae1f857",

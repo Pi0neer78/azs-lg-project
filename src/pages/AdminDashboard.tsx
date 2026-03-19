@@ -40,6 +40,14 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [unblockCardDialogOpen, setUnblockCardDialogOpen] = useState(false);
   const [blockCardId, setBlockCardId] = useState<number | null>(null);
   const [blockCardReason, setBlockCardReason] = useState('');
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
+  const [transferFromCardId, setTransferFromCardId] = useState<number | null>(null);
+  const [transferToCardId, setTransferToCardId] = useState<string>('');
+  const [transferDebitQty, setTransferDebitQty] = useState('');
+  const [transferCreditQty, setTransferCreditQty] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferSuccessDialog, setTransferSuccessDialog] = useState<{open: boolean, result: any}>({open: false, result: null});
 
   useEffect(() => {
     loadAllData();
@@ -326,6 +334,42 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setRecalculateDialogOpen(false);
     setRecalculateCardId(null);
     setRecalculateResult(null);
+  };
+
+  const handleTransferCard = (cardId: number) => {
+    setTransferFromCardId(cardId);
+    setTransferToCardId('');
+    setTransferDebitQty('');
+    setTransferCreditQty('');
+    setTransferDialogOpen(true);
+  };
+
+  const handleTransferConfirm = () => {
+    if (!transferFromCardId || !transferToCardId || !transferDebitQty || !transferCreditQty) return;
+    setTransferDialogOpen(false);
+    setTransferConfirmOpen(true);
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferFromCardId || !transferToCardId || !transferDebitQty || !transferCreditQty) return;
+    setTransferLoading(true);
+    try {
+      const result = await adminApi.transfer.execute({
+        from_card_id: transferFromCardId,
+        to_card_id: parseInt(transferToCardId),
+        debit_quantity: parseFloat(transferDebitQty),
+        credit_quantity: parseFloat(transferCreditQty)
+      });
+      await loadCards();
+      await loadOperations();
+      setTransferConfirmOpen(false);
+      setTransferSuccessDialog({open: true, result});
+    } catch (error) {
+      console.error('Transfer error:', error);
+      alert('Ошибка при перемещении: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
+    } finally {
+      setTransferLoading(false);
+    }
   };
 
 
@@ -1137,6 +1181,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             )}
                             <Button size="icon" variant="outline" onClick={() => handleEditCard(card)} className="h-7 w-7 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground" title="Редактировать">
                               <Icon name="Pencil" className="w-3 h-3" />
+                            </Button>
+                            <Button size="icon" variant="outline" onClick={() => handleTransferCard(card.id)} className="h-7 w-7 border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" title="Переместить топливо">
+                              <Icon name="ArrowLeftRight" className="w-3 h-3" />
                             </Button>
                             <Button size="icon" variant="outline" onClick={() => handleRecalculateBalance(card.id)} className="h-7 w-7 border-2 border-primary text-foreground hover:bg-primary hover:text-primary-foreground" title="Пересчитать баланс">
                               <Icon name="RefreshCw" className="w-3 h-3" />
@@ -2451,6 +2498,224 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог перемещения топлива — выбор параметров */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent className="max-w-lg bg-card border-2 border-accent">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Icon name="ArrowLeftRight" className="text-accent" />
+              Перемещение топлива между картами
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const fromCard = cards.find(c => c.id === transferFromCardId);
+            const toCard = cards.find(c => c.id === parseInt(transferToCardId));
+            return (
+              <div className="space-y-4 py-2">
+                {fromCard && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-accent">
+                    <div className="text-xs text-muted-foreground mb-1">Карта-источник (списание)</div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-mono font-bold text-accent">{cardLabel(fromCard)}</span>
+                      <span className="text-sm text-foreground">{fromCard.client_name}</span>
+                      <span className="text-sm font-semibold text-foreground">{fromCard.fuel_type}</span>
+                      <span className="font-bold text-primary">{fromCard.balance_liters.toFixed(3)} {getCardUnit(fromCard)}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <Label className="text-foreground">Карта-назначение (оприходование)</Label>
+                  <Select value={transferToCardId} onValueChange={setTransferToCardId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите карту назначения" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cards.filter(c => c.id !== transferFromCardId).map(c => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {cardLabel(c)} — {c.client_name} ({c.fuel_type}) / {c.balance_liters.toFixed(3)} {getCardUnit(c)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-foreground">
+                      Списать {fromCard ? `(${fromCard.fuel_type})` : ''}, л
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0.001"
+                      placeholder="0.000"
+                      value={transferDebitQty}
+                      onChange={(e) => setTransferDebitQty(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-foreground">
+                      Оприходовать {toCard ? `(${toCard.fuel_type})` : ''}, л
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0.001"
+                      placeholder="0.000"
+                      value={transferCreditQty}
+                      onChange={(e) => setTransferCreditQty(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {fromCard && transferDebitQty && parseFloat(transferDebitQty) > fromCard.balance_liters && (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-sm text-destructive flex items-center gap-2">
+                    <Icon name="AlertTriangle" size={16} />
+                    Недостаточно топлива. Баланс карты: {fromCard.balance_liters.toFixed(3)} л
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={() => setTransferDialogOpen(false)} className="border-2 border-muted text-foreground">
+                    <Icon name="X" size={16} className="mr-2" />
+                    Отмена
+                  </Button>
+                  <Button
+                    onClick={handleTransferConfirm}
+                    disabled={!transferToCardId || !transferDebitQty || !transferCreditQty || (fromCard ? parseFloat(transferDebitQty) > fromCard.balance_liters : false)}
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    <Icon name="ArrowRight" size={16} className="mr-2" />
+                    Далее
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог подтверждения перемещения */}
+      <Dialog open={transferConfirmOpen} onOpenChange={(open) => { if (!open && !transferLoading) setTransferConfirmOpen(false); }}>
+        <DialogContent className="max-w-md bg-card border-2 border-accent">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Icon name="AlertTriangle" className="text-accent" />
+              Подтвердите перемещение
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const fromCard = cards.find(c => c.id === transferFromCardId);
+            const toCard = cards.find(c => c.id === parseInt(transferToCardId));
+            if (!fromCard || !toCard) return null;
+            return (
+              <div className="space-y-4 py-2">
+                <div className="p-4 rounded-lg bg-accent/10 border-2 border-accent space-y-3">
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">Списание с карты</div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-mono font-bold text-accent text-lg">{cardLabel(fromCard)}</span>
+                      <span className="text-sm text-foreground">{fromCard.client_name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-sm">Вид топлива:</span>
+                      <span className="font-semibold">{fromCard.fuel_type}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-sm">Объём списания:</span>
+                      <span className="font-bold text-destructive text-lg">−{parseFloat(transferDebitQty || '0').toFixed(3)} л</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Баланс после:</span>
+                      <span>{(fromCard.balance_liters - parseFloat(transferDebitQty || '0')).toFixed(3)} л</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center py-1">
+                    <Icon name="ArrowDown" size={24} className="text-accent" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">Оприходование на карту</div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-mono font-bold text-accent text-lg">{cardLabel(toCard)}</span>
+                      <span className="text-sm text-foreground">{toCard.client_name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-sm">Вид топлива:</span>
+                      <span className="font-semibold">{toCard.fuel_type}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-sm">Объём оприходования:</span>
+                      <span className="font-bold text-primary text-lg">+{parseFloat(transferCreditQty || '0').toFixed(3)} л</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Баланс после:</span>
+                      <span>{(toCard.balance_liters + parseFloat(transferCreditQty || '0')).toFixed(3)} л</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={() => { setTransferConfirmOpen(false); setTransferDialogOpen(true); }} disabled={transferLoading} className="border-2 border-muted text-foreground">
+                    <Icon name="ChevronLeft" size={16} className="mr-2" />
+                    Назад
+                  </Button>
+                  <Button onClick={confirmTransfer} disabled={transferLoading} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                    {transferLoading ? <Icon name="Loader2" size={16} className="mr-2 animate-spin" /> : <Icon name="CheckCircle2" size={16} className="mr-2" />}
+                    Подтвердить
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог успешного перемещения */}
+      <Dialog open={transferSuccessDialog.open} onOpenChange={(open) => setTransferSuccessDialog({...transferSuccessDialog, open})}>
+        <DialogContent className="max-w-md bg-card border-2 border-primary">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Icon name="CheckCircle2" size={28} className="text-primary" />
+              </div>
+              <DialogTitle className="text-xl text-foreground">Перемещение выполнено!</DialogTitle>
+            </div>
+          </DialogHeader>
+          {transferSuccessDialog.result && (
+            <div className="py-2 space-y-3">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive space-y-1">
+                <div className="text-xs text-muted-foreground">Списано с карты {transferSuccessDialog.result.from_card?.label}</div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">{transferSuccessDialog.result.from_card?.client_name} / {transferSuccessDialog.result.from_card?.fuel_type}</span>
+                  <span className="font-bold text-destructive">−{parseFloat(transferDebitQty || '0').toFixed(3)} л</span>
+                </div>
+                <div className="text-xs text-muted-foreground">Новый баланс: {transferSuccessDialog.result.from_card?.new_balance?.toFixed(3)} л</div>
+              </div>
+              <div className="flex justify-center">
+                <Icon name="ArrowDown" size={20} className="text-primary" />
+              </div>
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary space-y-1">
+                <div className="text-xs text-muted-foreground">Оприходовано на карту {transferSuccessDialog.result.to_card?.label}</div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">{transferSuccessDialog.result.to_card?.client_name} / {transferSuccessDialog.result.to_card?.fuel_type}</span>
+                  <span className="font-bold text-primary">+{parseFloat(transferCreditQty || '0').toFixed(3)} л</span>
+                </div>
+                <div className="text-xs text-muted-foreground">Новый баланс: {transferSuccessDialog.result.to_card?.new_balance?.toFixed(3)} л</div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end pt-2">
+            <Button onClick={() => setTransferSuccessDialog({open: false, result: null})} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Icon name="CheckCircle2" size={16} className="mr-2" />
+              Отлично!
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

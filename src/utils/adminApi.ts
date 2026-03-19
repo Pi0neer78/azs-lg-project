@@ -4,6 +4,7 @@ const API_URLS = {
   fuelTypes: 'https://functions.poehali.dev/7f376587-531e-4810-8ccc-b25240dd48b2',
   cards: 'https://functions.poehali.dev/8159060e-0a1a-41d4-87ad-04d9b1367d78',
   operations: 'https://functions.poehali.dev/85e04362-ba57-45bf-8226-8b92c7bea08d',
+  transfer: 'https://functions.poehali.dev/34b0625d-9333-4a14-a32d-ecd05f6fdf30',
 };
 
 export const adminApi = {
@@ -170,6 +171,26 @@ export const adminApi = {
       await fetch(`${API_URLS.operations}?id=${id}`, {
         method: 'DELETE'
       });
+    }
+  },
+
+  transfer: {
+    execute: async (params: {
+      from_card_id: number;
+      to_card_id: number;
+      debit_quantity: number;
+      credit_quantity: number;
+    }) => {
+      const response = await fetch(API_URLS.transfer, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return response.json();
     }
   }
 };
