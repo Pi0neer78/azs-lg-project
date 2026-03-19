@@ -105,19 +105,23 @@ def handler(event: dict, context) -> dict:
     from_label = f"{from_card_code}/{from_card_index}"
     to_label = f"{to_card_code}/{to_card_index}"
 
-    debit_comment = f"Перемещение: списание {debit_quantity:.3f} л ({from_fuel_type}) → карта {to_label} ({to_client})"
-    credit_comment = f"Перемещение: оприходование {credit_quantity:.3f} л ({to_fuel_type}), списано с карты {from_label} ({from_client}) {debit_quantity:.3f} л ({from_fuel_type})"
+    cursor.execute("SELECT id FROM stations WHERE name = 'Склад' LIMIT 1")
+    sklat_row = cursor.fetchone()
+    station_id = sklat_row[0] if sklat_row else 'NULL'
+
+    debit_comment = f"Перемещение: списание {debit_quantity:.3f} л ({from_fuel_type}) -> карта {to_label} ({to_client})"
+    credit_comment = f"Перемещение: оприходование {credit_quantity:.3f} л ({to_fuel_type}), с карты {from_label} ({from_client}) {debit_quantity:.3f} л ({from_fuel_type})"
 
     cursor.execute(f"""
         INSERT INTO card_operations (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-        VALUES ({from_card_id}, NULL, '{now}', 'списание', {debit_quantity}, 0, 0, '{debit_comment.replace("'", "''")}')
+        VALUES ({from_card_id}, {station_id}, '{now}', 'списание', {debit_quantity}, 0, 0, '{debit_comment.replace("'", "''")}')
         RETURNING id
     """)
     debit_op_id = cursor.fetchone()[0]
 
     cursor.execute(f"""
         INSERT INTO card_operations (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-        VALUES ({to_card_id}, NULL, '{now}', 'оприходование', {credit_quantity}, 0, 0, '{credit_comment.replace("'", "''")}')
+        VALUES ({to_card_id}, {station_id}, '{now}', 'оприходование', {credit_quantity}, 0, 0, '{credit_comment.replace("'", "''")}')
         RETURNING id
     """)
     credit_op_id = cursor.fetchone()[0]
