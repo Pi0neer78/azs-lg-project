@@ -13,6 +13,7 @@ import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
+import ClientMemo from '@/components/ClientMemo';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -120,6 +121,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [operatorLinkStation, setOperatorLinkStation] = useState<string>('');
   const [operatorLinkPassword, setOperatorLinkPassword] = useState<string>('');
   const [operatorLinkCopied, setOperatorLinkCopied] = useState(false);
+  const [memoClient, setMemoClient] = useState<any>(null);
 
   const handleDeleteClient = async (id: number) => {
     if (confirm('Удалить клиента?')) {
@@ -969,6 +971,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             {client.operator && (
                               <Button size="sm" variant="outline" onClick={() => { setOperatorLinkDialog({open: true, client}); setOperatorLinkStation(''); setOperatorLinkPassword(''); setOperatorLinkCopied(false); }} className="h-7 w-7 p-0 border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" title="Ссылка для ярлыка">
                                 <Icon name="Link" className="w-3 h-3" />
+                              </Button>
+                            )}
+                            {!client.admin && !client.operator && (
+                              <Button size="sm" variant="outline" onClick={() => setMemoClient(client)} className="h-7 w-7 p-0 border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" title="Печать памятки">
+                                <Icon name="FileText" className="w-3 h-3" />
                               </Button>
                             )}
                             <Button size="sm" variant="outline" onClick={() => handleEditClient(client)} className="h-7 w-7 p-0 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
@@ -2718,6 +2725,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {memoClient && (
+        <ClientMemo client={memoClient} onClose={() => setMemoClient(null)} />
+      )}
     </div>
   );
 }
