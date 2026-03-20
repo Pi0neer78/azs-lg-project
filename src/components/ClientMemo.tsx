@@ -79,7 +79,7 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
             >
               <span>🖨️</span> Печать
             </button>
-            <button onClick={onClose} className="px-4 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-100 transition font-semibold">
+            <button onClick={onClose} className="px-4 py-2 rounded-lg border-2 border-gray-400 bg-white text-gray-800 hover:bg-gray-100 transition font-semibold">
               Закрыть
             </button>
           </div>
