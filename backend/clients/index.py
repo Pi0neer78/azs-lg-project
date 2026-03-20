@@ -46,7 +46,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if method == 'GET':
             cursor.execute("""
-                SELECT id, inn, name, address, phone, email, login, admin, operator
+                SELECT id, inn, name, address, phone, email, login, password, admin, operator
                 FROM clients 
                 ORDER BY id
             """)
@@ -61,8 +61,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'phone': row[4],
                     'email': row[5],
                     'login': row[6],
-                    'admin': row[7],
-                    'operator': bool(row[8])
+                    'password': row[7],
+                    'admin': row[8],
+                    'operator': bool(row[9])
                 })
             
             cursor.close()
