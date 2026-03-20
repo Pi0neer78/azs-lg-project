@@ -51,7 +51,11 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
     .instruction ol { padding-left: 20px; }
     .instruction ol li { font-size: 13px; line-height: 1.8; margin-bottom: 4px; }
     .instruction li strong { font-weight: 700; }
-    .footer { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 12px; text-align: center; font-size: 11px; color: #777; }
+    .support { margin-top: 20px; border-top: 2px solid #000; padding-top: 12px; text-align: center; }
+    .support-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 8px; }
+    .support-row { display: flex; justify-content: center; gap: 60px; }
+    .support-item label { display: block; font-size: 11px; color: #777; margin-bottom: 2px; }
+    .support-item .support-value { font-size: 15px; font-weight: 900; }
   </style>
 </head>
 <body>
@@ -157,8 +161,18 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
               </ol>
             </div>
 
-            <div className="mt-6 pt-3 border-t border-gray-300 text-center text-xs text-gray-400">
-              АЗС «ЛГ» — автоматизированная система учёта топлива
+            <div className="mt-6 pt-3 border-t-2 border-black text-center">
+              <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Служба поддержки</div>
+              <div className="flex justify-center gap-10">
+                <div>
+                  <div className="text-xs text-gray-500 mb-0.5">Телефон</div>
+                  <div className="font-black text-base">+7 959 101-59-97</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-0.5">Email</div>
+                  <div className="font-black text-base">andrew_korobko@mail.ru</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
