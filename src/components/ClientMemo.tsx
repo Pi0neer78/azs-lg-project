@@ -156,7 +156,7 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
             <div className="access-box mb-5 bg-gray-50 rounded-lg p-4" style={{ border: '3px solid #000' }}>
               <p className="text-sm leading-relaxed">
                 Для входа в личный кабинет клиента в любом браузере (Google Chrome, Yandex, Opera) введите следующий адрес —{' '}
-                <span className="access-url font-black text-base">https://asz-lg.ua</span>.
+                <span className="access-url font-black text-base">https://asz-lg.ru</span>.
                 {' '}Далее в открывшемся окне введите логин и пароль.
               </p>
             </div>
@@ -180,7 +180,7 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
             <div className="instruction mb-5" style={{ borderLeft: '4px solid #000', paddingLeft: '16px' }}>
               <div className="instruction-title font-black text-sm uppercase tracking-wide mb-3">Краткая инструкция по работе с личным кабинетом</div>
               <ol className="text-sm space-y-1" style={{ paddingLeft: '18px', listStyleType: 'decimal' }}>
-                <li>Откройте браузер и перейдите по адресу <strong>https://asz-lg.ua</strong>.</li>
+                <li>Откройте браузер и перейдите по адресу <strong>https://asz-lg.ru</strong>.</li>
                 <li>Введите свой <strong>логин</strong> и <strong>пароль</strong> в форму входа, нажмите «Войти».</li>
                 <li>В личном кабинете вы увидите список ваших <strong>топливных карт</strong> с остатками и лимитами.</li>
                 <li>Нажмите на карту, чтобы просмотреть <strong>историю операций</strong> по ней.</li>
