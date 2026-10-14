@@ -95,6 +95,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             FROM card_operations
                             WHERE fuel_card_id = {card_id}
                             AND operation_type = 'заправка'
+                            AND fuel_type_id IS NULL
                             AND operation_date >= '{today_start}'
                             AND operation_date <= '{today_end}'
                         """)
@@ -183,6 +184,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         FROM card_operations
                         WHERE fuel_card_id = {int(card_id)}
                         AND operation_type = 'заправка'
+                            AND fuel_type_id IS NULL
                         AND operation_date >= '{today_start}'
                         AND operation_date <= '{today_end}'
                     """)

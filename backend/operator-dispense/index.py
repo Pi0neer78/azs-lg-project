@@ -51,7 +51,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 escaped = card_code.replace("'", "''")
                 cur.execute(f"""
                     SELECT fc.id, fc.card_code, fc.card_index, ft.name as fuel_type,
-                           fc.balance_liters, c.name as client_name, fc.daily_limit, fc.status
+                           fc.balance_liters, c.name as client_name, fc.daily_limit, fc.status, ft.unit
                     FROM fuel_cards fc
                     LEFT JOIN clients c ON fc.client_id = c.id
                     LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
@@ -82,6 +82,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             FROM card_operations
                             WHERE fuel_card_id = {card_id}
                             AND operation_type = 'заправка'
+                            AND fuel_type_id IS NULL
                             AND operation_date >= '{today_start}'
                             AND operation_date <= '{today_end}'
                         """)
@@ -90,7 +91,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         available = min(balance_liters, daily_limit - today_refueled)
                         available = max(0.0, available)
 
+                    is_ruble = (row[8] == '₽')
+                    prices = []
+                    if is_ruble:
+                        cur.execute(f"""
+                            SELECT p.fuel_type_id, ft2.name, p.price
+                            FROM card_fuel_prices p
+                            JOIN fuel_types ft2 ON ft2.id = p.fuel_type_id
+                            WHERE p.fuel_card_id = {card_id}
+                            ORDER BY ft2.name
+                        """)
+                        prices = [
+                            {'fuel_type_id': r[0], 'fuel_type': r[1], 'price': float(r[2])}
+                            for r in cur.fetchall()
+                        ]
+
                     cards_result.append({
+                        'is_ruble': is_ruble,
+                        'prices': prices,
                         'id': card_id,
                         'card_code': row[1],
                         'card_index': row[2] if row[2] is not None else 0,
@@ -133,6 +151,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         card_id = body.get('card_id')
         quantity = body.get('quantity', 0)
         station_id = body.get('station_id', 1)
+        fuel_type_id = body.get('fuel_type_id')
+        amount_in = body.get('amount')
 
         if not card_id:
             conn.close()
@@ -158,7 +178,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             conn.autocommit = False
             with conn.cursor() as cur:
                 cur.execute(f"""
-                    SELECT id, balance_liters, status FROM fuel_cards WHERE id = {card_id}
+                    SELECT fc.id, fc.balance_liters, fc.status, ft.unit
+                    FROM fuel_cards fc
+                    LEFT JOIN fuel_types ft ON ft.id = fc.fuel_type_id
+                    WHERE fc.id = {card_id}
                 """)
                 row = cur.fetchone()
 
@@ -172,6 +195,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
                 current_balance = float(row[1]) if row[1] is not None else 0.0
                 card_status = row[2] if row[2] else 'активна'
+                is_ruble = (row[3] == '₽')
 
                 if card_status != 'активна':
                     conn.rollback()
@@ -179,6 +203,74 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'statusCode': 403,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Карта заблокирована'})
+                    }
+
+                if is_ruble:
+                    if not fuel_type_id:
+                        conn.rollback()
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'Выберите топливо'})
+                        }
+                    fuel_type_id = int(fuel_type_id)
+                    cur.execute(f"""
+                        SELECT price FROM card_fuel_prices
+                        WHERE fuel_card_id = {card_id} AND fuel_type_id = {fuel_type_id}
+                    """)
+                    price_row = cur.fetchone()
+                    if not price_row or float(price_row[0]) <= 0:
+                        conn.rollback()
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'Для выбранного топлива не задана цена по карте'})
+                        }
+                    price = float(price_row[0])
+                    amount = round(float(amount_in), 2) if amount_in else round(quantity * price, 2)
+                    if amount <= 0:
+                        conn.rollback()
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'Сумма должна быть больше 0'})
+                        }
+                    if current_balance < amount:
+                        conn.rollback()
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({
+                                'error': 'Недостаточно средств на карте',
+                                'current_balance': current_balance,
+                                'requested_quantity': amount
+                            })
+                        }
+                    new_balance = round(current_balance - amount, 2)
+                    cur.execute(f"UPDATE fuel_cards SET balance_liters = {new_balance} WHERE id = {card_id}")
+                    operation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    cur.execute(f"""
+                        INSERT INTO card_operations
+                        (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
+                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {amount}, 1, {amount}, 'Списание суммы с баланса карты')
+                    """)
+                    cur.execute(f"""
+                        INSERT INTO card_operations
+                        (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment, fuel_type_id)
+                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, {price}, {amount}, 'Заправка с рублевой карты', {fuel_type_id})
+                    """)
+                    conn.commit()
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({
+                            'success': True,
+                            'quantity': quantity,
+                            'amount': amount,
+                            'price': price,
+                            'previous_balance': current_balance,
+                            'new_balance': new_balance
+                        }, ensure_ascii=False)
                     }
 
                 if current_balance < quantity:

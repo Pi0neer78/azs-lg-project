@@ -1,0 +1,1 @@
+ALTER TABLE t_p39946729_azs_lg_project.card_operations ADD COLUMN IF NOT EXISTS fuel_type_id INTEGER NULL REFERENCES t_p39946729_azs_lg_project.fuel_types(id);

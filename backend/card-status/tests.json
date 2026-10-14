@@ -3,7 +3,7 @@
     {
       "name": "Get card status - success (single card)",
       "method": "GET",
-      "path": "/?card_code=0001",
+      "path": "/?card_code=0006",
       "expectedStatus": 200,
       "expectedBody": {
         "card_code": "string"

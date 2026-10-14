@@ -26,6 +26,8 @@ interface CardInfo {
   available_balance: number;
   client_name: string;
   multiple?: boolean;
+  is_ruble?: boolean;
+  prices?: { fuel_type_id: number; fuel_type: string; price: number }[];
 }
 
 type Stage = 'login' | 'scan' | 'select' | 'card' | 'confirm';
@@ -139,6 +141,8 @@ export default function OperatorPanel() {
   const [cardLoading, setCardLoading] = useState(false);
 
   const [quantity, setQuantity] = useState('');
+  const [selectedFuelId, setSelectedFuelId] = useState<number | null>(null);
+  const [inputMode, setInputMode] = useState<'amount' | 'liters'>('amount');
   const [showNumpad, setShowNumpad] = useState(false);
   const [invalidCodeWarning, setInvalidCodeWarning] = useState<string | null>(null);
   const [dispenseError, setDispenseError] = useState('');
@@ -285,6 +289,8 @@ export default function OperatorPanel() {
           setStage('select');
         } else {
           setCardInfo(data);
+          setSelectedFuelId(null);
+          setInputMode('amount');
           setQuantity('');
           setDispenseError('');
           setSuccessMsg('');
@@ -302,8 +308,35 @@ export default function OperatorPanel() {
     }
   };
 
+  const isRuble = !!cardInfo?.is_ruble;
+  const selectedPrice = cardInfo?.prices?.find((p) => p.fuel_type_id === selectedFuelId) || null;
+  const rawValue = parseFloat(quantity.replace(',', '.'));
+  const hasValue = !isNaN(rawValue) && rawValue > 0;
+  const rubAmount = isRuble && selectedPrice && hasValue
+    ? (inputMode === 'amount' ? rawValue : Math.round(rawValue * selectedPrice.price * 100) / 100)
+    : 0;
+  const rubLiters = isRuble && selectedPrice && hasValue
+    ? (inputMode === 'liters' ? rawValue : Math.round((rawValue / selectedPrice.price) * 1000) / 1000)
+    : 0;
+
   const handleDispense = () => {
     if (!cardInfo) return;
+    if (isRuble) {
+      if (!selectedPrice) {
+        setDispenseError('Выберите топливо');
+        return;
+      }
+      if (!hasValue || rubLiters <= 0 || rubAmount <= 0) {
+        setDispenseError('Введите корректное значение');
+        return;
+      }
+      if (rubAmount > cardInfo.balance_liters) {
+        setDispenseError(`Недостаточно средств. Баланс: ${cardInfo.balance_liters.toFixed(2)} ₽`);
+        return;
+      }
+      setStage('confirm');
+      return;
+    }
     const qty = parseFloat(quantity.replace(',', '.'));
     if (isNaN(qty) || qty <= 0) {
       setDispenseError('Введите корректное количество топлива');
@@ -320,7 +353,7 @@ export default function OperatorPanel() {
     if (!cardInfo || !selectedStation) return;
     setDispenseError('');
     setDispenseLoading(true);
-    const qty = parseFloat(quantity.replace(',', '.'));
+    const qty = isRuble ? rubLiters : parseFloat(quantity.replace(',', '.'));
     try {
       const res = await fetch(OPERATOR_API, {
         method: 'POST',
@@ -329,10 +362,14 @@ export default function OperatorPanel() {
           card_id: cardInfo.id,
           quantity: qty,
           station_id: selectedStation.id,
+          ...(isRuble ? { fuel_type_id: selectedFuelId, amount: rubAmount } : {}),
         }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.success && isRuble) {
+        setSuccessMsg(`Отпущено ${qty.toFixed(3)} л ${selectedPrice?.fuel_type} на сумму ${rubAmount.toFixed(2)} ₽. Остаток: ${data.new_balance.toFixed(2)} ₽`);
+        setTimeout(() => handleReset(), 4000);
+      } else if (res.ok && data.success) {
         setSuccessMsg(`Отпущено ${qty.toFixed(3)} ${cardInfo.fuel_type}. Остаток: ${data.new_balance.toFixed(3)} ${cardInfo.fuel_type}`);
         setTimeout(() => handleReset(), 4000);
       } else {
@@ -353,6 +390,8 @@ export default function OperatorPanel() {
     setMultipleCards([]);
     setCardError('');
     setQuantity('');
+    setSelectedFuelId(null);
+    setInputMode('amount');
     setDispenseError('');
     setSuccessMsg('');
     setStage('scan');
@@ -361,6 +400,8 @@ export default function OperatorPanel() {
   const handleSelectCard = (card: CardInfo) => {
     setCardInfo(card);
     setMultipleCards([]);
+    setSelectedFuelId(null);
+    setInputMode('amount');
     setQuantity('');
     setDispenseError('');
     setSuccessMsg('');
@@ -377,7 +418,7 @@ export default function OperatorPanel() {
   };
 
   const qty = parseFloat(quantity.replace(',', '.'));
-  const validQty = !isNaN(qty) && qty > 0;
+  const validQty = isRuble ? (!!selectedPrice && rubAmount > 0 && rubLiters > 0) : (!isNaN(qty) && qty > 0);
 
   if (stage === 'login') {
     return (
@@ -458,7 +499,7 @@ export default function OperatorPanel() {
       {showNumpad && (
         <NumpadModal
           value={quantity}
-          unit={cardInfo?.fuel_type || 'л'}
+          unit={isRuble ? (inputMode === 'amount' ? '₽' : 'л') : (cardInfo?.fuel_type || 'л')}
           onConfirm={handleNumpadConfirm}
           onCancel={() => setShowNumpad(false)}
         />
@@ -645,12 +686,15 @@ export default function OperatorPanel() {
                 <div className="flex flex-col gap-3">
                   <div className="p-5 rounded-xl bg-accent/10 border-2 border-accent text-foreground text-center text-xl font-semibold flex flex-col gap-2">
                     <div>
-                      Отпустить <span className="text-accent font-bold text-2xl">{parseFloat(quantity.replace(',', '.')).toFixed(3)} л</span> на карту{' '}
+                      Отпустить <span className="text-accent font-bold text-2xl">{isRuble ? `${rubLiters.toFixed(3)} л (${rubAmount.toFixed(2)} ₽)` : `${parseFloat(quantity.replace(',', '.')).toFixed(3)} л`}</span> на карту{' '}
                       <span className="font-mono text-accent">{cardLabel(cardInfo)}</span>?
                     </div>
                     <div className="text-base text-muted-foreground font-normal flex flex-col gap-0.5">
                       <span><span className="font-medium text-foreground">Клиент:</span> {cardInfo.client_name}</span>
-                      <span><span className="font-medium text-foreground">Топливо:</span> {cardInfo.fuel_type}</span>
+                      <span><span className="font-medium text-foreground">Топливо:</span> {isRuble ? selectedPrice?.fuel_type : cardInfo.fuel_type}</span>
+                      {isRuble && selectedPrice && (
+                        <span><span className="font-medium text-foreground">Цена:</span> {selectedPrice.price.toFixed(2)} ₽/л</span>
+                      )}
                       {selectedStation && (
                         <span><span className="font-medium text-foreground">АЗС:</span> {selectedStation.name}</span>
                       )}
@@ -677,8 +721,48 @@ export default function OperatorPanel() {
               ) : (
                 <>
                   <div className="flex flex-col gap-2">
+                    {isRuble && (
+                      <div className="flex flex-col gap-2">
+                        <div className="text-base text-muted-foreground font-medium text-center">Выберите топливо</div>
+                        {(cardInfo.prices || []).length === 0 ? (
+                          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-base text-center">
+                            Для карты не добавлено доступное топливо
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            {(cardInfo.prices || []).map((p) => (
+                              <button
+                                key={p.fuel_type_id}
+                                type="button"
+                                onClick={() => { setSelectedFuelId(p.fuel_type_id); setDispenseError(''); }}
+                                className={`rounded-xl border-2 border-accent px-3 py-3 flex flex-col items-center transition-all ${selectedFuelId === p.fuel_type_id ? 'bg-accent text-accent-foreground' : 'bg-accent/10 text-foreground hover:bg-accent/20'}`}
+                              >
+                                <span className="text-xl font-bold">{p.fuel_type}</span>
+                                <span className="text-sm">{p.price.toFixed(2)} ₽/л</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => { setInputMode('amount'); setQuantity(''); }}
+                            className={`flex-1 rounded-lg border-2 border-accent py-2 font-semibold ${inputMode === 'amount' ? 'bg-accent text-accent-foreground' : 'text-foreground'}`}
+                          >
+                            Ввод суммы, ₽
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setInputMode('liters'); setQuantity(''); }}
+                            className={`flex-1 rounded-lg border-2 border-accent py-2 font-semibold ${inputMode === 'liters' ? 'bg-accent text-accent-foreground' : 'text-foreground'}`}
+                          >
+                            Ввод литров
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <label className="text-base text-muted-foreground font-medium text-center">
-                      Количество топлива для отпуска (литры)
+                      {isRuble ? (inputMode === 'amount' ? 'Сумма заправки, ₽' : 'Количество топлива, литры') : 'Количество топлива для отпуска (литры)'}
                     </label>
                     <div className="flex gap-2 items-stretch">
                       <input
@@ -708,6 +792,13 @@ export default function OperatorPanel() {
                         <span className="text-xs font-semibold">Клавиши</span>
                       </button>
                     </div>
+                    {isRuble && selectedPrice && hasValue && (
+                      <div className="p-3 rounded-lg bg-accent/10 border border-accent text-foreground text-lg text-center font-semibold">
+                        {inputMode === 'amount'
+                          ? `Будет отпущено: ${rubLiters.toFixed(3)} л`
+                          : `Сумма к списанию: ${rubAmount.toFixed(2)} ₽`}
+                      </div>
+                    )}
                     {dispenseError && (
                       <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-base text-center">
                         {dispenseError}

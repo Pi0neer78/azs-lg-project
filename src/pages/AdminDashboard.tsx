@@ -314,7 +314,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     cardOperations.forEach(op => {
       if (op.operation_type === 'пополнение' || op.operation_type === 'оприходование') {
         calculatedBalance += op.quantity;
-      } else if (op.operation_type === 'заправка' || op.operation_type === 'списание') {
+      } else if ((op.operation_type === 'заправка' && !op.op_fuel_type_id) || op.operation_type === 'списание') {
         calculatedBalance -= op.quantity;
       }
     });
@@ -683,7 +683,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     if (filterStation !== 'all' && op.station_name !== filterStation) return false;
     if (filterOperationType !== 'all' && op.operation_type !== filterOperationType) return false;
     if (filterOpClient !== 'all' && op.client_name !== filterOpClient) return false;
-    if (filterOpFuelType !== 'all' && op.fuel_type !== filterOpFuelType) return false;
+    if (filterOpFuelType !== 'all' && (op.op_fuel_type || op.fuel_type) !== filterOpFuelType) return false;
     const matchesDateFrom = !filterDateFrom || op.operation_date >= filterDateFrom;
     const matchesDateTo = !filterDateTo || op.operation_date <= filterDateTo + ' 23:59';
     return matchesDateFrom && matchesDateTo;
@@ -1438,7 +1438,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             </div>
                           </TableCell>
                           <TableCell className="text-foreground py-1 text-sm">{op.client_name}</TableCell>
-                          <TableCell className="text-foreground py-1 text-sm">{op.fuel_type}</TableCell>
+                          <TableCell className="text-foreground py-1 text-sm">{op.op_fuel_type || op.fuel_type}</TableCell>
                           <TableCell className="text-foreground py-1">{op.station_name}</TableCell>
                           <TableCell className="text-muted-foreground text-sm py-1">{op.operation_date}</TableCell>
                           <TableCell className="py-1">
