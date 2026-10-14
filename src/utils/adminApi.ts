@@ -5,9 +5,40 @@ const API_URLS = {
   cards: 'https://functions.poehali.dev/8159060e-0a1a-41d4-87ad-04d9b1367d78',
   operations: 'https://functions.poehali.dev/85e04362-ba57-45bf-8226-8b92c7bea08d',
   transfer: 'https://functions.poehali.dev/34b0625d-9333-4a14-a32d-ecd05f6fdf30',
+  cardFuelPrices: 'https://functions.poehali.dev/ca84e6d6-fa57-40c7-9711-8ba4eea35bd8',
 };
 
 export const adminApi = {
+  cardFuelPrices: {
+    getAll: async (fuelCardId: number) => {
+      const response = await fetch(`${API_URLS.cardFuelPrices}?fuel_card_id=${fuelCardId}`);
+      const data = await response.json();
+      return data.prices || [];
+    },
+    create: async (item: { fuel_card_id: number; fuel_type_id: number; price: number }) => {
+      const response = await fetch(API_URLS.cardFuelPrices, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return response.json();
+    },
+    update: async (id: number, price: number) => {
+      await fetch(API_URLS.cardFuelPrices, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, price })
+      });
+    },
+    delete: async (id: number) => {
+      await fetch(`${API_URLS.cardFuelPrices}?id=${id}`, { method: 'DELETE' });
+    }
+  },
+
   clients: {
     getAll: async () => {
       try {

@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Get card fuel prices",
+      "method": "GET",
+      "path": "/?fuel_card_id=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial",
+      "expectedBody": {}
+    }
+  ]
+}

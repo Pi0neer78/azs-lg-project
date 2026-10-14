@@ -14,6 +14,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
+import CardFuelPrices from '@/components/CardFuelPrices';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -1784,6 +1785,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             <DialogTitle className="text-foreground">Редактировать карту</DialogTitle>
           </DialogHeader>
           {editingCard && (
+            (fuelTypes.find((ft) => ft.id === editingCard.fuel_type_id)?.unit === '₽') ? (
+              <Tabs defaultValue="main">
+                <TabsList>
+                  <TabsTrigger value="main">Основное</TabsTrigger>
+                  <TabsTrigger value="fuel">Доступное топливо</TabsTrigger>
+                </TabsList>
+                <TabsContent value="main">
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-card-code" className="text-right text-foreground">Код карты</Label>
@@ -1850,6 +1858,81 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </div>
               )}
             </div>
+
+                </TabsContent>
+                <TabsContent value="fuel">
+                  <CardFuelPrices cardId={editingCard.id} fuelTypes={fuelTypes} />
+                </TabsContent>
+              </Tabs>
+            ) : (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-code" className="text-right text-foreground">Код карты</Label>
+                <Input id="edit-card-code" value={editingCard.card_code} onChange={(e) => setEditingCard({...editingCard, card_code: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-index" className="text-right text-foreground">Индекс</Label>
+                <Select value={(editingCard.card_index ?? 0).toString()} onValueChange={(v) => setEditingCard({...editingCard, card_index: parseInt(v)})}>
+                  <SelectTrigger id="edit-card-index" className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0,1,2,3,4,5,6,7,8,9].map(i => (
+                      <SelectItem key={i} value={i.toString()}>{editingCard.card_code}/{i}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-client" className="text-right text-foreground">Клиент</Label>
+                <Input id="edit-card-client" value={editingCard.client_name} onChange={(e) => setEditingCard({...editingCard, client_name: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-fuel" className="text-right text-foreground">Вид топлива</Label>
+                <Select value={editingCard.fuel_type_id?.toString() || ''} onValueChange={handleFuelTypeChange}>
+                  <SelectTrigger id="edit-card-fuel" className="col-span-3">
+                    <SelectValue placeholder="Выберите вид топлива" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fuelTypes.map((ft) => (
+                      <SelectItem key={ft.id} value={ft.id.toString()}>{ft.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-balance" className="text-right text-foreground">Баланс</Label>
+                <Input id="edit-card-balance" type="number" value={editingCard.balance_liters} onChange={(e) => setEditingCard({...editingCard, balance_liters: parseFloat(e.target.value)})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-pin" className="text-right text-foreground">PIN-код</Label>
+                <Input id="edit-card-pin" type="password" value={editingCard.pin_code} onChange={(e) => setEditingCard({...editingCard, pin_code: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-daily-limit" className="text-right text-foreground">Дневной лимит</Label>
+                <Input id="edit-card-daily-limit" type="number" step="0.001" placeholder="0 = без лимита" value={editingCard.daily_limit || 0} onChange={(e) => setEditingCard({...editingCard, daily_limit: parseFloat(e.target.value) || 0})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-card-status" className="text-right text-foreground">Статус</Label>
+                <Select value={editingCard.status || 'активна'} onValueChange={(value) => setEditingCard({...editingCard, status: value})}>
+                  <SelectTrigger id="edit-card-status" className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="активна">Активна</SelectItem>
+                    <SelectItem value="заблокирована">Заблокирована</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {editingCard.status === 'заблокирована' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-card-block-reason" className="text-right text-foreground">Причина блокировки</Label>
+                  <Input id="edit-card-block-reason" value={editingCard.block_reason || ''} onChange={(e) => setEditingCard({...editingCard, block_reason: e.target.value})} className="col-span-3" />
+                </div>
+              )}
+            </div>
+
+            )
           )}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsCardDialogOpen(false)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">Отмена</Button>
