@@ -1791,7 +1791,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <TabsTrigger value="main">Основное</TabsTrigger>
                   <TabsTrigger value="fuel">Доступное топливо</TabsTrigger>
                 </TabsList>
-                <TabsContent value="main">
+                <TabsContent value="main" className="h-[540px] overflow-y-auto">
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-card-code" className="text-right text-foreground">Код карты</Label>
@@ -1860,7 +1860,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             </div>
 
                 </TabsContent>
-                <TabsContent value="fuel">
+                <TabsContent value="fuel" className="h-[540px] overflow-y-auto">
                   <CardFuelPrices cardId={editingCard.id} fuelTypes={fuelTypes} />
                 </TabsContent>
               </Tabs>
