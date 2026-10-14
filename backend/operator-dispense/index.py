@@ -257,7 +257,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     cur.execute(f"""
                         INSERT INTO card_operations
                         (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment, fuel_type_id)
-                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, {price}, {amount}, 'Заправка с рублевой карты', {fuel_type_id})
+                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, {price}, {amount}, 'Заправка с рублевой карты (с баланса не списывается)', {fuel_type_id})
                     """)
                     conn.commit()
                     return {
