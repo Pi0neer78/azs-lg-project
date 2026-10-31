@@ -93,7 +93,7 @@ export default function DatabaseArchives() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Не удалось скачать архив');
       const bytes = Uint8Array.from(atob(data.content_base64), (c) => c.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/gzip' }));
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
       const link = document.createElement('a');
       link.href = url;
       link.download = data.file_name;

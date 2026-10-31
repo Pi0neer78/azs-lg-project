@@ -1,11 +1,12 @@
 import base64
-import gzip
+import io
 import json
 import os
 from datetime import datetime, timezone, timedelta
 
 import boto3
 import psycopg2
+import pyzipper
 
 import authz
 
@@ -48,6 +49,7 @@ def handler(event: dict, context) -> dict:
             return authz.forbidden()
         cur = conn.cursor()
         params = event.get('queryStringParameters') or {}
+        zip_password = os.environ.get('ARCHIVE_PASSWORD') or ''
 
         if method == 'GET' and params.get('download'):
             cur.execute("SELECT file_key, file_name FROM db_archives WHERE id = %s", (int(params['download']),))
@@ -68,6 +70,8 @@ def handler(event: dict, context) -> dict:
             return authz.resp(200, {'archives': archives, 'tables': tables})
 
         if method == 'POST':
+            if not zip_password:
+                return authz.resp(500, {'error': 'Не задан пароль для архивов (секрет ARCHIVE_PASSWORD)'})
             cur.execute(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = %s AND table_type = 'BASE TABLE' ORDER BY table_name",
                 (SCHEMA,),
@@ -85,11 +89,16 @@ def handler(event: dict, context) -> dict:
                 {'created_at': datetime.now(MSK).isoformat(), 'tables': dump},
                 ensure_ascii=False, default=str,
             ).encode('utf-8')
-            packed = gzip.compress(payload)
             stamp = datetime.now(MSK).strftime('%Y-%m-%d_%H-%M-%S')
-            file_name = 'azs_db_%s.json.gz' % stamp
+            buf = io.BytesIO()
+            with pyzipper.AESZipFile(buf, 'w', compression=pyzipper.ZIP_DEFLATED, encryption=pyzipper.WZ_AES) as zf:
+                zf.setpassword(zip_password.encode('utf-8'))
+                zf.setencryption(pyzipper.WZ_AES, nbits=256)
+                zf.writestr('azs_db_%s.json' % stamp, payload)
+            packed = buf.getvalue()
+            file_name = 'azs_db_%s.zip' % stamp
             file_key = 'db-archives/%s_%s' % (os.urandom(8).hex(), file_name)
-            s3_client().put_object(Bucket='files', Key=file_key, Body=packed, ContentType='application/gzip')
+            s3_client().put_object(Bucket='files', Key=file_key, Body=packed, ContentType='application/zip')
             cur.execute(
                 "INSERT INTO db_archives (file_key, file_name, size_bytes, tables_count, rows_count, created_by) VALUES (%s, %s, %s, %s, %s, %s) RETURNING " + COLS,
                 (file_key, file_name, len(packed), len(names), total, user['login']),
