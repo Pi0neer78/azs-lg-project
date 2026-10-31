@@ -15,6 +15,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
+import { useConfirm } from '@/components/ConfirmDialog';
 import CardFuelPrices from '@/components/CardFuelPrices';
 import DatabaseArchives from '@/components/DatabaseArchives';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
@@ -25,6 +26,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const navigate = useNavigate();
+  const confirmAction = useConfirm();
   const [clients, setClients] = useState<any[]>([]);
   const [stations, setStations] = useState<any[]>([]);
   const [fuelTypes, setFuelTypes] = useState<any[]>([]);
@@ -149,7 +151,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [memoClient, setMemoClient] = useState<any>(null);
 
   const handleDeleteClient = async (id: number) => {
-    if (confirm('Удалить клиента?')) {
+    if (await confirmAction({ title: 'Удалить клиента?', message: 'Клиент будет удалён без возможности восстановления.' })) {
       try {
         await adminApi.clients.delete(id);
         loadClients();
@@ -408,7 +410,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [newStation, setNewStation] = useState({name: '', code_1c: '', address: ''});
 
   const handleDeleteStation = async (id: number) => {
-    if (confirm('Удалить АЗС?')) {
+    if (await confirmAction({ title: 'Удалить АЗС?', message: 'Станция будет удалена без возможности восстановления.' })) {
       try {
         await adminApi.stations.delete(id);
         loadStations();
@@ -457,7 +459,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [newFuelType, setNewFuelType] = useState({name: '', code_1c: '', unit: 'л'});
 
   const handleDeleteFuelType = async (id: number) => {
-    if (confirm('Удалить вид топлива?')) {
+    if (await confirmAction({ title: 'Удалить вид топлива?', message: 'Вид топлива будет удалён без возможности восстановления.' })) {
       try {
         await adminApi.fuelTypes.delete(id);
         loadFuelTypes();
@@ -518,7 +520,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [filterCardCode, setFilterCardCode] = useState<string>('');
 
   const handleDeleteCard = async (id: number) => {
-    if (confirm('Удалить карту?')) {
+    if (await confirmAction({ title: 'Удалить карту?', message: 'Карта будет удалена без возможности восстановления.' })) {
       try {
         await adminApi.cards.delete(id);
         loadCards();
@@ -651,7 +653,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
 
   const handleDeleteOperation = async (id: number) => {
-    if (confirm('Удалить операцию?')) {
+    if (await confirmAction({ title: 'Удалить операцию?', message: 'Операция будет удалена без возможности восстановления.' })) {
       try {
         await adminApi.operations.delete(id);
         loadOperations();

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useOperations } from '@/contexts/OperationsContext';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForAPI } from '@/utils/dateUtils';
 
@@ -40,6 +41,7 @@ interface ClientDashboardProps {
 }
 
 export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboardProps) {
+  const confirmAction = useConfirm();
   const navigate = useNavigate();
   const { addTransferOperations } = useOperations();
   const [isFromAdmin, setIsFromAdmin] = useState(false);
@@ -109,7 +111,6 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
   }, [clientLogin]);
 
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
-  const [unblockDialogOpen, setUnblockDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
@@ -134,9 +135,21 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
     setBlockDialogOpen(true);
   };
 
-  const handleUnblockCard = (cardId: number) => {
-    setSelectedCardId(cardId);
-    setUnblockDialogOpen(true);
+  const handleUnblockCard = async (cardId: number) => {
+    const card = cards.find(c => c.id === cardId);
+    const ok = await confirmAction({
+      title: 'Разблокировать карту?',
+      message: `Карта ${card ? cardLabel(card) : ''} будет разблокирована.${card?.block_reason ? ' Причина блокировки: ' + card.block_reason : ''}`,
+      confirmText: 'Да',
+      danger: false,
+    });
+    if (!ok) return;
+    try {
+      await adminApi.cards.update({ id: cardId, status: 'активна', block_reason: '' });
+      await loadData();
+    } catch (error) {
+      console.error('Ошибка разблокировки карты:', error);
+    }
   };
 
   const handleTransferCard = (cardId: number) => {
@@ -167,23 +180,6 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
         console.error('Ошибка блокировки карты:', error);
       }
       setBlockDialogOpen(false);
-    }
-  };
-
-  const confirmUnblock = async () => {
-    if (selectedCardId !== null) {
-      try {
-        await adminApi.cards.update({
-          id: selectedCardId,
-          status: 'активна',
-          block_reason: ''
-        });
-        
-        await loadData();
-      } catch (error) {
-        console.error('Ошибка разблокировки карты:', error);
-      }
-      setUnblockDialogOpen(false);
     }
   };
 
@@ -534,32 +530,6 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
         </DialogContent>
       </Dialog>
 
-      <Dialog open={unblockDialogOpen} onOpenChange={setUnblockDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Разблокировать карту</DialogTitle>
-            <DialogDescription>
-              Карта {selectedCard ? cardLabel(selectedCard) : ''} будет разблокирована
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
-              Вы уверены, что хотите разблокировать эту карту?
-            </p>
-            {selectedCard?.block_reason && (
-              <p className="text-sm text-muted-foreground mt-2">
-                <strong>Причина блокировки:</strong> {selectedCard.block_reason}
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUnblockDialogOpen(false)}>Отмена</Button>
-            <Button onClick={confirmUnblock} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Разблокировать
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
         <DialogContent>

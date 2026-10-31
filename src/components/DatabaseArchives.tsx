@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Icon from '@/components/ui/icon';
 import { apiFetch } from '@/utils/authFetch';
+import { useConfirm } from '@/components/ConfirmDialog';
 
 const ARCHIVE_API = 'https://functions.poehali.dev/109b311d-afec-4374-af73-898491da3fd4';
 
@@ -41,6 +42,7 @@ function formatSize(bytes: number) {
 }
 
 export default function DatabaseArchives() {
+  const confirmAction = useConfirm();
   const [archives, setArchives] = useState<Archive[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,7 @@ export default function DatabaseArchives() {
   };
 
   const remove = async (query: string, confirmText: string) => {
-    if (!window.confirm(confirmText)) return;
+    if (!(await confirmAction({ title: 'Подтвердите удаление', message: confirmText }))) return;
     setBusy(true);
     setMessage('');
     setError('');

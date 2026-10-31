@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { useConfirm } from '@/components/ConfirmDialog';
 
 const CHAT_ADMIN_API = 'https://functions.poehali.dev/85242f92-5d67-4a5e-8d0d-2a14da6baa58';
 
@@ -21,6 +22,7 @@ interface Row {
 }
 
 export default function ChatAdmin() {
+  const confirmAction = useConfirm();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [auth, setAuth] = useState<{ l: string; p: string } | null>(null);
@@ -69,7 +71,7 @@ export default function ChatAdmin() {
   };
 
   const act = async (action: string, body: Record<string, unknown>, confirmText: string) => {
-    if (!auth || !window.confirm(confirmText)) return;
+    if (!auth || !(await confirmAction({ title: 'Подтвердите действие', message: confirmText }))) return;
     await call(auth, { method: 'POST', body: JSON.stringify({ action, ...body }) });
     await load();
   };

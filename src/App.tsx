@@ -11,6 +11,7 @@ import CardOperations from "./pages/CardOperations";
 import OperatorPanel from "./pages/OperatorPanel";
 import ChatAdmin from "./pages/ChatAdmin";
 import NotFound from "./pages/NotFound";
+import { ConfirmProvider } from "./components/ConfirmDialog";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <OperationsProvider>
+          <ConfirmProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -47,6 +49,7 @@ const App = () => {
           <div className="footer-copyright">
             ЦКТ "СпецСистемы" © 2025
           </div>
+          </ConfirmProvider>
         </OperationsProvider>
       </TooltipProvider>
     </QueryClientProvider>
