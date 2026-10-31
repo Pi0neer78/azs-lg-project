@@ -21,19 +21,21 @@ const TABS: AdminTab[] = [
 
 export default function AdminTabsBar() {
   return (
-    <TabsList className="no-print h-auto flex-wrap gap-2 bg-card/50 border-2 border-primary p-2">
+    <TabsList className="no-print h-auto flex-wrap gap-1 bg-card/50 border-2 border-primary p-1">
       {TABS.map((t) => (
         <Tooltip key={t.value} delayDuration={250}>
           <TooltipTrigger asChild>
-            <TabsTrigger
-              value={t.value}
-              className="group gap-2 rounded-lg border-b-4 border-transparent px-4 py-2 text-sm font-semibold text-foreground/80 transition-all hover:bg-primary/20 hover:text-foreground data-[state=active]:translate-y-[2px] data-[state=active]:border-b-[6px] data-[state=active]:border-yellow-700 data-[state=active]:bg-gradient-to-b data-[state=active]:from-yellow-300 data-[state=active]:to-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-[0_6px_0_0_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.6)] data-[state=active]:active:translate-y-[4px]"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-background/70 shadow-inner group-data-[state=active]:bg-white/80">
-                <Icon name={t.icon} size={16} className={t.color} />
-              </span>
-              {t.label}
-            </TabsTrigger>
+            <span className="inline-flex">
+              <TabsTrigger
+                value={t.value}
+                className="group gap-1.5 rounded-md border-b-[3px] border-transparent px-3 py-1 text-sm font-semibold text-foreground/80 transition-all hover:bg-primary/20 hover:text-foreground data-[state=active]:border-yellow-700 data-[state=active]:bg-gradient-to-b data-[state=active]:from-yellow-200 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950 data-[state=active]:shadow-[0_3px_0_0_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.7)] data-[state=active]:-translate-y-px"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded bg-background/70 shadow-inner group-data-[state=active]:bg-white">
+                  <Icon name={t.icon} size={14} className={t.color} />
+                </span>
+                {t.label}
+              </TabsTrigger>
+            </span>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-xs whitespace-normal bg-card text-foreground border-2 border-accent shadow-xl">
             {t.description}
