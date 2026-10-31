@@ -16,6 +16,7 @@ import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
 import ClampText from '@/components/ClampText';
+import AdminTabsBar from '@/components/AdminTabsBar';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import CardFuelPrices from '@/components/CardFuelPrices';
 import DatabaseArchives from '@/components/DatabaseArchives';
@@ -809,14 +810,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="clients" className="space-y-6">
-          <TabsList className="no-print bg-card/50 border-2 border-primary">
-            <TabsTrigger value="clients" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Клиенты</TabsTrigger>
-            <TabsTrigger value="cards" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Карты</TabsTrigger>
-            <TabsTrigger value="operations" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Операции</TabsTrigger>
-            <TabsTrigger value="stations" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">АЗС</TabsTrigger>
-            <TabsTrigger value="fuel-types" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Виды топлива</TabsTrigger>
-            <TabsTrigger value="database" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">База данных</TabsTrigger>
-          </TabsList>
+          <AdminTabsBar />
 
           <TabsContent value="clients">
             <Card className="border-2 border-primary bg-card/95 backdrop-blur-sm">
