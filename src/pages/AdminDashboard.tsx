@@ -15,6 +15,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
+import ClampText from '@/components/ClampText';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import CardFuelPrices from '@/components/CardFuelPrices';
 import DatabaseArchives from '@/components/DatabaseArchives';
@@ -1002,7 +1003,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           {client.name}
                         </TableCell>
                         <TableCell className="text-foreground py-2 max-w-[260px]">
-                          <div className="line-clamp-2 break-words leading-snug" title={client.address || ''}>{client.address}</div>
+                          <ClampText text={client.address} lines={2} />
                         </TableCell>
                         <TableCell className="text-foreground py-2">{client.phone}</TableCell>
                         <TableCell className="text-foreground py-2">{client.email}</TableCell>
@@ -1205,8 +1206,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-foreground py-1">{card.client_name}</TableCell>
-                        <TableCell className="text-foreground py-1">{card.fuel_type}</TableCell>
+                        <TableCell className="text-foreground py-1 max-w-[220px]"><ClampText text={card.client_name} lines={2} /></TableCell>
+                        <TableCell className="text-foreground py-1 max-w-[160px]"><ClampText text={card.fuel_type} lines={2} /></TableCell>
                         <TableCell className="font-bold text-accent py-1">{card.balance_liters.toFixed(3)} {getCardUnit(card)}</TableCell>
                         <TableCell className="text-foreground py-1">
                           {card.daily_limit > 0 ? `${card.daily_limit.toFixed(3)} ${getCardUnit(card)}` : <span className="text-muted-foreground">без лимита</span>}
@@ -1490,9 +1491,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.client_name}</TableCell>
-                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.op_fuel_type || op.fuel_type}</TableCell>
-                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.station_name}</TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs max-w-[200px]"><ClampText text={op.client_name} lines={2} /></TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs max-w-[140px]"><ClampText text={op.op_fuel_type || op.fuel_type} lines={2} /></TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs max-w-[160px]"><ClampText text={op.station_name} lines={2} /></TableCell>
                           <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.operation_date}</TableCell>
                           <TableCell className="px-2 py-0.5">
                             <Badge className={`${getOperationColor(op.operation_type)} px-1.5 py-0 text-[11px] leading-4 font-medium`}>
@@ -1502,7 +1503,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           <TableCell className="font-semibold text-foreground px-2 py-0.5 text-xs whitespace-nowrap">{op.quantity.toFixed(3)}</TableCell>
                           <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.price.toFixed(2)}</TableCell>
                           <TableCell className="font-bold text-accent px-2 py-0.5 text-xs whitespace-nowrap">{op.amount.toFixed(2)} ₽</TableCell>
-                          <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.comment}</TableCell>
+                          <TableCell className="text-muted-foreground px-2 py-0.5 text-xs max-w-[260px]"><ClampText text={op.comment} lines={2} /></TableCell>
                           <TableCell className="px-2 py-0.5">
                             <div className="flex gap-1">
                               <Button size="sm" variant="outline" onClick={() => handleEditOperation(op)} className="h-6 w-6 p-0 border border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
