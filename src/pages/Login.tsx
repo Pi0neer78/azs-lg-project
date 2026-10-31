@@ -35,6 +35,7 @@ export default function Login({ onLogin }: LoginProps) {
 
       if (response.ok && data.success) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('chat_auth', JSON.stringify({ login, password }));
         sessionStorage.removeItem('fromAdmin');
         
         if (data.user.admin && data.user.operator) {

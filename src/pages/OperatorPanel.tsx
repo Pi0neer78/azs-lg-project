@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import ChatWidget from '@/components/chat/ChatWidget';
 import Icon from '@/components/ui/icon';
 
 const OPERATOR_API = 'https://functions.poehali.dev/63d97170-36d0-4590-bf1f-e247777c20db';
@@ -203,6 +204,7 @@ export default function OperatorPanel() {
       });
       const data = await res.json();
       if (res.ok && data.success && data.user.admin) {
+        localStorage.setItem('chat_auth', JSON.stringify({ login: l, password: p }));
         setSelectedStation(st);
         setStage('scan');
       } else {
@@ -236,6 +238,7 @@ export default function OperatorPanel() {
       });
       const data = await res.json();
       if (res.ok && data.success && data.user.admin) {
+        localStorage.setItem('chat_auth', JSON.stringify({ login, password }));
         if (selectedStation) {
           localStorage.setItem('operator_session', JSON.stringify({ login, password, stationId: selectedStation.id }));
         }
@@ -494,8 +497,11 @@ export default function OperatorPanel() {
     );
   }
 
+  const chatAuth = JSON.parse(localStorage.getItem('chat_auth') || '{}');
+
   return (
     <>
+      {chatAuth.login && <ChatWidget login={chatAuth.login} password={chatAuth.password} />}
       {showNumpad && (
         <NumpadModal
           value={quantity}
