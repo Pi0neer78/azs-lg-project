@@ -66,7 +66,8 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
         adminApi.fuelTypes.getAll()
       ]);
       
-      const client = clientsData.find((c: any) => c.login === clientLogin);
+      const client = clientsData.find((c: any) => c.login === clientLogin)
+        || (clientsData.length === 1 ? clientsData[0] : undefined);
       if (client) {
         setClientData({
           name: client.name,
@@ -78,8 +79,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
       
       const clientCards = cardsData
         .filter((card: any) => {
-          const cardClient = clientsData.find((c: any) => c.id === card.client_id);
-          return cardClient?.login === clientLogin;
+          return !!client && card.client_id === client.id;
         })
         .map((card: any) => {
           const fuelType = fuelTypesData.find((ft: any) => ft.id === card.fuel_type_id);

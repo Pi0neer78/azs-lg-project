@@ -28,15 +28,16 @@ export default function Login({ onLogin }: LoginProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ login, password }),
+        body: JSON.stringify({ login: login.trim(), password: password.trim() }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('chat_auth', JSON.stringify({ login, password }));
+        localStorage.setItem('chat_auth', JSON.stringify({ login: login.trim(), password: password.trim() }));
         sessionStorage.removeItem('fromAdmin');
+        sessionStorage.removeItem('viewClientLogin');
         
         if (data.user.admin && data.user.operator) {
           navigate('/operator');

@@ -16,8 +16,8 @@ import { ConfirmProvider } from "./components/ConfirmDialog";
 const queryClient = new QueryClient();
 
 const ClientRoute = () => {
-  const viewClientLogin = sessionStorage.getItem('viewClientLogin');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const viewClientLogin = user.admin ? sessionStorage.getItem('viewClientLogin') : null;
   const clientLogin = viewClientLogin || user.login || '';
   
   if (!clientLogin) {
