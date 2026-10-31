@@ -1,315 +1,627 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Инструкция администратора - СОЮЗ</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6; color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 20px;
-        }
-        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; }
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .header p { font-size: 1.2em; opacity: 0.9; }
-        .content { padding: 40px; }
-        .section { margin-bottom: 40px; }
-        .section h2 { color: #667eea; font-size: 1.8em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
-        .section h3 { color: #764ba2; font-size: 1.4em; margin-top: 25px; margin-bottom: 15px; }
-        .section p { margin-bottom: 15px; text-align: justify; }
-        .feature-box { background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
-        .feature-box strong { color: #667eea; font-size: 1.1em; }
-        .new-box { background: #f0fff4; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 4px; }
-        .new-box strong { color: #155724; font-size: 1.1em; }
-        .steps { counter-reset: step-counter; list-style: none; padding-left: 0; }
-        .steps li { counter-increment: step-counter; margin-bottom: 20px; padding-left: 50px; position: relative; }
-        .steps li:before { content: counter(step-counter); position: absolute; left: 0; top: 0; background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; }
-        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
-        .warning strong { color: #856404; }
-        .tip { background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 20px 0; border-radius: 4px; }
-        .tip strong { color: #0c5460; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        table th, table td { padding: 12px; text-align: left; border: 1px solid #ddd; }
-        table th { background: #667eea; color: white; font-weight: 600; }
-        table tr:nth-child(even) { background: #f8f9ff; }
-        .button-example { display: inline-block; padding: 6px 14px; margin: 3px; border-radius: 4px; font-weight: 500; text-align: center; font-size: 0.9em; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .code { background: #f4f4f4; border: 1px solid #ddd; border-radius: 3px; padding: 2px 6px; font-family: monospace; font-size: 0.95em; }
-        .back-link { display: inline-block; margin-top: 30px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.3s; }
-        .back-link:hover { background: #764ba2; }
-        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } .back-link { display: none; } }
-        @media (max-width: 768px) { .header h1 { font-size: 1.8em; } .content { padding: 20px; } .section h2 { font-size: 1.4em; } .steps li { padding-left: 45px; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Инструкция администратора - СОЮЗ</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; }
+.container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.1); overflow: hidden; }
+.header { background: linear-gradient(135deg, #0f3d2e 0%, #1a6b4f 100%); color: #fff; padding: 40px; text-align: center; }
+.header h1 { font-size: 2.3em; margin-bottom: 10px; color: #fbbf24; }
+.header p { font-size: 1.15em; opacity: .9; }
+.content { padding: 40px; }
+.toc { background: #f4faf7; border: 1px solid #cfe8dd; border-radius: 8px; padding: 20px 30px; margin-bottom: 40px; }
+.toc h2 { color: #0f5b42; margin-bottom: 10px; font-size: 1.3em; }
+.toc ol { padding-left: 20px; columns: 2; }
+.toc a { color: #0f5b42; text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section { margin-bottom: 45px; }
+.section h2 { color: #0f5b42; font-size: 1.7em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #fbbf24; }
+.section h3 { color: #1a6b4f; font-size: 1.25em; margin-top: 25px; margin-bottom: 12px; }
+.section p { margin-bottom: 14px; }
+.section ul { margin: 0 0 14px 25px; }
+.section li { margin-bottom: 6px; }
+.steps { counter-reset: s; list-style: none; padding-left: 0 !important; margin-left: 0 !important; }
+.steps li { counter-increment: s; margin-bottom: 16px; padding-left: 50px; position: relative; }
+.steps li:before { content: counter(s); position: absolute; left: 0; top: 0; background: #0f5b42; color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.danger { background: #ffeaea; border-left: 4px solid #e53935; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.tip { background: #e3f6ec; border-left: 4px solid #1a9e6e; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.example { background: #f8f9ff; border-left: 4px solid #5b6bd6; padding: 15px 20px; margin: 20px 0; border-radius: 4px; }
+.example strong:first-child { color: #3a47a8; }
+table.t { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: .95em; }
+table.t th, table.t td { padding: 10px 12px; text-align: left; border: 1px solid #ddd; vertical-align: top; }
+table.t th { background: #0f5b42; color: #fff; }
+table.t tr:nth-child(even) { background: #f4faf7; }
+.code { background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; padding: 2px 6px; font-family: monospace; }
+.b { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: .85em; font-weight: 600; border: 2px solid; white-space: nowrap; }
+.b-acc { border-color: #fbbf24; color: #8a6100; background: #fffbea; }
+.b-red { border-color: #dc3545; color: #dc3545; background: #fff5f5; }
+.b-grn { border-color: #1a9e6e; color: #0f6b4a; background: #effaf5; }
+.fig { margin: 22px 0; }
+.fig .cap { font-size: .85em; color: #666; text-align: center; margin-top: 8px; }
+.scr { background: linear-gradient(135deg, #0f3d2e, #14573f); border-radius: 10px; padding: 14px; color: #fff; font-size: 13px; box-shadow: 0 6px 18px rgba(0,0,0,.25); overflow-x: auto; }
+.scr .hd { background: #0e3226; border-bottom: 3px solid #fbbf24; padding: 10px 14px; border-radius: 6px 6px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.scr .hd .tt { color: #fbbf24; font-weight: 700; font-size: 16px; }
+.scr .hd .st { color: #a8c7bb; font-size: 11px; }
+.scr .btn { border: 2px solid #fbbf24; color: #fff; padding: 4px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; display: inline-block; }
+.scr .btn.g { border-color: #1a9e6e; }
+.scr .btn.r { border-color: #ff6b6b; color: #ff9a9a; }
+.scr .btn.fill { background: #fbbf24; color: #1a1a1a; font-weight: 700; }
+.scr .ib { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border: 2px solid #fbbf24; border-radius: 5px; font-size: 13px; margin-right: 2px; }
+.scr .ib.r { border-color: #ff6b6b; color: #ff9a9a; }
+.scr .ib.g { border-color: #1a9e6e; }
+.scr .ib.d { background: #dc3545; border-color: #dc3545; }
+.scr .card { background: rgba(0,0,0,.25); border: 2px solid #1a9e6e; border-radius: 8px; padding: 12px; margin-top: 12px; }
+.scr .ttl { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.scr .fld { background: rgba(255,255,255,.08); border: 2px solid #2a7d62; border-radius: 5px; padding: 5px 8px; color: #c9ddd5; font-size: 12px; }
+.scr .lbl { font-size: 11px; color: #cfe3da; margin-bottom: 2px; }
+.scr table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.scr th { text-align: left; padding: 6px; border-bottom: 1px solid #2a7d62; font-size: 12px; white-space: nowrap; }
+.scr td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 12px; vertical-align: middle; }
+.scr .num { color: #fbbf24; font-family: monospace; font-weight: 700; }
+.scr .bal { color: #fbbf24; font-weight: 700; }
+.scr .ok { background: #1a9e6e; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.scr .bad { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.scr .role { background: #1a9e6e; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.scr .role.a { background: #dc3545; }
+.scr .role.o { background: #d97706; }
+.scr .mark { outline: 3px solid #ff3b81; outline-offset: 2px; border-radius: 5px; position: relative; }
+.scr .pin { position: absolute; top: -12px; right: -10px; background: #ff3b81; color: #fff; width: 22px; height: 22px; border-radius: 50%; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; z-index: 2; }
+.scr .tabs { display: flex; gap: 4px; background: rgba(0,0,0,.3); border: 2px solid #1a9e6e; border-radius: 8px; padding: 4px; flex-wrap: wrap; }
+.scr .tab { padding: 5px 10px; border-radius: 5px; font-size: 12px; color: #cfe3da; }
+.scr .tab.on { background: #fbbf24; color: #1a1a1a; font-weight: 700; }
+.scr .seg { display: inline-flex; border: 2px solid #2a7d62; border-radius: 6px; overflow: hidden; }
+.scr .seg span { padding: 4px 10px; font-size: 12px; }
+.scr .seg span.on { background: #fbbf24; color: #1a1a1a; font-weight: 700; }
+.scr .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.scr .okbox { background: rgba(74,222,128,.15); border: 2px solid #4ade80; color: #4ade80; border-radius: 8px; padding: 10px; text-align: center; font-weight: 700; }
+.scr .alert { background: rgba(220,53,69,.18); border: 2px solid #dc3545; color: #ff9a9a; border-radius: 8px; padding: 10px; text-align: center; }
+.dlg { background: #fff; color: #222; border-radius: 8px; padding: 18px; max-width: 460px; margin: 0 auto; box-shadow: 0 8px 30px rgba(0,0,0,.4); position: relative; }
+.dlg h4 { font-size: 16px; margin-bottom: 10px; }
+.dlg .row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-align: right; }
+.dlg .row .in { text-align: left; font-weight: 400; border: 1px solid #ccc; border-radius: 5px; padding: 5px 8px; color: #444; background: #fafafa; position: relative; }
+.dlg .ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.dlg .bt { border: 1px solid #ccc; border-radius: 5px; padding: 5px 12px; font-size: 12px; }
+.dlg .bt.p { background: #0f5b42; color: #fff; border-color: #0f5b42; }
+.dlg .bt.d { background: #dc3545; color: #fff; border-color: #dc3545; }
+.dlg .mark { outline: 3px solid #ff3b81; outline-offset: 2px; }
+.dlg .pin { position: absolute; top: -11px; right: -9px; background: #ff3b81; color: #fff; width: 21px; height: 21px; border-radius: 50%; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; z-index: 2; }
+.dlg .sm { font-size: 12px; color: #555; margin-bottom: 8px; text-align: left; font-weight: 400; }
+.legend { font-size: .9em; margin: 10px 0; }
+.legend span.n { display: inline-flex; width: 20px; height: 20px; background: #ff3b81; color: #fff; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-right: 6px; }
+.legend div { margin-bottom: 4px; }
+.back-link { display: inline-block; margin-top: 30px; padding: 12px 28px; background: #0f5b42; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; }
+@media (max-width: 700px) { .content { padding: 20px; } .toc ol { columns: 1; } .scr .filters { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; padding: 0; } .container { box-shadow: none; } .back-link { display: none; } .fig, .scr { break-inside: avoid; } }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⛽ СОЮЗ</h1>
-            <p>Инструкция для администратора системы учёта топливных карт</p>
-        </div>
+<div class="container">
+<div class="header">
+  <h1>Инструкция администратора</h1>
+  <p>Полное руководство по системе учёта топливных карт: клиенты, карты, операции, АЗС, виды топлива, архивы</p>
+</div>
+<div class="content">
 
-        <div class="content">
+<div class="toc">
+  <h2>Содержание</h2>
+  <ol>
+    <li><a href="#s1">Общий обзор системы</a></li>
+    <li><a href="#s2">Начало работы: как устроена панель</a></li>
+    <li><a href="#s3">Справочники: с чего начать</a></li>
+    <li><a href="#s4">Клиенты и сотрудники</a></li>
+    <li><a href="#s5">Ярлык для оператора</a></li>
+    <li><a href="#s6">Топливные карты</a></li>
+    <li><a href="#s7">Пополнение карты</a></li>
+    <li><a href="#s8">Блокировка и разблокировка</a></li>
+    <li><a href="#s9">Перемещение между картами</a></li>
+    <li><a href="#s10">Пересчёт баланса</a></li>
+    <li><a href="#s11">Операции</a></li>
+    <li><a href="#s12">АЗС</a></li>
+    <li><a href="#s13">Виды топлива и единицы</a></li>
+    <li><a href="#s14">Рублёвые карты и цены</a></li>
+    <li><a href="#s15">База данных и архивы</a></li>
+    <li><a href="#s16">Чат</a></li>
+    <li><a href="#s17">Типовые сценарии</a></li>
+    <li><a href="#s18">Рекомендации и безопасность</a></li>
+  </ol>
+</div>
 
-            <div class="section">
-                <h2>📋 Содержание</h2>
-                <ol style="padding-left: 20px;">
-                    <li><a href="#overview">Общий обзор системы</a></li>
-                    <li><a href="#clients">Управление клиентами</a></li>
-                    <li><a href="#cards">Управление картами</a>
-                        <ul style="padding-left: 20px; margin-top: 5px;">
-                            <li>Нумерация карт: код и индекс</li>
-                            <li>Просмотр и фильтрация</li>
-                            <li>Создание карты</li>
-                            <li>Пополнение баланса</li>
-                            <li>Блокировка и разблокировка</li>
-                            <li>Редактирование и пересчёт баланса</li>
-                        </ul>
-                    </li>
-                    <li><a href="#operations">Управление операциями</a></li>
-                    <li><a href="#stations">Управление АЗС</a></li>
-                    <li><a href="#fueltypes">Виды топлива и единицы измерения</a></li>
-                    <li><a href="#operator">Панель оператора</a></li>
-                    <li><a href="#tips">Полезные советы и интеграция с 1С</a></li>
-                </ol>
-            </div>
+<div class="section" id="s1">
+  <h2>1. Общий обзор системы</h2>
+  <p>Система «СОЮЗ» учитывает топливные карты клиентов и все операции по ним. Администратор имеет полный доступ ко всем данным.</p>
+  <table class="t">
+    <tr><th>Роль</th><th>Что делает</th><th>Куда попадает после входа</th></tr>
+    <tr><td><strong>Клиент</strong></td><td>Смотрит свои карты, историю, меняет лимит, блокирует карты, перемещает топливо между своими картами</td><td>Кабинет клиента</td></tr>
+    <tr><td><strong>Оператор АЗС</strong></td><td>Отпускает топливо по карте на заправке</td><td>Панель оператора</td></tr>
+    <tr><td><strong>Администратор</strong></td><td>Управляет всем: клиентами, картами, балансами, справочниками, архивами</td><td>Панель администратора</td></tr>
+  </table>
+  <p>Что можно делать в панели администратора:</p>
+  <ul>
+    <li>создавать и редактировать клиентов, операторов и администраторов;</li>
+    <li>выпускать карты, пополнять, блокировать, перемещать топливо, пересчитывать баланс;</li>
+    <li>просматривать и корректировать операции, печатать отчёты и выгружать в Excel;</li>
+    <li>вести справочники АЗС и видов топлива (с единицами измерения и ценами для рублёвых карт);</li>
+    <li>создавать архивы базы данных;</li>
+    <li>переписываться с пользователями в чате;</li>
+    <li>заходить в кабинет любого клиента от его имени для проверки.</li>
+  </ul>
+</div>
 
-            <!-- OVERVIEW -->
-            <div class="section" id="overview">
-                <h2>1. Общий обзор системы</h2>
-                <p>Система СОЮЗ предназначена для учёта топливных карт и контроля операций по заправке. Администратор имеет полный доступ ко всем функциям системы.</p>
-
-                <div class="feature-box">
-                    <strong>Основные возможности:</strong>
-                    <ul style="margin-top: 10px; padding-left: 20px;">
-                        <li>Создание и редактирование клиентов, операторов АЗС</li>
-                        <li>Выпуск топливных карт с кодом, индексом, балансом и дневным лимитом</li>
-                        <li>Блокировка и разблокировка карт с указанием причины</li>
-                        <li>Пополнение баланса карт</li>
-                        <li>Учёт операций (заправка, пополнение, списание, оприходование)</li>
-                        <li>Пересчёт балансов по истории операций</li>
-                        <li>Контроль дневных лимитов заправки</li>
-                        <li>Управление справочниками (АЗС, виды топлива с единицами измерения)</li>
-                        <li>Просмотр кабинетов клиентов из панели администратора</li>
-                        <li>Панель оператора АЗС с поддержкой сканера штрихкодов</li>
-                        <li>Интеграция с 1С через API</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- CLIENTS -->
-            <div class="section" id="clients">
-                <h2>2. Управление клиентами</h2>
-
-                <h3>2.1. Просмотр и фильтрация</h3>
-                <p>На вкладке <strong>"Клиенты"</strong> отображается список клиентов. Переключатель вверху позволяет выбрать режим: <strong>Клиенты</strong> или <strong>Администраторы</strong>. Есть строка поиска по ИНН или названию.</p>
-
-                <h3>2.2. Добавление клиента</h3>
-                <ol class="steps">
-                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Заполните поля: ИНН, Название, Адрес, Телефон, Email, Логин, Пароль</li>
-                    <li>При необходимости отметьте <strong>"Это администратор"</strong>, а для операторов АЗС — дополнительно <strong>"Оператор АЗС"</strong></li>
-                    <li>Нажмите <strong>Создать</strong></li>
-                </ol>
-
-                <h3>2.3. Ярлык для оператора</h3>
-                <p>Для учётных записей операторов доступна кнопка <strong>Ярлык для оператора</strong> (иконка ссылки). В диалоге выберите АЗС, введите пароль оператора — система сформирует ссылку, которую можно скопировать и открыть сразу в нужном режиме на планшете или ПК кассира.</p>
-
-                <h3>2.4. Просмотр кабинета клиента</h3>
-                <p>Кликните по названию клиента в таблице — откроется его кабинет от лица администратора. Кнопка <strong>"Админпанель"</strong> вернёт вас обратно.</p>
-            </div>
-
-            <!-- CARDS -->
-            <div class="section" id="cards">
-                <h2>3. Управление картами</h2>
-
-                <h3>3.1. Нумерация карт: код и индекс</h3>
-                <div class="new-box">
-                    <strong>Новое: система кода/индекса</strong>
-                    <p style="margin-top: 8px;">Каждая карта идентифицируется парой <strong>код / индекс</strong>, например <span class="code">0002/1</span>. Это позволяет выпускать несколько карт с одинаковым кодом (например, для разных видов топлива одного клиента):</p>
-                    <ul style="margin-top: 8px; padding-left: 20px;">
-                        <li><span class="code">0002/0</span> и <span class="code">0002/1</span> — допустимо</li>
-                        <li><span class="code">0002/1</span> и <span class="code">0002/1</span> — <strong>недопустимо</strong>, система выдаст предупреждение</li>
-                    </ul>
-                    <p style="margin-top: 8px;">Индекс — число от 0 до 9. При стандартном использовании оставляйте индекс <strong>0</strong>.</p>
-                </div>
-
-                <h3>3.2. Просмотр и фильтрация</h3>
-                <p>Вкладка <strong>"Карты"</strong> содержит три фильтра:</p>
-                <table>
-                    <tr><th>Фильтр</th><th>Описание</th></tr>
-                    <tr><td>Код карты</td><td>Текстовый ввод — фильтрует по вхождению кода (например, введите «0002» чтобы увидеть все карты с этим кодом)</td></tr>
-                    <tr><td>Клиент</td><td>Выбор из списка клиентов</td></tr>
-                    <tr><td>Вид топлива</td><td>Выбор из списка видов топлива</td></tr>
-                </table>
-                <p>Таблица карт отображает код/индекс, клиента, вид топлива, баланс, дневной лимит, статус и PIN-код. Единицы измерения (л, ₽, кг, шт) берутся из настроек вида топлива.</p>
-
-                <h3>3.3. Создание карты</h3>
-                <ol class="steps">
-                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Введите <strong>Код карты</strong> (4 цифры, например <span class="code">0005</span>)</li>
-                    <li>Выберите <strong>Индекс</strong> (0–9). В списке отображается итоговый вид карты: <span class="code">0005/0</span></li>
-                    <li>Выберите <strong>Клиента</strong> и <strong>Вид топлива</strong></li>
-                    <li>Укажите <strong>Начальный баланс</strong> (если > 0, автоматически создаётся операция пополнения)</li>
-                    <li>Введите <strong>PIN-код</strong> и при необходимости <strong>Дневной лимит</strong></li>
-                    <li>Нажмите <strong>Создать</strong></li>
-                </ol>
-
-                <div class="warning">
-                    <strong>Защита от дублирования:</strong> если карта с таким кодом и индексом уже существует, появится окно с предупреждением. Нажмите <strong>"Изменить данные"</strong> чтобы вернуться к форме и выбрать другой индекс.
-                </div>
-
-                <h3>3.4. Пополнение баланса</h3>
-                <ol class="steps">
-                    <li>В строке нужной карты нажмите кнопку <span class="button-example btn-primary">+</span></li>
-                    <li>Введите количество и цену — сумма рассчитается автоматически (или наоборот)</li>
-                    <li>При необходимости добавьте комментарий</li>
-                    <li>Нажмите <strong>Пополнить</strong></li>
-                </ol>
-
-                <h3>3.5. Блокировка и разблокировка</h3>
-                <p>Используйте кнопки <span class="button-example btn-danger">🔒</span> и <span class="button-example btn-primary">🔓</span> в строке карты. При блокировке обязательно укажите причину — она отобразится в кабинете клиента и в таблице карт.</p>
-
-                <h3>3.6. Редактирование карты</h3>
-                <p>Кнопка <span class="button-example btn-primary">✏️</span> открывает форму редактирования. Можно изменить код, индекс, PIN, лимит, статус. При изменении кода/индекса также срабатывает проверка на дублирование.</p>
-
-                <div class="warning">
-                    <strong>Важно:</strong> вид топлива можно изменить только если баланс карты равен нулю.
-                </div>
-
-                <h3>3.7. Пересчёт баланса</h3>
-                <p>Кнопка <span class="button-example btn-primary">↺</span> пересчитывает баланс карты на основе всей истории операций. Используйте при расхождении баланса с историей.</p>
-            </div>
-
-            <!-- OPERATIONS -->
-            <div class="section" id="operations">
-                <h2>4. Управление операциями</h2>
-
-                <h3>4.1. Типы операций</h3>
-                <table>
-                    <tr><th>Тип</th><th>Влияние на баланс</th><th>Когда использовать</th></tr>
-                    <tr><td>Пополнение</td><td>+</td><td>Зачисление топлива на карту</td></tr>
-                    <tr><td>Заправка</td><td>−</td><td>Отпуск топлива через АЗС</td></tr>
-                    <tr><td>Списание</td><td>−</td><td>Ручное уменьшение баланса</td></tr>
-                    <tr><td>Оприходование</td><td>+</td><td>Перемещение между картами (приход)</td></tr>
-                </table>
-
-                <h3>4.2. Фильтрация операций</h3>
-                <p>Доступны фильтры: Карта, АЗС, Тип операции, Дата с, Дата по. Используйте их для формирования отчётов за период.</p>
-
-                <h3>4.3. Добавление операции вручную</h3>
-                <ol class="steps">
-                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Выберите карту, АЗС, дату, тип операции</li>
-                    <li>Укажите количество, цену и сумму</li>
-                    <li>Нажмите <strong>Создать</strong></li>
-                </ol>
-
-                <div class="tip">
-                    <strong>Совет:</strong> операции из панели оператора создаются автоматически. Ручное добавление используйте для корректировок и переносов.
-                </div>
-            </div>
-
-            <!-- STATIONS -->
-            <div class="section" id="stations">
-                <h2>5. Управление АЗС</h2>
-                <p>Вкладка <strong>"АЗС"</strong> — справочник станций. Для каждой указываются наименование, Код 1С и адрес.</p>
-
-                <div class="warning">
-                    <strong>Важно:</strong> АЗС с названием, содержащим «Склад», используется как внутренняя точка для пополнений и перемещений. Она не отображается операторам в панели выбора АЗС.
-                </div>
-            </div>
-
-            <!-- FUEL TYPES -->
-            <div class="section" id="fueltypes">
-                <h2>6. Виды топлива и единицы измерения</h2>
-
-                <div class="new-box">
-                    <strong>Новое: единицы измерения</strong>
-                    <p style="margin-top: 8px;">Каждый вид топлива теперь имеет поле <strong>Ед. изм.</strong>. Доступные значения:</p>
-                    <ul style="margin-top: 8px; padding-left: 20px;">
-                        <li><strong>л</strong> — литры (по умолчанию для топлива)</li>
-                        <li><strong>₽</strong> — рубли (для денежных карт)</li>
-                        <li><strong>кг</strong> — килограммы (для газа)</li>
-                        <li><strong>шт</strong> — штуки (для прочих позиций)</li>
-                    </ul>
-                    <p style="margin-top: 8px;">Выбранная единица автоматически отображается во всех балансах, лимитах и операциях — в панели администратора, кабинете клиента и панели оператора.</p>
-                </div>
-
-                <h3>Добавление вида топлива</h3>
-                <ol class="steps">
-                    <li>Перейдите на вкладку <strong>"Виды топлива"</strong></li>
-                    <li>Нажмите <span class="button-example btn-success">+ Добавить</span></li>
-                    <li>Введите название, код 1С и выберите единицу измерения</li>
-                    <li>Нажмите <strong>Создать</strong></li>
-                </ol>
-            </div>
-
-            <!-- OPERATOR -->
-            <div class="section" id="operator">
-                <h2>7. Панель оператора</h2>
-                <p>Панель оператора доступна по адресу <span class="code">/operator</span>. Она предназначена для работы на АЗС.</p>
-
-                <h3>7.1. Вход</h3>
-                <p>Оператор выбирает АЗС из списка, вводит логин и пароль. Сессия сохраняется, при следующем открытии страницы вход выполняется автоматически.</p>
-                <p>Для удобства администратор может сформировать <strong>ссылку-ярлык</strong> (раздел «Клиенты» → кнопка ссылки у оператора), которая открывает панель уже авторизованной.</p>
-
-                <h3>7.2. Отпуск топлива</h3>
-                <ol class="steps">
-                    <li>Поднесите штрихкод карты к сканеру или введите 4-значный код вручную</li>
-                    <li>
-                        <strong>Если найдена одна карта</strong> — сразу отображается информация по карте: код/индекс, клиент, вид топлива, баланс, лимит, доступный остаток
-                    </li>
-                    <li>
-                        <strong>Если найдено несколько карт</strong> с одинаковым кодом — появляется окно выбора в виде сетки 3×3. Каждый слот показывает код/индекс, вид топлива, баланс, лимит и доступный остаток. Нажмите на нужную карту
-                    </li>
-                    <li>Введите количество для отпуска — с клавиатуры или через экранный цифровой блок</li>
-                    <li>Нажмите <strong>"Отпустить топливо"</strong> и подтвердите действие</li>
-                </ol>
-
-                <div class="tip">
-                    <strong>Единицы измерения в панели оператора</strong> соответствуют настройкам вида топлива карты. Для литрового топлива — «л», для рублёвых карт — «₽» и т.д.
-                </div>
-
-                <div class="warning">
-                    <strong>Карта 0000</strong> является системной и не может быть использована для отпуска топлива через панель оператора.
-                </div>
-            </div>
-
-            <!-- TIPS -->
-            <div class="section" id="tips">
-                <h2>8. Полезные советы и интеграция с 1С</h2>
-
-                <h3>8.1. Интеграция с 1С</h3>
-                <p>Система поддерживает синхронизацию с 1С через код 1С, который указывается для каждой АЗС и каждого вида топлива. Используйте эти коды при настройке обмена данными.</p>
-
-                <h3>8.2. Печать и экспорт</h3>
-                <p>На каждой вкладке доступна кнопка <strong>Печать</strong>. В кабинете клиента и истории операций доступен <strong>Экспорт в Excel</strong>.</p>
-
-                <h3>8.3. Пересчёт баланса</h3>
-                <p>Если баланс карты не совпадает с суммой операций, используйте кнопку <strong>↺ Пересчитать баланс</strong> в строке карты. Система пересчитает баланс по всей истории и обновит значение.</p>
-
-                <h3>8.4. Рекомендации по нумерации карт</h3>
-                <table>
-                    <tr><th>Ситуация</th><th>Рекомендация</th></tr>
-                    <tr><td>Одна карта одному клиенту</td><td>Используйте индекс 0 (по умолчанию)</td></tr>
-                    <tr><td>Несколько видов топлива по одному коду</td><td>Используйте разные индексы: 0, 1, 2...</td></tr>
-                    <tr><td>Карта утеряна, нужна замена</td><td>Заблокируйте старую, создайте новую с тем же кодом и следующим индексом</td></tr>
-                </table>
-
-                <h3>8.5. Системная карта 0000</h3>
-                <p>Карта с кодом <span class="code">0000</span> используется для учёта общего баланса склада. Она отмечается специальным значком и не предназначена для отпуска через панель оператора.</p>
-
-                <a href="javascript:window.close()" class="back-link">Закрыть инструкцию</a>
-            </div>
-
-        </div>
+<div class="section" id="s2">
+  <h2>2. Начало работы: как устроена панель</h2>
+  <p>После входа открывается панель администратора. Вверху шапка, ниже вкладки разделов, под ними рабочая область.</p>
+  <div class="fig">
+    <div class="scr">
+      <div class="hd">
+        <div><div class="tt">🛡 Панель администратора</div><div class="st">Управление системой</div></div>
+        <div style="display:flex;gap:8px"><span class="btn g mark">Инструкция<span class="pin">1</span></span><span class="btn mark">Выход<span class="pin">2</span></span></div>
+      </div>
+      <div class="tabs mark" style="margin-top:14px"><span class="pin">3</span>
+        <span class="tab on">👥 Клиенты</span><span class="tab">💳 Карты</span><span class="tab">🕘 Операции</span><span class="tab">⛽ АЗС</span><span class="tab">💧 Виды топлива</span><span class="tab">🗄 База данных</span>
+      </div>
+      <div class="card mark" style="position:relative"><span class="pin">4</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="ttl" style="margin:0">👥 Клиенты</div><div><span class="btn fill">+ Добавить</span></div></div>
+        <div style="color:#a8c7bb;margin-top:10px">Здесь отображается содержимое выбранной вкладки</div>
+      </div>
     </div>
+    <div class="cap">Рис. 1. Общий вид панели администратора</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>«Инструкция» открывает это руководство в новой вкладке.</div>
+    <div><span class="n">2</span>«Выход» завершает сеанс.</div>
+    <div><span class="n">3</span>Вкладки разделов. Если навести мышь на вкладку, появится подсказка о её назначении.</div>
+    <div><span class="n">4</span>Рабочая область: таблица, фильтры и кнопки выбранного раздела.</div>
+  </div>
+  <p>Справа внизу на экране всегда есть круглая кнопка чата <span class="b b-acc">💬</span> (см. раздел 16).</p>
+</div>
+
+<div class="section" id="s3">
+  <h2>3. Справочники: с чего начать</h2>
+  <p>Чтобы выпустить первую карту, сначала нужно заполнить справочники. Рекомендуемый порядок настройки новой системы:</p>
+  <ol class="steps">
+    <li><strong>Виды топлива</strong> (вкладка «Виды топлива»): АИ-92, АИ-95, ДТ и т.д. с единицей измерения.</li>
+    <li><strong>АЗС</strong> (вкладка «АЗС»): ваши станции. Станция «Склад» нужна для пополнений и перемещений.</li>
+    <li><strong>Клиенты</strong> (вкладка «Клиенты»): организации, операторы, администраторы.</li>
+    <li><strong>Карты</strong> (вкладка «Карты»): выпуск карт клиентам.</li>
+  </ol>
+  <div class="tip"><strong>Совет:</strong> завести станцию «Склад» нужно обязательно. Через неё записываются пополнения и перемещения. Слово «Склад» в названии скрывает эту станцию из списка АЗС у операторов.</div>
+</div>
+
+<div class="section" id="s4">
+  <h2>4. Клиенты и сотрудники</h2>
+  <p>Вкладка «Клиенты» хранит все учётные записи: клиентов, операторов АЗС и администраторов.</p>
+  <div class="fig">
+    <div class="scr">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div class="ttl" style="margin:0">👥 Клиенты</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="seg mark"><span class="on">Клиенты</span><span>Администраторы</span><span class="pin">1</span></span>
+          <span class="fld mark" style="min-width:150px">🔍 Поиск по ИНН или названию...<span class="pin">2</span></span>
+          <span class="btn">🖨 Печать</span>
+          <span class="btn fill mark">+ Добавить<span class="pin">3</span></span>
+        </div>
+      </div>
+      <table>
+        <tr><th>ИНН</th><th>Название</th><th>Телефон</th><th>Логин</th><th>Роль</th><th>Действия</th></tr>
+        <tr><td>7701234567</td><td><span class="bal mark">ООО «Ромашка»<span class="pin">4</span></span></td><td>+7 900 123-45-67</td><td>ROMASHKA</td><td><span class="role">Клиент</span></td>
+          <td><span class="ib mark">📄<span class="pin">5</span></span><span class="ib">✎</span><span class="ib d">🗑</span></td></tr>
+        <tr><td>7712345678</td><td>Иванов И. И.</td><td>+7 900 765-43-21</td><td>OPER1</td><td><span class="role o">Оператор</span></td>
+          <td><span class="ib mark">🔗<span class="pin">6</span></span><span class="ib">✎</span><span class="ib d">🗑</span></td></tr>
+      </table>
+    </div>
+    <div class="cap">Рис. 2. Вкладка «Клиенты»</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Переключатель «Клиенты / Администраторы» выбирает, чей список показывать. Операторы показываются в списке клиентов с меткой «Оператор».</div>
+    <div><span class="n">2</span>Поиск работает по ИНН и названию.</div>
+    <div><span class="n">3</span>«Добавить» создаёт новую учётную запись.</div>
+    <div><span class="n">4</span>Клик по названию открывает кабинет клиента от его имени (для администратора — панель администратора).</div>
+    <div><span class="n">5</span>«Печать памятки» (только для клиентов): листок с логином, паролем и краткой инструкцией, который можно распечатать и выдать клиенту.</div>
+    <div><span class="n">6</span>«Ярлык для оператора» (только для операторов): ссылка быстрого входа (см. раздел 5).</div>
+  </div>
+  <h3>Как добавить клиента</h3>
+  <ol class="steps">
+    <li>Нажмите «+ Добавить».</li>
+    <li>Заполните форму. Обязательны <strong>ИНН</strong>, <strong>название</strong>, <strong>логин</strong> и <strong>пароль</strong>.</li>
+    <li>Для оператора отметьте «Оператор АЗС». Для администратора отметьте «Это администратор».</li>
+    <li>Нажмите «Создать».</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg">
+        <h4>Добавить клиента</h4>
+        <div class="row"><span>ИНН *</span><div class="in">7701234567</div></div>
+        <div class="row"><span>Название *</span><div class="in">ООО «Ромашка»</div></div>
+        <div class="row"><span>Адрес</span><div class="in">г. Москва, ул. Мира, 5</div></div>
+        <div class="row"><span>Email / Телефон</span><div class="in">info@romashka.ru</div></div>
+        <div class="row"><span>Логин / Пароль</span><div class="in mark">ROMASHKA &nbsp; Ab7kP2xQ ✱ <span class="pin">1</span></div></div>
+        <div class="row"><span>Это администратор</span><div class="in mark">☐<span class="pin">2</span></div></div>
+        <div class="row"><span>Оператор АЗС</span><div class="in">☐</div></div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Создать</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 3. Форма добавления клиента</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Логин должен быть уникальным. Если такой уже есть, система сообщит: «Клиент с таким логином уже существует».</div>
+    <div><span class="n">2</span>Обычному клиенту оставьте обе галочки пустыми.</div>
+  </div>
+  <div class="tip"><strong>Пароль.</strong> Придумывать его не обязательно: при редактировании клиента есть кнопка генерации надёжного пароля (8–14 знаков, без похожих символов). Глазок рядом с полем показывает или скрывает пароль.</div>
+  <h3>Редактирование и удаление</h3>
+  <p>Значок карандаша открывает форму редактирования. Корзина удаляет запись после подтверждения.</p>
+  <div class="danger"><strong>Удаление необратимо.</strong> Перед удалением клиента убедитесь, что по его картам нет остатков. Часто лучше заблокировать его карты, чем удалять учётную запись.</div>
+  <div class="example"><strong>Пример: передача клиенту доступа.</strong> Создайте клиента «ООО Ромашка» с логином ROMASHKA. Нажмите значок «Печать памятки», проверьте предпросмотр и нажмите «Печать». Передайте листок клиенту: на нём адрес входа, логин, пароль и краткая инструкция.</div>
+</div>
+
+<div class="section" id="s5">
+  <h2>5. Ярлык для оператора</h2>
+  <p>Ярлык — это ссылка, по которой панель оператора открывается уже с выбранной АЗС и выполненным входом. Оператору не нужно ничего вводить.</p>
+  <ol class="steps">
+    <li>На вкладке «Клиенты» найдите учётную запись оператора и нажмите значок ссылки.</li>
+    <li>Выберите <strong>АЗС</strong>, на которой он работает.</li>
+    <li>Введите <strong>пароль оператора</strong>.</li>
+    <li>Скопируйте появившуюся ссылку кнопкой копирования и передайте оператору. Он добавит её в закладки браузера.</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg">
+        <h4>🔗 Ярлык для оператора</h4>
+        <div class="sm"><strong>Иванов И. И.</strong> (логин: OPER1)</div>
+        <div class="row"><span>АЗС</span><div class="in mark">АЗС №1, ул. Ленина<span class="pin">1</span></div></div>
+        <div class="row"><span>Пароль оператора</span><div class="in mark">Qw3rty78<span class="pin">2</span></div></div>
+        <div class="row" style="align-items:start"><span>Ссылка для ярлыка</span><div class="in mark" style="font-family:monospace;font-size:11px;word-break:break-all">https://…/operator?station=1&amp;login=OPER1&amp;password=…<span class="pin">3</span></div></div>
+        <div class="ft"><span class="bt">Закрыть</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 4. Окно создания ярлыка</div>
+  </div>
+  <div class="warning"><strong>В ссылке содержится пароль оператора.</strong> Передавайте её только самому оператору и не публикуйте в общих чатах.</div>
+</div>
+
+<div class="section" id="s6">
+  <h2>6. Топливные карты</h2>
+  <h3>6.1. Нумерация: код и индекс</h3>
+  <p>Каждая карта идентифицируется парой «код/индекс», например <span class="code">0002/1</span>. Код — 4 цифры, индекс — от 0 до 9. Это позволяет выдать клиенту несколько карт с одним кодом, например по одной на каждый вид топлива.</p>
+  <table class="t">
+    <tr><th>Пример</th><th>Допустимо?</th></tr>
+    <tr><td><span class="code">0002/0</span> и <span class="code">0002/1</span></td><td>Да. Разные индексы</td></tr>
+    <tr><td><span class="code">0002/1</span> и <span class="code">0002/1</span></td><td>Нет. Система покажет окно о дубликате</td></tr>
+  </table>
+  <h3>6.2. Просмотр и фильтры</h3>
+  <div class="fig">
+    <div class="scr">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="ttl" style="margin:0">💳 Карты</div><div><span class="btn">🖨 Печать</span> <span class="btn fill">+ Добавить</span></div></div>
+      <div class="filters mark" style="margin-top:10px"><span class="pin">1</span>
+        <div><div class="lbl">Код карты</div><div class="fld">Поиск по коду...</div></div>
+        <div><div class="lbl">Клиент</div><div class="fld">Все клиенты</div></div>
+        <div><div class="lbl">Вид топлива</div><div class="fld">Все виды топлива</div></div>
+      </div>
+      <table>
+        <tr><th>Код карты</th><th>Клиент</th><th>Вид топлива</th><th>Баланс</th><th>Дневной лимит</th><th>Статус</th><th>PIN-код</th><th>Действия</th></tr>
+        <tr><td><span class="num">0002/0</span></td><td>ООО «Ромашка»</td><td>АИ-92</td><td class="bal">145.500 л</td><td>50.000 л</td><td><span class="ok">активна</span></td><td>4821</td>
+          <td><span class="ib mark">＋<span class="pin">2</span></span><span class="ib r">🔒</span><span class="ib">✎</span><span class="ib">⇄</span><span class="ib">⟳</span><span class="ib d">🗑</span></td></tr>
+        <tr><td><span class="num">0002/1</span></td><td>ООО «Ромашка»</td><td>Дизель</td><td class="bal">0.000 л</td><td style="color:#a8c7bb">без лимита</td><td><span class="bad">заблокирована</span><div style="font-size:10px;color:#ff9a9a">карта утеряна</div></td><td>7305</td>
+          <td><span class="ib">＋</span><span class="ib g">🔓</span><span class="ib">✎</span><span class="ib">⇄</span><span class="ib">⟳</span><span class="ib d">🗑</span></td></tr>
+      </table>
+    </div>
+    <div class="cap">Рис. 5. Вкладка «Карты»</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Три фильтра: по коду (вхождение цифр), по клиенту и по виду топлива. Их можно сочетать.</div>
+    <div><span class="n">2</span>Кнопки действий в строке карты (см. таблицу ниже). Если карт много, внизу таблицы есть выбор размера страницы и переход между страницами.</div>
+  </div>
+  <table class="t">
+    <tr><th>Значок</th><th>Действие</th><th>Раздел</th></tr>
+    <tr><td>＋</td><td>Пополнить</td><td>7</td></tr>
+    <tr><td>🔒 / 🔓</td><td>Заблокировать / разблокировать</td><td>8</td></tr>
+    <tr><td>✎</td><td>Редактировать</td><td>6.4</td></tr>
+    <tr><td>⇄</td><td>Переместить топливо на другую карту</td><td>9</td></tr>
+    <tr><td>⟳</td><td>Пересчитать баланс по истории</td><td>10</td></tr>
+    <tr><td>🗑</td><td>Удалить карту</td><td>—</td></tr>
+  </table>
+  <h3>6.3. Создание карты</h3>
+  <ol class="steps">
+    <li>Нажмите «+ Добавить».</li>
+    <li>Введите <strong>код</strong> (4 цифры) и выберите <strong>индекс</strong>.</li>
+    <li>Выберите <strong>клиента</strong> и <strong>вид топлива</strong>.</li>
+    <li>Укажите <strong>баланс</strong> (если он больше нуля, система автоматически создаст операцию пополнения «Первоначальное пополнение карты»).</li>
+    <li>Введите <strong>PIN-код</strong> и при необходимости <strong>дневной лимит</strong> (0 = без лимита).</li>
+    <li>Нажмите «Создать». Появится окно «Карта успешно создана!» с данными карты. Его можно показать клиенту.</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg">
+        <h4>Добавить карту</h4>
+        <div class="row"><span>Код карты</span><div class="in mark">0005<span class="pin">1</span></div></div>
+        <div class="row"><span>Индекс</span><div class="in mark">0 (будет: 0005/0)<span class="pin">2</span></div></div>
+        <div class="row"><span>Клиент</span><div class="in">ООО «Ромашка»</div></div>
+        <div class="row"><span>Вид топлива</span><div class="in">АИ-95</div></div>
+        <div class="row"><span>Баланс</span><div class="in">500</div></div>
+        <div class="row"><span>PIN-код</span><div class="in">1234</div></div>
+        <div class="row"><span>Дневной лимит</span><div class="in mark">0 = без лимита<span class="pin">3</span></div></div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Создать</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 6. Форма создания карты</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Код: ровно 4 цифры. Код <span class="code">0000</span> зарезервирован для склада.</div>
+    <div><span class="n">2</span>В списке индексов виден итоговый вид номера.</div>
+    <div><span class="n">3</span>Дневной лимит ограничивает суточный отпуск. Ноль снимает ограничение.</div>
+  </div>
+  <div class="warning"><strong>Защита от дублей.</strong> Если карта с таким кодом и индексом уже есть, появится красное окно «Карта уже существует». Нажмите «Изменить данные» и выберите другой индекс.</div>
+  <h3>6.4. Редактирование карты</h3>
+  <p>Кнопка ✎ открывает окно с двумя вкладками: «Основное» (код, индекс, клиент, топливо, баланс, PIN, лимит, статус, причина блокировки) и «Доступное топливо» (цены для рублёвых карт, см. раздел 14).</p>
+  <div class="warning"><strong>Вид топлива можно сменить только при нулевом балансе.</strong> Если баланс не нулевой, система покажет предупреждение. Сначала обнулите баланс, например перемещением на другую карту.</div>
+  <div class="example"><strong>Пример: изменить дневной лимит.</strong> Откройте ✎ у нужной карты, в поле «Дневной лимит» введите 80 и нажмите «Сохранить».</div>
+</div>
+
+<div class="section" id="s7">
+  <h2>7. Пополнение карты</h2>
+  <p>Пополнение добавляет топливо на баланс и создаёт операцию «пополнение» на станции «Склад».</p>
+  <ol class="steps">
+    <li>В строке карты нажмите <span class="b b-acc">＋</span>.</li>
+    <li>Введите <strong>количество</strong> и <strong>цену</strong>. Сумма посчитается сама. Можно ввести количество и сумму, тогда цена посчитается сама.</li>
+    <li>При желании добавьте комментарий.</li>
+    <li>Нажмите «Пополнить». Появится окно «Карта успешно пополнена!» с новым балансом.</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg" style="max-width:380px">
+        <h4>＋ Пополнение карты 0002/0</h4>
+        <div class="row"><span>Количество (литров)</span><div class="in mark">1000<span class="pin">1</span></div></div>
+        <div class="row"><span>Цена (руб/л)</span><div class="in mark">58.50<span class="pin">2</span></div></div>
+        <div class="row"><span>Сумма (руб)</span><div class="in mark">58500.00<span class="pin">3</span></div></div>
+        <div class="row"><span>Комментарий</span><div class="in">Оплата по счёту № 125</div></div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Пополнить</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 7. Окно пополнения</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span><span class="n">2</span><span class="n">3</span>Три поля связаны: измените любое, и остальное пересчитается. Количество × цена = сумма.</div>
+  </div>
+  <div class="example"><strong>Пример.</strong> Клиент оплатил 58 500 ₽ за АИ-92 по 58.50 ₽/л. Введите количество 1000, цену 58.50, сумма станет 58 500.00. После пополнения баланс увеличится на 1000 л.</div>
+</div>
+
+<div class="section" id="s8">
+  <h2>8. Блокировка и разблокировка</h2>
+  <p>Нажмите 🔒 в строке карты, введите <strong>причину</strong> (обязательна) и подтвердите. Статус изменится на «заблокирована», причина появится в таблице и в кабинете клиента. Для снятия блокировки нажмите 🔓 и подтвердите.</p>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg" style="max-width:380px">
+        <h4>🔒 Заблокировать карту 0002/1</h4>
+        <div class="sm">Причина блокировки</div>
+        <div class="in" style="border:1px solid #ccc;border-radius:5px;padding:8px;background:#fafafa;margin-bottom:6px;font-size:12px">Карта утеряна водителем</div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt d">Заблокировать</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 8. Окно блокировки</div>
+  </div>
+  <div class="tip"><strong>Блокировка не сжигает остаток.</strong> Топливо остаётся на балансе. Его можно перенести на новую карту (раздел 9).</div>
+  <p>Клиент также может блокировать и разблокировать свои карты самостоятельно в кабинете.</p>
+</div>
+
+<div class="section" id="s9">
+  <h2>9. Перемещение топлива между картами</h2>
+  <p>Нужно, когда клиент потерял карту или когда топливо переносится между разными видами. В отличие от клиентского перемещения, администратор может переносить между <strong>любыми</strong> картами, в том числе с разным видом топлива, и задавать разные количества на списание и зачисление.</p>
+  <ol class="steps">
+    <li>В строке карты-источника нажмите ⇄.</li>
+    <li>Выберите <strong>карту назначения</strong>.</li>
+    <li>Введите, сколько <strong>списать</strong> с источника и сколько <strong>оприходовать</strong> на назначение.</li>
+    <li>Нажмите кнопку продолжения, проверьте данные в окне подтверждения и подтвердите.</li>
+    <li>Появится окно «Перемещение выполнено!».</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg" style="max-width:440px">
+        <h4>⇄ Перемещение топлива между картами</h4>
+        <div class="sm" style="background:#f4faf7;border:1px solid #cfe8dd;padding:8px;border-radius:5px"><strong>Карта-источник (списание)</strong><br><b>0002/0</b> · ООО «Ромашка» · АИ-92 · 145.500 л</div>
+        <div class="sm"><strong>Карта-назначение (оприходование)</strong></div>
+        <div class="in" style="border:1px solid #ccc;border-radius:5px;padding:7px;background:#fafafa;margin-bottom:8px;font-size:12px;position:relative" class="mark">0002/2 — ООО «Ромашка» (АИ-92) / 0.000 л</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><div class="sm" style="margin-bottom:2px"><strong>Списать (АИ-92), л</strong></div><div class="in" style="border:1px solid #ccc;border-radius:5px;padding:6px;background:#fafafa;font-size:12px">100.000</div></div>
+          <div><div class="sm" style="margin-bottom:2px"><strong>Оприходовать (АИ-92), л</strong></div><div class="in" style="border:1px solid #ccc;border-radius:5px;padding:6px;background:#fafafa;font-size:12px">100.000</div></div>
+        </div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Далее</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 9. Окно перемещения</div>
+  </div>
+  <div class="example"><strong>Пример: замена утерянной карты.</strong> Карта 0002/0 утеряна, остаток 145.5 л. Заблокируйте её, создайте карту 0002/1 того же клиента с тем же топливом и нулевым балансом, затем переместите 145.5 л с 0002/0 на 0002/1. В истории появятся операции «списание» и «оприходование».</div>
+  <div class="warning">Если вы вводите списание больше остатка, система покажет предупреждение «Недостаточно топлива» и не даст продолжить.</div>
+</div>
+
+<div class="section" id="s10">
+  <h2>10. Пересчёт баланса</h2>
+  <p>Кнопка ⟳ пересчитывает баланс карты по всей истории операций. Нужна, если баланс не сходится с историей, например после ручных правок.</p>
+  <ol class="steps">
+    <li>Нажмите ⟳ в строке нужной карты.</li>
+    <li>Подтвердите пересчёт.</li>
+    <li>Система покажет старое и новое значения баланса и сразу сохранит новое.</li>
+  </ol>
+  <div class="warning"><strong>Пересчёт заменяет баланс.</strong> Используйте его, только если уверены, что история операций верна. Операции пополнения и оприходования прибавляются, заправки и списания вычитаются.</div>
+</div>
+
+<div class="section" id="s11">
+  <h2>11. Операции</h2>
+  <p>Вкладка «Операции» показывает полную историю движения топлива.</p>
+  <h3>11.1. Типы операций</h3>
+  <table class="t">
+    <tr><th>Тип</th><th>Влияние на баланс</th><th>Откуда берётся</th></tr>
+    <tr><td>пополнение</td><td>+</td><td>Пополнение карты администратором, первоначальный баланс карты</td></tr>
+    <tr><td>заправка</td><td>−</td><td>Автоматически из панели оператора</td></tr>
+    <tr><td>списание</td><td>−</td><td>Ручное уменьшение или перемещение (источник)</td></tr>
+    <tr><td>оприходование</td><td>+</td><td>Перемещение (получатель) или ручное увеличение</td></tr>
+  </table>
+  <h3>11.2. Фильтры и отчёты</h3>
+  <div class="fig">
+    <div class="scr">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="ttl" style="margin:0">🕘 Операции</div><div><span class="btn mark">🖨 Печать<span class="pin">3</span></span> <span class="btn g mark">Excel<span class="pin">4</span></span> <span class="btn fill">+ Добавить</span></div></div>
+      <div class="filters mark" style="margin-top:10px;grid-template-columns:repeat(4,1fr)"><span class="pin">1</span>
+        <div><div class="lbl">Клиент</div><div class="fld">Все клиенты</div></div>
+        <div><div class="lbl">Вид топлива</div><div class="fld">Все виды</div></div>
+        <div><div class="lbl">Карта</div><div class="fld">Все карты</div></div>
+        <div><div class="lbl">АЗС</div><div class="fld">Все АЗС</div></div>
+        <div><div class="lbl">Тип операции</div><div class="fld">Все типы</div></div>
+        <div><div class="lbl">Дата с</div><div class="fld">01.10.2026</div></div>
+        <div><div class="lbl">Дата по</div><div class="fld">31.10.2026</div></div>
+      </div>
+      <table>
+        <tr><th>Карта</th><th>Клиент</th><th>Топливо</th><th>АЗС</th><th>Дата</th><th>Операция</th><th>Кол-во</th><th>Цена</th><th>Сумма</th><th>Действия</th></tr>
+        <tr><td class="num">0002/0</td><td>ООО «Ромашка»</td><td>АИ-92</td><td>АЗС №1</td><td>12.10.2026</td><td><span class="ok" style="background:#d97706">заправка</span></td><td>32.750</td><td>58.50</td><td>1 915.88</td><td><span class="ib mark">✎<span class="pin">2</span></span><span class="ib d">🗑</span></td></tr>
+      </table>
+    </div>
+    <div class="cap">Рис. 10. Вкладка «Операции»</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Семь фильтров: клиент, топливо, карта, АЗС, тип, период. Они комбинируются.</div>
+    <div><span class="n">2</span>Редактирование и удаление операции. При их изменении баланс карты обновляется.</div>
+    <div><span class="n">3</span>«Печать» выводит отчёт с учётом выбранных фильтров, перечисляя их в заголовке.</div>
+    <div><span class="n">4</span>«Excel» выгружает те же строки в таблицу.</div>
+  </div>
+  <div class="example"><strong>Пример: отчёт по клиенту за месяц.</strong> Выберите клиента «ООО Ромашка», даты с 01.10.2026 по 31.10.2026, нажмите «Excel». В файл попадут все операции клиента за октябрь.</div>
+  <h3>11.3. Ручное добавление</h3>
+  <p>Операции с заправок создаются автоматически. Вручную добавляйте только корректировки: «+ Добавить», выберите карту, АЗС, дату, тип, количество, цену и сумму, «Создать».</p>
+  <div class="warning"><strong>Осторожно с ручными правками:</strong> они меняют баланс карты. После серии правок сверьте баланс и при необходимости выполните пересчёт (раздел 10).</div>
+</div>
+
+<div class="section" id="s12">
+  <h2>12. АЗС</h2>
+  <p>Справочник заправочных станций. Для каждой указываются <strong>наименование</strong>, <strong>код 1С</strong> и <strong>адрес</strong>.</p>
+  <div class="fig">
+    <div class="scr">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div class="ttl" style="margin:0">⛽ АЗС</div><div><span class="btn">🖨 Печать</span> <span class="btn fill">+ Добавить</span></div></div>
+      <table>
+        <tr><th>Наименование</th><th>Код 1С</th><th>Адрес</th><th>Действия</th></tr>
+        <tr><td>АЗС №1</td><td>000000001</td><td>г. Москва, ул. Ленина, 10</td><td><span class="ib">✎</span><span class="ib d">🗑</span></td></tr>
+        <tr><td>Склад</td><td>000000000</td><td>Центральный склад</td><td><span class="ib">✎</span><span class="ib d">🗑</span></td></tr>
+      </table>
+    </div>
+    <div class="cap">Рис. 11. Справочник АЗС</div>
+  </div>
+  <div class="tip"><strong>Склад.</strong> Станция со словом «Склад» в названии используется для пополнений и перемещений. Операторам она не показывается.</div>
+  <div class="warning">Прежде чем удалять АЗС, убедитесь, что она не нужна в отчётах: по ней могут быть операции.</div>
+</div>
+
+<div class="section" id="s13">
+  <h2>13. Виды топлива и единицы измерения</h2>
+  <p>Каждый вид топлива имеет название, код 1С и единицу измерения. Единица подставляется во все балансы, лимиты и операции.</p>
+  <table class="t">
+    <tr><th>Единица</th><th>Для чего</th></tr>
+    <tr><td>л — литры</td><td>Обычное топливо (по умолчанию)</td></tr>
+    <tr><td>₽ — рубли</td><td>Денежные карты (см. раздел 14)</td></tr>
+    <tr><td>кг — килограммы</td><td>Газ</td></tr>
+    <tr><td>шт — штуки</td><td>Товары и услуги</td></tr>
+  </table>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg" style="max-width:380px">
+        <h4>Добавить вид топлива</h4>
+        <div class="row"><span>Название</span><div class="in">АИ-95</div></div>
+        <div class="row"><span>Код 1С</span><div class="in">000000015</div></div>
+        <div class="row"><span>Ед. изм.</span><div class="in mark">л — литры<span class="pin">1</span></div></div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Создать</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 12. Добавление вида топлива</div>
+  </div>
+  <div class="legend"><div><span class="n">1</span>Единицу выбирайте сразу и правильно: от неё зависит отображение остатков у клиента и оператора.</div></div>
+</div>
+
+<div class="section" id="s14">
+  <h2>14. Рублёвые карты и цены</h2>
+  <p>Для денежных карт создайте вид топлива с единицей «₽» и выпустите карту с этим видом. В окне редактирования такой карты открывается вкладка <strong>«Доступное топливо»</strong>, где задаётся, какое топливо и по какой цене можно заправлять.</p>
+  <div class="fig">
+    <div class="scr" style="padding:24px 14px">
+      <div class="dlg" style="max-width:460px">
+        <h4>Редактировать карту 0010/0</h4>
+        <div style="display:flex;gap:6px;margin-bottom:10px;font-size:12px"><span style="padding:5px 10px;border-radius:5px;color:#555">Основное</span><span style="padding:5px 10px;border-radius:5px;background:#fbbf24;font-weight:700">Доступное топливо</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:10px" class="mark"><span class="pin">1</span><div class="in" style="flex:1;border:1px solid #ccc;border-radius:5px;padding:6px;background:#fafafa;font-size:12px">Вид топлива</div><div class="in" style="width:90px;border:1px solid #ccc;border-radius:5px;padding:6px;background:#fafafa;font-size:12px">Цена, ₽</div><span class="bt p" style="padding:5px 10px;font-size:12px;border-radius:5px;background:#fbbf24;color:#222">＋</span></div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="text-align:left;border-bottom:1px solid #ddd"><th style="padding:4px">Топливо</th><th>Цена, ₽</th><th></th></tr><tr><td style="padding:4px">АИ-95</td><td>58.50</td><td>✎ 🗑</td></tr><tr><td style="padding:4px">Дизель</td><td>62.10</td><td>✎ 🗑</td></tr></table>
+      </div>
+    </div>
+    <div class="cap">Рис. 13. Цены на рублёвой карте</div>
+  </div>
+  <div class="legend"><div><span class="n">1</span>Выберите топливо, введите цену за литр и нажмите «＋». Цену можно изменить значком карандаша или убрать позицию корзиной.</div></div>
+  <div class="tip">Без заданных цен оператор увидит сообщение «Для карты не добавлено доступное топливо» и не сможет отпустить топливо по этой карте.</div>
+</div>
+
+<div class="section" id="s15">
+  <h2>15. База данных и архивы</h2>
+  <p>Вкладка «База данных» позволяет сохранять копии данных (архивы), скачивать их и удалять старые. Каждый архив — это ZIP-файл, защищённый паролем. Пароль задан в настройках проекта (секрет ARCHIVE_PASSWORD), он потребуется при открытии скачанного архива. Эта вкладка доступна только администраторам.</p>
+  <div class="fig">
+    <div class="scr">
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><b>Текущая база данных</b> <span style="font-size:11px;color:#a8c7bb;margin-left:8px">Всего записей: 4 820</span></div><span class="btn fill mark">🗄 Создать архив<span class="pin">1</span></span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="fld">Клиенты 12</span><span class="fld">Карты 48</span><span class="fld">Операции 4 700</span><span class="fld">АЗС 6</span></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><b>Архивы</b><div style="font-size:12px;color:#cfe3da" class="mark">Удалить старше, дней: <span class="fld" style="display:inline-block;width:50px">180</span> <span class="btn r">Удалить старые</span><span class="pin">3</span></div></div>
+        <table>
+          <tr><th>Дата создания</th><th>Файл</th><th>Размер</th><th>Записей</th><th>Кто создал</th><th>Действия</th></tr>
+          <tr><td>31.10.2026 18:00</td><td>archive_2026-10-31_18-00-00.zip</td><td>1.2 МБ</td><td>4 820</td><td>admin</td><td><span class="ib mark">⬇<span class="pin">2</span></span><span class="ib d">🗑</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="cap">Рис. 14. Архивы базы данных</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>«Создать архив» сохраняет копию всех данных. Дождитесь окончания: кнопка покажет «Подождите…».</div>
+    <div><span class="n">2</span>Скачайте архив на компьютер или удалите его корзиной. Если архив состоит из нескольких частей, скачайте все части.</div>
+    <div><span class="n">3</span>Массовая очистка: удаляет архивы старше указанного числа дней.</div>
+  </div>
+  <div class="example"><strong>Рекомендуемый порядок.</strong> Раз в неделю создавайте архив и скачивайте его на свой компьютер или облачный диск. Храните пароль от архивов отдельно и в надёжном месте. Раз в квартал удаляйте архивы старше 180 дней.</div>
+  <div class="danger"><strong>Удаление архивов необратимо.</strong> Перед очисткой убедитесь, что нужные копии скачаны.</div>
+</div>
+
+<div class="section" id="s16">
+  <h2>16. Чат</h2>
+  <p>Круглая жёлтая кнопка в правом нижнем углу открывает чат: общий и личные диалоги с пользователями системы. При новом сообщении приходит уведомление. В сообщения можно вкладывать файлы (до 4 МБ) и ссылки.</p>
+  <div class="tip">Чат удобен для быстрых вопросов от операторов и клиентов: например, «карта не читается» или «нужно повысить лимит».</div>
+</div>
+
+<div class="section" id="s17">
+  <h2>17. Типовые сценарии</h2>
+  <table class="t">
+    <tr><th>Задача</th><th>Как сделать</th></tr>
+    <tr><td>Подключить нового клиента</td><td>Клиенты → «+ Добавить» → заполнить → «Создать». Затем «Печать памятки» и передать клиенту. Далее выпустить карты (раздел 6.3)</td></tr>
+    <tr><td>Принять оплату за топливо</td><td>Карты → ＋ у нужной карты → количество и цена → «Пополнить»</td></tr>
+    <tr><td>Клиент потерял карту</td><td>Заблокировать (🔒) → создать новую карту с тем же кодом и следующим индексом → переместить остаток (⇄)</td></tr>
+    <tr><td>Новый оператор на АЗС</td><td>Клиенты → создать учётную запись с галочкой «Оператор АЗС» → значок ссылки → выбрать АЗС и пароль → передать ссылку</td></tr>
+    <tr><td>Нужно изменить дневной лимит</td><td>Карты → ✎ → «Дневной лимит» → «Сохранить» (клиент может сделать это сам)</td></tr>
+    <tr><td>Не сходится баланс карты</td><td>Операции → фильтр по карте → проверить строки → при необходимости ⟳ «Пересчитать баланс» (раздел 10)</td></tr>
+    <tr><td>Отчёт для бухгалтерии</td><td>Операции → выбрать клиента и период → «Excel»</td></tr>
+    <tr><td>Оператор ошибся в количестве</td><td>Операции → найти заправку → ✎ → исправить количество → «Сохранить». Баланс обновится</td></tr>
+    <tr><td>Заправляемся деньгами, а не литрами</td><td>Создать вид топлива «₽» → выпустить карту → вкладка «Доступное топливо» → добавить топливо с ценой</td></tr>
+    <tr><td>Сохранить копию данных</td><td>База данных → «Создать архив» → скачать</td></tr>
+    <tr><td>Проверить, что видит клиент</td><td>Клиенты → клик по названию клиента. Кнопка «Админпанель» вернёт обратно</td></tr>
+  </table>
+</div>
+
+<div class="section" id="s18">
+  <h2>18. Рекомендации и безопасность</h2>
+  <ul>
+    <li>Выдавайте каждому пользователю свой логин. Не используйте один логин на нескольких людей.</li>
+    <li>Используйте генератор паролей: он создаёт надёжные пароли без путающихся символов.</li>
+    <li>Не создавайте администраторов без необходимости. Права администратора дают доступ ко всему.</li>
+    <li>При увольнении оператора или потере карты блокируйте и меняйте доступы сразу.</li>
+    <li>Номера карт: одному клиенту и одному топливу — индекс 0. Несколько топлив по одному коду — индексы 0, 1, 2 и т.д.</li>
+    <li>Системная карта <span class="code">0000</span> предназначена для учёта общего баланса склада. Операторы не могут отпускать по ней топливо.</li>
+    <li>Раз в неделю создавайте архив базы и скачивайте его.</li>
+    <li>Регулярно сверяйте балансы по критичным картам с историей операций.</li>
+    <li>Не передавайте ссылки-ярлыки операторов через открытые каналы: в них зашит пароль.</li>
+    <li>На общих компьютерах всегда нажимайте «Выход».</li>
+  </ul>
+  <div class="tip"><strong>Интеграция с 1С.</strong> Для обмена данными используйте поле «Код 1С» у АЗС и видов топлива. Коды должны совпадать с 1С.</div>
+</div>
+
+<a href="javascript:window.close()" class="back-link">Закрыть инструкцию</a>
+</div>
+</div>
 </body>
 </html>
