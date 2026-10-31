@@ -15,7 +15,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
-import { useConfirm } from '@/components/ConfirmDialog';
+import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import CardFuelPrices from '@/components/CardFuelPrices';
 import DatabaseArchives from '@/components/DatabaseArchives';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
@@ -27,6 +27,7 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const navigate = useNavigate();
   const confirmAction = useConfirm();
+  const showAlert = useAlert();
   const [clients, setClients] = useState<any[]>([]);
   const [stations, setStations] = useState<any[]>([]);
   const [fuelTypes, setFuelTypes] = useState<any[]>([]);
@@ -190,9 +191,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       console.error('Error creating client:', error);
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       if (errorMessage.includes('unique constraint')) {
-        alert('Ошибка: Клиент с таким логином уже существует. Пожалуйста, выберите другой логин.');
+        showAlert('Ошибка: Клиент с таким логином уже существует. Пожалуйста, выберите другой логин.');
       } else {
-        alert(`Ошибка при создании клиента: ${errorMessage}`);
+        showAlert(`Ошибка при создании клиента: ${errorMessage}`);
       }
     }
   };
@@ -396,7 +397,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setTransferSuccessDialog({open: true, result});
     } catch (error) {
       console.error('Transfer error:', error);
-      alert('Ошибка при перемещении: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
+      showAlert('Ошибка при перемещении: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
     } finally {
       setTransferLoading(false);
     }
@@ -747,7 +748,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     if (filterDateFrom) filters.push(`с ${filterDateFrom}`);
     if (filterDateTo) filters.push(`по ${filterDateTo}`);
     if (!printOperations(filteredOperations, filters)) {
-      window.alert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
+      showAlert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
     }
   };
 

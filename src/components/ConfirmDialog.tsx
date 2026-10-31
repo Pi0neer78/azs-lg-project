@@ -9,6 +9,7 @@ interface ConfirmOptions {
   confirmText?: string;
   cancelText?: string;
   danger?: boolean;
+  hideCancel?: boolean;
 }
 
 type ConfirmFn = (options: ConfirmOptions | string) => Promise<boolean>;
@@ -16,6 +17,15 @@ type ConfirmFn = (options: ConfirmOptions | string) => Promise<boolean>;
 const ConfirmContext = createContext<ConfirmFn>(() => Promise.resolve(false));
 
 export const useConfirm = () => useContext(ConfirmContext);
+
+export const useAlert = () => {
+  const confirm = useContext(ConfirmContext);
+  return useCallback(
+    (message: string, title = 'Внимание') =>
+      confirm({ title, message, confirmText: 'Понятно', hideCancel: true, danger: false }).then(() => undefined),
+    [confirm]
+  );
+};
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -65,15 +75,17 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               <AlertDialogPrimitive.Description className="mt-2 text-sm text-muted-foreground">
                 {opts.message}
               </AlertDialogPrimitive.Description>
-              <div className="mt-6 grid w-full grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => finish(false)}
-                  className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
-                >
-                  {opts.cancelText || 'Нет'}
-                </Button>
+              <div className={`mt-6 grid w-full gap-3 ${opts.hideCancel ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                {!opts.hideCancel && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => finish(false)}
+                    className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {opts.cancelText || 'Нет'}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   onClick={() => finish(true)}
