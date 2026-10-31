@@ -17,6 +17,7 @@ import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
 import CardFuelPrices from '@/components/CardFuelPrices';
 import DatabaseArchives from '@/components/DatabaseArchives';
+import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -732,7 +733,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   const handlePrintOperations = () => {
-    window.print();
+    const filters: string[] = [];
+    if (filterOpClient !== 'all') filters.push(`клиент: ${filterOpClient}`);
+    if (filterOpFuelType !== 'all') filters.push(`топливо: ${filterOpFuelType}`);
+    if (filterCard !== 'all') filters.push(`карта: ${filterCard}`);
+    if (filterStation !== 'all') filters.push(`АЗС: ${filterStation}`);
+    if (filterOperationType !== 'all') filters.push(`операция: ${filterOperationType}`);
+    if (filterDateFrom) filters.push(`с ${filterDateFrom}`);
+    if (filterDateTo) filters.push(`по ${filterDateTo}`);
+    if (!printOperations(filteredOperations, filters)) {
+      window.alert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
+    }
+  };
+
+  const handleExportOperations = () => {
+    exportOperationsToExcel(filteredOperations);
   };
 
   const handlePrintFuelTypes = () => {
@@ -1255,6 +1270,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <Button onClick={handlePrintOperations} variant="outline" size="sm" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
                       <Icon name="Printer" className="w-4 h-4 mr-2" />
                       Печать
+                    </Button>
+                    <Button onClick={handleExportOperations} variant="outline" size="sm" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                      <Icon name="FileSpreadsheet" className="w-4 h-4 mr-2" />
+                      Экспорт в Excel
                     </Button>
                     <Dialog open={isAddOperationDialogOpen} onOpenChange={setIsAddOperationDialogOpen}>
                       <DialogTrigger asChild>
