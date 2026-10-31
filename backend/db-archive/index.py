@@ -1,4 +1,5 @@
 import base64
+import csv
 import io
 import json
 import os
@@ -77,24 +78,22 @@ def handler(event: dict, context) -> dict:
                 (SCHEMA,),
             )
             names = [r[0] for r in cur.fetchall() if r[0] not in SKIP_TABLES]
-            dump = {}
-            total = 0
-            for name in names:
-                cur.execute('SELECT * FROM "%s"."%s"' % (SCHEMA, name))
-                cols = [d[0] for d in cur.description]
-                rows = [dict(zip(cols, r)) for r in cur.fetchall()]
-                dump[name] = rows
-                total += len(rows)
-            payload = json.dumps(
-                {'created_at': datetime.now(MSK).isoformat(), 'tables': dump},
-                ensure_ascii=False, default=str,
-            ).encode('utf-8')
             stamp = datetime.now(MSK).strftime('%Y-%m-%d_%H-%M-%S')
             buf = io.BytesIO()
+            total = 0
             with pyzipper.AESZipFile(buf, 'w', compression=pyzipper.ZIP_DEFLATED, encryption=pyzipper.WZ_AES) as zf:
                 zf.setpassword(zip_password.encode('utf-8'))
                 zf.setencryption(pyzipper.WZ_AES, nbits=256)
-                zf.writestr('azs_db_%s.json' % stamp, payload)
+                for name in names:
+                    cur.execute('SELECT * FROM "%s"."%s"' % (SCHEMA, name))
+                    cols = [d[0] for d in cur.description]
+                    out = io.StringIO()
+                    writer = csv.writer(out, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+                    writer.writerow(cols)
+                    for r in cur.fetchall():
+                        writer.writerow(['' if v is None else v for v in r])
+                        total += 1
+                    zf.writestr('%s.csv' % name, ('\ufeff' + out.getvalue()).encode('utf-8'))
             packed = buf.getvalue()
             file_name = 'azs_db_%s.zip' % stamp
             file_key = 'db-archives/%s_%s' % (os.urandom(8).hex(), file_name)
