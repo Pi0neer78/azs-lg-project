@@ -137,25 +137,27 @@ export default function DatabaseArchives() {
   return (
     <div className="space-y-6">
       <Card className="bg-card border-2 border-primary">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center justify-between flex-wrap gap-2">
-            <span>Текущая база данных</span>
-            <Button onClick={createArchive} disabled={busy} className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <CardHeader className="px-4 py-2">
+          <CardTitle className="text-foreground text-base flex items-center justify-between flex-wrap gap-2">
+            <span>
+              Текущая база данных
+              <span className="ml-3 text-xs font-normal text-muted-foreground">Всего записей: {totalRows}</span>
+            </span>
+            <Button size="sm" onClick={createArchive} disabled={busy} className="h-8 bg-accent text-accent-foreground hover:bg-accent/90">
               <Icon name="Archive" className="w-4 h-4 mr-2" />
               {busy ? 'Подождите...' : 'Создать архив'}
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <CardContent className="px-4 pb-3 pt-0">
+          <div className="flex flex-wrap gap-2">
             {tables.map((t) => (
-              <div key={t.name} className="border-2 border-border rounded-md p-3">
-                <div className="text-sm text-muted-foreground">{TABLE_TITLES[t.name] || t.name}</div>
-                <div className="text-xl font-bold text-foreground">{t.rows}</div>
+              <div key={t.name} className="flex items-baseline gap-1.5 border border-border rounded-md px-2 py-0.5">
+                <span className="text-xs text-muted-foreground">{TABLE_TITLES[t.name] || t.name}</span>
+                <span className="text-sm font-bold text-foreground">{t.rows}</span>
               </div>
             ))}
           </div>
-          <div className="text-sm text-muted-foreground mt-3">Всего записей: {totalRows}</div>
         </CardContent>
       </Card>
 
