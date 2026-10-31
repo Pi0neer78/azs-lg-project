@@ -617,7 +617,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [opsPage, setOpsPage] = useState(1);
   const [opsPageSize, setOpsPageSize] = useState<number>(() => {
     const saved = parseInt(localStorage.getItem('admin_ops_page_size') || '', 10);
-    return [10, 20, 50, 100].includes(saved) ? saved : 50;
+    return [10, 15, 20, 50, 100].includes(saved) ? saved : 50;
   });
 
   const filteredCards = cards
