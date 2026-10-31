@@ -1,0 +1,1 @@
+ALTER TABLE t_p39946729_azs_lg_project.db_archives ADD COLUMN IF NOT EXISTS parts TEXT NULL;

@@ -16,6 +16,7 @@ interface Archive {
   rows_count: number;
   created_by: string;
   created_at: string;
+  parts: string[];
 }
 
 interface TableInfo {
@@ -89,16 +90,20 @@ export default function DatabaseArchives() {
     setBusy(true);
     setError('');
     try {
-      const res = await apiFetch(`${ARCHIVE_API}?download=${a.id}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Не удалось скачать архив');
-      const bytes = Uint8Array.from(atob(data.content_base64), (c) => c.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = data.file_name;
-      link.click();
-      URL.revokeObjectURL(url);
+      const count = Math.max(1, a.parts?.length || 1);
+      for (let i = 0; i < count; i++) {
+        const res = await apiFetch(`${ARCHIVE_API}?download=${a.id}&part=${i}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Не удалось скачать архив');
+        const bytes = Uint8Array.from(atob(data.content_base64), (c) => c.charCodeAt(0));
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = data.file_name;
+        link.click();
+        URL.revokeObjectURL(url);
+        await new Promise((r) => setTimeout(r, 400));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка скачивания');
     } finally {
@@ -195,7 +200,7 @@ export default function DatabaseArchives() {
                   <TableRow key={a.id}>
                     <TableCell>{a.created_at}</TableCell>
                     <TableCell>{a.file_name}</TableCell>
-                    <TableCell>{formatSize(a.size_bytes)}</TableCell>
+                    <TableCell>{formatSize(a.size_bytes)}{a.parts && a.parts.length > 1 ? ` (частей: ${a.parts.length})` : ''}</TableCell>
                     <TableCell>{a.rows_count}</TableCell>
                     <TableCell>{a.created_by}</TableCell>
                     <TableCell className="text-right">
