@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Инструкция клиента - СОЮЗ</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; }
+.container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.1); overflow: hidden; }
+.header { background: linear-gradient(135deg, #0f3d2e 0%, #1a6b4f 100%); color: #fff; padding: 40px; text-align: center; }
+.header h1 { font-size: 2.3em; margin-bottom: 10px; color: #fbbf24; }
+.header p { font-size: 1.15em; opacity: .9; }
+.content { padding: 40px; }
+.toc { background: #f4faf7; border: 1px solid #cfe8dd; border-radius: 8px; padding: 20px 30px; margin-bottom: 40px; }
+.toc h2 { color: #0f5b42; margin-bottom: 10px; font-size: 1.3em; }
+.toc ol { padding-left: 20px; columns: 2; }
+.toc a { color: #0f5b42; text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section { margin-bottom: 45px; }
+.section h2 { color: #0f5b42; font-size: 1.7em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #fbbf24; }
+.section h3 { color: #1a6b4f; font-size: 1.25em; margin-top: 25px; margin-bottom: 12px; }
+.section p { margin-bottom: 14px; }
+.section ul { margin: 0 0 14px 25px; }
+.section li { margin-bottom: 6px; }
+.steps { counter-reset: s; list-style: none; padding-left: 0 !important; margin-left: 0 !important; }
+.steps li { counter-increment: s; margin-bottom: 16px; padding-left: 50px; position: relative; }
+.steps li:before { content: counter(s); position: absolute; left: 0; top: 0; background: #0f5b42; color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.tip { background: #e3f6ec; border-left: 4px solid #1a9e6e; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.example { background: #f8f9ff; border-left: 4px solid #5b6bd6; padding: 15px 20px; margin: 20px 0; border-radius: 4px; }
+.example strong:first-child { color: #3a47a8; }
+table.t { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: .95em; }
+table.t th, table.t td { padding: 10px 12px; text-align: left; border: 1px solid #ddd; vertical-align: top; }
+table.t th { background: #0f5b42; color: #fff; }
+table.t tr:nth-child(even) { background: #f4faf7; }
+.code { background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; padding: 2px 6px; font-family: monospace; }
+.b { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: .85em; font-weight: 600; border: 2px solid; white-space: nowrap; }
+.b-acc { border-color: #fbbf24; color: #8a6100; background: #fffbea; }
+.b-red { border-color: #dc3545; color: #dc3545; background: #fff5f5; }
+.b-grn { border-color: #1a9e6e; color: #0f6b4a; background: #effaf5; }
+.fig { margin: 22px 0; }
+.fig .cap { font-size: .85em; color: #666; text-align: center; margin-top: 8px; }
+.scr { background: linear-gradient(135deg, #0f3d2e, #14573f); border-radius: 10px; padding: 14px; color: #fff; font-size: 13px; box-shadow: 0 6px 18px rgba(0,0,0,.25); overflow-x: auto; }
+.scr .hd { background: #0e3226; border-bottom: 3px solid #fbbf24; padding: 10px 14px; border-radius: 6px 6px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.scr .hd .tt { color: #fbbf24; font-weight: 700; font-size: 16px; }
+.scr .hd .st { color: #a8c7bb; font-size: 11px; }
+.scr .btn { border: 2px solid #fbbf24; color: #fff; padding: 4px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; display: inline-block; }
+.scr .btn.g { border-color: #1a9e6e; }
+.scr .btn.r { border-color: #ff6b6b; color: #ff9a9a; }
+.scr .card { background: rgba(0,0,0,.25); border: 2px solid #1a9e6e; border-radius: 8px; padding: 12px; margin-top: 12px; }
+.scr .info { display: flex; gap: 20px; flex-wrap: wrap; }
+.scr .info span.l { color: #a8c7bb; }
+.scr .info b { color: #fff; }
+.scr .ttl { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.scr .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.scr .fld { background: rgba(255,255,255,.08); border: 2px solid #2a7d62; border-radius: 5px; padding: 5px 8px; color: #c9ddd5; font-size: 12px; }
+.scr .lbl { font-size: 11px; color: #cfe3da; margin-bottom: 2px; }
+.scr table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.scr th { text-align: left; padding: 6px; border-bottom: 1px solid #2a7d62; font-size: 12px; }
+.scr td { padding: 7px 6px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 12px; vertical-align: middle; }
+.scr .num { color: #fbbf24; font-family: monospace; font-weight: 700; }
+.scr .bal { color: #fbbf24; font-weight: 700; }
+.scr .ok { background: #1a9e6e; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.scr .bad { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.scr .reason { color: #ff9a9a; font-size: 11px; }
+.scr .mark { outline: 3px solid #ff3b81; outline-offset: 2px; border-radius: 5px; position: relative; }
+.scr .pin { position: absolute; top: -12px; right: -10px; background: #ff3b81; color: #fff; width: 22px; height: 22px; border-radius: 50%; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.dlg { background: #fff; color: #222; border-radius: 8px; padding: 18px; max-width: 420px; margin: 0 auto; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+.dlg h4 { font-size: 16px; margin-bottom: 4px; }
+.dlg .sub { color: #777; font-size: 12px; margin-bottom: 12px; }
+.dlg .in { border: 1px solid #ccc; border-radius: 5px; padding: 6px 9px; margin: 4px 0 10px; color: #444; font-size: 12px; background: #fafafa; }
+.dlg .lb { font-size: 12px; font-weight: 600; }
+.dlg .ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.dlg .bt { border: 1px solid #ccc; border-radius: 5px; padding: 5px 12px; font-size: 12px; }
+.dlg .bt.p { background: #0f5b42; color: #fff; border-color: #0f5b42; }
+.dlg .bt.d { background: #dc3545; color: #fff; border-color: #dc3545; }
+.legend { font-size: .9em; margin: 10px 0; }
+.legend span.n { display: inline-flex; width: 20px; height: 20px; background: #ff3b81; color: #fff; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-right: 6px; }
+.legend div { margin-bottom: 4px; }
+.back-link { display: inline-block; margin-top: 30px; padding: 12px 28px; background: #0f5b42; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; }
+@media (max-width: 700px) { .content { padding: 20px; } .toc ol { columns: 1; } .scr .filters { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; padding: 0; } .container { box-shadow: none; } .back-link { display: none; } .fig, .scr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <h1>Инструкция клиента</h1>
+  <p>Как работать с кабинетом клиента: топливные карты, баланс, лимиты, перемещение и история операций</p>
+</div>
+<div class="content">
+
+<div class="toc">
+  <h2>Содержание</h2>
+  <ol>
+    <li><a href="#s1">Что такое кабинет клиента</a></li>
+    <li><a href="#s2">Вход в кабинет</a></li>
+    <li><a href="#s3">Главный экран</a></li>
+    <li><a href="#s4">Поиск и фильтры карт</a></li>
+    <li><a href="#s5">Номер карты и баланс</a></li>
+    <li><a href="#s6">История операций по карте</a></li>
+    <li><a href="#s7">Дневной лимит</a></li>
+    <li><a href="#s8">Блокировка и разблокировка</a></li>
+    <li><a href="#s9">Перемещение топлива между картами</a></li>
+    <li><a href="#s10">Частые вопросы</a></li>
+    <li><a href="#s11">Рекомендации по безопасности</a></li>
+  </ol>
+</div>
+
+<div class="section" id="s1">
+  <h2>1. Что такое кабинет клиента</h2>
+  <p>Кабинет клиента показывает все ваши топливные карты и позволяет самостоятельно управлять ими без звонков в офис. В кабинете вы можете:</p>
+  <ul>
+    <li>видеть остаток топлива на каждой карте;</li>
+    <li>смотреть историю заправок и пополнений;</li>
+    <li>выгружать историю в Excel и печатать её;</li>
+    <li>менять дневной лимит отпуска топлива;</li>
+    <li>блокировать утерянную или скомпрометированную карту и разблокировать её;</li>
+    <li>перемещать топливо с одной карты на другую.</li>
+  </ul>
+  <div class="tip"><strong>Важно:</strong> вы видите и управляете только своими картами. Карты других клиентов недоступны.</div>
+</div>
+
+<div class="section" id="s2">
+  <h2>2. Вход в кабинет</h2>
+  <ol class="steps">
+    <li>Откройте сайт системы и введите <strong>логин</strong> и <strong>пароль</strong>, которые вам выдал администратор.</li>
+    <li>Нажмите кнопку входа. После успешного входа откроется кабинет клиента.</li>
+    <li>Чтобы выйти, нажмите кнопку <span class="b b-acc">Выход</span> в правом верхнем углу.</li>
+  </ol>
+  <div class="warning"><strong>Если не получается войти:</strong> проверьте раскладку клавиатуры и Caps Lock. Логин и пароль нужно вводить в точности как выданы. Если ошибка остаётся, обратитесь к администратору: возможно, нужно выдать новый пароль.</div>
+  <div class="example"><strong>Пример.</strong> Логин: <span class="code">IVANOV</span>, пароль: <span class="code">Ab7kP2xQ</span>. Буква «O» и цифра «0», «l» и «1» похожи, поэтому лучше копировать пароль из сообщения, а не набирать вручную.</div>
+</div>
+
+<div class="section" id="s3">
+  <h2>3. Главный экран</h2>
+  <p>После входа вы увидите страницу с данными вашей организации и списком карт.</p>
+  <div class="fig">
+    <div class="scr">
+      <div class="hd">
+        <div><div class="tt">КАБИНЕТ КЛИЕНТА</div><div class="st">СИСТЕМА УПРАВЛЕНИЯ ТОПЛИВНЫМИ КАРТАМИ</div></div>
+        <div style="display:flex;gap:8px"><span class="btn g mark" style="position:relative">Инструкция<span class="pin">1</span></span><span class="btn mark" style="position:relative">Выход<span class="pin">2</span></span></div>
+      </div>
+      <div class="card mark" style="position:relative"><span class="pin">3</span>
+        <div class="info"><div><span class="l">Клиент:</span> <b>ООО «Ромашка»</b></div><div><span class="l">ИНН:</span> <b>7701234567</b></div><div><span class="l">Email:</span> <b>info@romashka.ru</b></div><div><span class="l">Телефон:</span> <b>+7 900 123-45-67</b></div></div>
+      </div>
+      <div class="card mark" style="position:relative"><span class="pin">4</span>
+        <div class="ttl">Топливные карты</div>
+        <div class="filters"><div><div class="lbl">Поиск по номеру</div><div class="fld">Введите номер карты</div></div><div><div class="lbl">Вид топлива</div><div class="fld">Все виды</div></div><div><div class="lbl">Статус</div><div class="fld">Все статусы</div></div></div>
+        <div style="font-size:12px;color:#a8c7bb">Найдено карт: <b style="color:#fbbf24">3</b> из 3</div>
+      </div>
+    </div>
+    <div class="cap">Рис. 1. Верхняя часть кабинета клиента</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span>Кнопка «Инструкция» открывает это руководство в новой вкладке.</div>
+    <div><span class="n">2</span>Кнопка «Выход» завершает работу.</div>
+    <div><span class="n">3</span>Данные вашей организации: название, ИНН, почта, телефон. Если они устарели, сообщите администратору.</div>
+    <div><span class="n">4</span>Раздел «Топливные карты» с поиском, фильтрами и таблицей карт.</div>
+  </div>
+</div>
+
+<div class="section" id="s4">
+  <h2>4. Поиск и фильтры карт</h2>
+  <p>Если карт много, используйте фильтры над таблицей:</p>
+  <table class="t">
+    <tr><th>Поле</th><th>Что делает</th><th>Пример</th></tr>
+    <tr><td>Поиск по номеру</td><td>Показывает карты, в номере которых есть введённые цифры</td><td>Ввели <span class="code">105</span> — найдутся карты 1050, 2105 и т.д.</td></tr>
+    <tr><td>Вид топлива</td><td>Оставляет карты только с выбранным топливом</td><td>«АИ-95», «ДТ»</td></tr>
+    <tr><td>Статус</td><td>Активные или заблокированные карты</td><td>Выберите «Заблокированные», чтобы увидеть, какие карты остановлены</td></tr>
+  </table>
+  <p>Фильтры можно сочетать. Под ними показано, сколько карт найдено из общего числа. Кнопка <span class="b b-acc">Сбросить фильтры</span> возвращает полный список.</p>
+  <div class="example"><strong>Пример.</strong> Нужно быстро найти заблокированные карты с дизелем: в «Виде топлива» выберите «ДТ», в «Статусе» выберите «Заблокированные».</div>
+</div>
+
+<div class="section" id="s5">
+  <h2>5. Номер карты и баланс</h2>
+  <div class="fig">
+    <div class="scr">
+      <table>
+        <tr><th>Номер карты</th><th>Вид топлива</th><th style="text-align:right">Баланс</th><th style="text-align:right">Дневной лимит</th><th>Статус</th><th>Действия</th></tr>
+        <tr>
+          <td><span class="num mark" style="position:relative">1050/0<span class="pin">1</span></span></td>
+          <td>АИ-95</td>
+          <td style="text-align:right"><span class="bal mark" style="position:relative">1250.000 л<span class="pin">2</span></span></td>
+          <td style="text-align:right">100.000 л ✎</td>
+          <td><span class="ok mark" style="position:relative">активна<span class="pin">3</span></span></td>
+          <td><span class="btn">Операции</span> <span class="btn r">Заблокировать</span> <span class="btn">Переместить</span></td>
+        </tr>
+        <tr>
+          <td><span class="num">1050/1</span><div class="reason">Причина: карта утеряна</div></td>
+          <td>АИ-95</td>
+          <td style="text-align:right"><span class="bal">0.000 л</span></td>
+          <td style="text-align:right">50.000 л ✎</td>
+          <td><span class="bad">заблокирована</span></td>
+          <td><span class="btn">Операции</span> <span class="btn g">Разблокировать</span> <span class="btn" style="opacity:.4">Переместить</span></td>
+        </tr>
+      </table>
+    </div>
+    <div class="cap">Рис. 2. Таблица карт</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span><strong>Номер карты</strong> записан как «код/индекс». Например, <span class="code">1050/0</span> — карта с кодом 1050 и индексом 0. Если карту заменили, новая получает тот же код и следующий индекс (<span class="code">1050/1</span>).</div>
+    <div><span class="n">2</span><strong>Баланс</strong> — остаток топлива на карте в литрах (или других единицах, если топливо измеряется иначе).</div>
+    <div><span class="n">3</span><strong>Статус</strong>: «активна» — по карте можно заправляться; «заблокирована» — отпуск запрещён.</div>
+  </div>
+  <div class="tip"><strong>Совет:</strong> у заблокированной карты под номером отображается причина блокировки. Так сразу видно, почему карта остановлена.</div>
+</div>
+
+<div class="section" id="s6">
+  <h2>6. История операций по карте</h2>
+  <p>Нажмите кнопку <span class="b b-acc">Операции</span> в строке нужной карты. Откроется страница с полной историей: заправки, пополнения, списания и оприходования.</p>
+  <div class="fig">
+    <div class="scr">
+      <div class="card" style="margin-top:0"><div class="info"><div><span class="l">Клиент</span><br><b>ООО «Ромашка»</b></div><div><span class="l">Номер карты</span><br><b class="num" style="font-size:16px">1050/0</b></div><div><span class="l">Вид топлива</span><br><b>АИ-95</b></div><div><span class="l">Баланс</span><br><b class="bal" style="font-size:18px">1250.000 л</b></div></div></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div class="ttl">История операций</div><div><span class="btn g mark" style="position:relative">Экспорт в Excel<span class="pin">1</span></span> <span class="btn mark" style="position:relative">Печать<span class="pin">2</span></span></div></div>
+        <div class="filters mark" style="position:relative"><span class="pin">3</span><div><div class="lbl">Фильтр по АЗС</div><div class="fld">Все АЗС</div></div><div><div class="lbl">Дата с</div><div class="fld">01.10.2026</div></div><div><div class="lbl">Дата по</div><div class="fld">31.10.2026</div></div></div>
+        <table>
+          <tr><th>АЗС</th><th>Дата</th><th>Операция</th><th style="text-align:right">Литры</th><th style="text-align:right">Цена</th><th style="text-align:right">Сумма</th><th style="text-align:right">Баланс</th></tr>
+          <tr><td>Склад</td><td>01.10.2026</td><td>пополнение</td><td style="text-align:right">2000.000</td><td style="text-align:right">58.50</td><td style="text-align:right">117 000.00</td><td style="text-align:right" class="bal">2000.000</td></tr>
+          <tr><td>АЗС №3</td><td>05.10.2026</td><td>заправка</td><td style="text-align:right">45.500</td><td style="text-align:right">58.50</td><td style="text-align:right">2 661.75</td><td style="text-align:right" class="bal">1954.500</td></tr>
+          <tr><td>АЗС №1</td><td>12.10.2026</td><td>заправка</td><td style="text-align:right">704.500</td><td style="text-align:right">58.50</td><td style="text-align:right">41 213.25</td><td style="text-align:right" class="bal">1250.000</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="cap">Рис. 3. Страница истории операций</div>
+  </div>
+  <div class="legend">
+    <div><span class="n">1</span><strong>Экспорт в Excel</strong> сохраняет таблицу в файл, с которым удобно работать бухгалтеру. Имя файла содержит номер карты и дату.</div>
+    <div><span class="n">2</span><strong>Печать</strong> открывает печатную версию с реквизитами клиента и данными карты.</div>
+    <div><span class="n">3</span><strong>Фильтры</strong> по АЗС и периоду (дата с / дата по) помогают выбрать нужные строки до выгрузки или печати.</div>
+  </div>
+  <h3>Виды операций</h3>
+  <table class="t">
+    <tr><th>Операция</th><th>Что означает</th><th>Как влияет на баланс</th></tr>
+    <tr><td>пополнение</td><td>Топливо зачислено на карту</td><td>Баланс увеличивается</td></tr>
+    <tr><td>заправка</td><td>Отпуск топлива на АЗС</td><td>Баланс уменьшается</td></tr>
+    <tr><td>списание</td><td>Списание топлива администратором</td><td>Баланс уменьшается</td></tr>
+    <tr><td>оприходование</td><td>Поступление топлива на карту без оплаты через АЗС</td><td>Баланс увеличивается</td></tr>
+  </table>
+  <div class="example"><strong>Пример: сверка за месяц.</strong> Выберите даты с 01.10.2026 по 31.10.2026, нажмите «Экспорт в Excel» и передайте файл в бухгалтерию. Сумма по столбцу «Сумма» показывает затраты за выбранный период.</div>
+  <p>Кнопка <span class="b b-acc">Назад</span> в правом верхнем углу возвращает в кабинет.</p>
+</div>
+
+<div class="section" id="s7">
+  <h2>7. Дневной лимит</h2>
+  <p>Дневной лимит — максимум топлива, который можно получить по карте за сутки. Он защищает от крупных несанкционированных заправок.</p>
+  <h3>Как изменить лимит</h3>
+  <ol class="steps">
+    <li>В строке карты, в столбце «Дневной лимит», нажмите значок карандаша <span class="b b-acc">✎</span>.</li>
+    <li>В открывшемся окне введите новое значение в литрах.</li>
+    <li>Нажмите «Сохранить».</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:30px 14px">
+      <div class="dlg">
+        <h4>Изменить дневной лимит</h4><div class="sub">Карта 1050/0</div>
+        <div style="font-size:12px;color:#666;margin-bottom:8px">Текущий лимит: <b style="color:#b07a00">100.00 л</b></div>
+        <div class="lb">Новый дневной лимит (литров)</div><div class="in">150</div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Сохранить</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 4. Окно изменения дневного лимита</div>
+  </div>
+  <div class="example"><strong>Пример.</strong> Водитель обычно заправляет до 80 л в день. Установите лимит 100 л: этого хватит для работы, а при краже карты злоумышленник не сможет слить больше за сутки.</div>
+  <div class="tip"><strong>Рекомендация:</strong> ставьте лимит с небольшим запасом над реальным суточным расходом. Перед дальним рейсом временно увеличьте его, а после возвращения верните обратно.</div>
+</div>
+
+<div class="section" id="s8">
+  <h2>8. Блокировка и разблокировка карты</h2>
+  <h3>Как заблокировать карту</h3>
+  <ol class="steps">
+    <li>Найдите карту в таблице и нажмите красную кнопку <span class="b b-red">Заблокировать</span>.</li>
+    <li>В окне укажите причину, например «карта утеряна». Без причины кнопка подтверждения неактивна.</li>
+    <li>Подтвердите. Статус карты сменится на «заблокирована», причина появится под номером.</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:30px 14px">
+      <div class="dlg">
+        <h4>Заблокировать карту</h4><div class="sub">Укажите причину блокировки</div>
+        <div class="lb">Причина</div><div class="in">Карта утеряна водителем</div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt d">Заблокировать</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 5. Окно блокировки карты</div>
+  </div>
+  <h3>Как разблокировать карту</h3>
+  <p>Нажмите зелёную кнопку <span class="b b-grn">Разблокировать</span> в строке заблокированной карты. Карта снова станет активной, и по ней можно будет заправляться.</p>
+  <div class="warning"><strong>Когда блокировать сразу:</strong> карта потеряна или украдена, водитель уволился, есть подозрительные заправки в истории. Блокируйте сначала, разбирайтесь потом: разблокировка занимает несколько секунд.</div>
+  <div class="example"><strong>Пример.</strong> Водитель сообщил, что потерял карту <span class="code">1050/0</span>. Вы блокируете её с причиной «утеряна». Остаток топлива сохраняется. Затем обратитесь к администратору: он выпустит замену <span class="code">1050/1</span>, а вы переместите на неё остаток (см. раздел 9).</div>
+</div>
+
+<div class="section" id="s9">
+  <h2>9. Перемещение топлива между картами</h2>
+  <p>Эта функция переносит литры с одной вашей карты на другую, например при замене карты или при перераспределении топлива между машинами.</p>
+  <div class="warning"><strong>Условия:</strong> перемещать можно только между вашими картами с <u>одним и тем же видом топлива</u>. Если на карте нулевой баланс, кнопка «Переместить» неактивна.</div>
+  <ol class="steps">
+    <li>В строке карты-источника нажмите <span class="b b-acc">Переместить</span>.</li>
+    <li>В окне выберите <strong>целевую карту</strong>. В списке видны её номер, топливо и текущий баланс.</li>
+    <li>Введите <strong>количество литров</strong>. Нельзя ввести больше, чем есть на карте-источнике.</li>
+    <li>Нажмите «Переместить». Баланс обеих карт обновится, а в истории операций появятся записи о списании и пополнении.</li>
+  </ol>
+  <div class="fig">
+    <div class="scr" style="padding:30px 14px">
+      <div class="dlg">
+        <h4>Переместить топливо</h4><div class="sub">Перемещение топлива с карты 1050/0</div>
+        <div style="font-size:12px;color:#666;margin-bottom:8px">Текущий баланс: <b style="color:#b07a00">1250.00 л</b><br>Вид топлива: <b>АИ-95</b></div>
+        <div class="lb">Целевая карта</div><div class="in">1050/1 - АИ-95 (Баланс: 0.00 л)</div>
+        <div class="lb">Количество литров</div><div class="in">300</div>
+        <div class="ft"><span class="bt">Отмена</span><span class="bt p">Переместить</span></div>
+      </div>
+    </div>
+    <div class="cap">Рис. 6. Окно перемещения топлива</div>
+  </div>
+  <div class="example"><strong>Пример.</strong> На карте 1050/0 — 1250 л, на карте 1050/1 — 0 л. Перемещаете 300 л. Результат: 1050/0 — 950 л, 1050/1 — 300 л.</div>
+  <div class="tip"><strong>Если в списке нет нужной карты:</strong> значит у неё другой вид топлива или другой владелец. Если топливо разное, обратитесь к администратору.</div>
+</div>
+
+<div class="section" id="s10">
+  <h2>10. Частые вопросы</h2>
+  <table class="t">
+    <tr><th>Ситуация</th><th>Что делать</th></tr>
+    <tr><td>Не вижу карту в списке</td><td>Нажмите «Сбросить фильтры». Если карты всё равно нет — обратитесь к администратору</td></tr>
+    <tr><td>Баланс не совпадает с ожидаемым</td><td>Откройте «Операции» по карте и проверьте последние строки; выгрузите их в Excel и сверьте с документами. При расхождении напишите администратору</td></tr>
+    <tr><td>Заправка по карте не проходит</td><td>Проверьте статус карты, остаток и дневной лимит: возможно, карта заблокирована или лимит на сегодня исчерпан</td></tr>
+    <tr><td>Хочу перенести остаток на новую карту</td><td>Воспользуйтесь «Переместить» (раздел 9)</td></tr>
+    <tr><td>Нужен новый пароль или изменение данных организации</td><td>Обратитесь к администратору</td></tr>
+    <tr><td>Страница не обновляется</td><td>Обновите страницу в браузере клавишей F5. Если не помогло, выйдите и войдите заново</td></tr>
+  </table>
+</div>
+
+<div class="section" id="s11">
+  <h2>11. Рекомендации по безопасности</h2>
+  <ul>
+    <li>Не передавайте логин и пароль водителям и посторонним. Для работы водителям нужны только карты.</li>
+    <li>Раз в неделю заглядывайте в историю операций: необычные заправки лучше заметить сразу.</li>
+    <li>Выставляйте разумные дневные лимиты на каждой карте.</li>
+    <li>При утере карты сначала блокируйте её, а потом разбирайтесь.</li>
+    <li>Не держите в системе активными карты уволенных сотрудников.</li>
+    <li>На общих компьютерах всегда нажимайте «Выход» после работы.</li>
+    <li>Раз в месяц выгружайте историю в Excel для сверки и архива.</li>
+  </ul>
+  <div class="tip"><strong>Нужна помощь?</strong> Обратитесь к вашему администратору системы. Назовите логин и номер карты, по которой возник вопрос.</div>
+</div>
+
+<a href="javascript:window.close()" class="back-link">Закрыть инструкцию</a>
+</div>
+</div>
+</body>
+</html>

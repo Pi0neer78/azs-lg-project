@@ -280,6 +280,14 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                 Админпанель
               </Button>
             )}
+            <Button
+              onClick={() => window.open('/client-manual.html', '_blank')}
+              variant="outline"
+              className="border-2 border-primary text-foreground hover:bg-primary hover:text-primary-foreground"
+            >
+              <Icon name="BookOpen" size={20} className="mr-2" />
+              Инструкция
+            </Button>
             <Button onClick={onLogout} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
               <Icon name="LogOut" size={20} className="mr-2" />
               Выход
