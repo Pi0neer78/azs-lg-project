@@ -611,7 +611,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [cardsPage, setCardsPage] = useState(1);
   const [cardsPageSize, setCardsPageSize] = useState(20);
   const [opsPage, setOpsPage] = useState(1);
-  const [opsPageSize, setOpsPageSize] = useState(50);
+  const [opsPageSize, setOpsPageSize] = useState<number>(() => {
+    const saved = parseInt(localStorage.getItem('admin_ops_page_size') || '', 10);
+    return [10, 20, 50, 100].includes(saved) ? saved : 50;
+  });
 
   const filteredCards = cards
     .filter(card => {
@@ -1517,7 +1520,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 pageSize={opsPageSize}
                 totalItems={filteredOperations.length}
                 onPageChange={setOpsPage}
-                onPageSizeChange={(s) => { setOpsPageSize(s); setOpsPage(1); }}
+                onPageSizeChange={(s) => { setOpsPageSize(s); localStorage.setItem('admin_ops_page_size', String(s)); setOpsPage(1); }}
               />
             </Card>
           </TabsContent>
