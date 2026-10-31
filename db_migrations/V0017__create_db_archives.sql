@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS t_p39946729_azs_lg_project.db_archives (
+  id SERIAL PRIMARY KEY,
+  file_key VARCHAR(255) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  size_bytes BIGINT NOT NULL DEFAULT 0,
+  tables_count INTEGER NOT NULL DEFAULT 0,
+  rows_count INTEGER NOT NULL DEFAULT 0,
+  created_by VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

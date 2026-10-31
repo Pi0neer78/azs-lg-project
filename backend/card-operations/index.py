@@ -118,8 +118,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
             
-            card_code = body_data.get('card_code', '').replace("'", "''")
-            cursor.execute(f"SELECT id FROM fuel_cards WHERE card_code = '{card_code}'")
+            card_code = str(body_data.get('card_code', ''))
+            cursor.execute("SELECT id FROM fuel_cards WHERE card_code = %s", (card_code,))
             card_row = cursor.fetchone()
             
             if not card_row:
@@ -137,10 +137,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             fuel_card_id = card_row[0]
             
-            station_name = body_data.get('station_name', '').replace("'", "''")
-            cursor.execute(f"SELECT id FROM stations WHERE name = '{station_name}'")
+            station_name = str(body_data.get('station_name', ''))
+            cursor.execute("SELECT id FROM stations WHERE name = %s", (station_name,))
             station_row = cursor.fetchone()
-            station_id = station_row[0] if station_row else 'NULL'
+            station_id = station_row[0] if station_row else None
             
             operation_date_str = body_data.get('operation_date', '')
             
@@ -158,19 +158,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         except:
                             operation_date = datetime.now()
             
-            operation_type = body_data.get('operation_type', '').replace("'", "''")
+            operation_type = str(body_data.get('operation_type', ''))
             quantity = float(body_data.get('quantity', 0))
             price = float(body_data.get('price', 0))
             amount = float(body_data.get('amount', 0))
-            comment = body_data.get('comment', '').replace("'", "''")
+            comment = str(body_data.get('comment', ''))
             operation_date_formatted = operation_date.strftime('%Y-%m-%d %H:%M:%S')
             
-            cursor.execute(f"""
+            cursor.execute("""
                 INSERT INTO card_operations 
                 (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-                VALUES ({fuel_card_id}, {station_id}, '{operation_date_formatted}', '{operation_type}', {quantity}, {price}, {amount}, '{comment}')
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, operation_date, operation_type, quantity, price, amount, comment
-            """)
+            """, (fuel_card_id, station_id, operation_date_formatted, operation_type, quantity, price, amount, comment))
             
             row = cursor.fetchone()
             conn.commit()

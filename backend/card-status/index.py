@@ -94,15 +94,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         today_start = date.today().strftime('%Y-%m-%d 00:00:00')
                         today_end = date.today().strftime('%Y-%m-%d 23:59:59')
                         
-                        cur.execute(f"""
+                        cur.execute("""
                             SELECT COALESCE(SUM(quantity), 0) as today_total
                             FROM card_operations
-                            WHERE fuel_card_id = {card_id}
+                            WHERE fuel_card_id = %s
                             AND operation_type = 'заправка'
                             AND fuel_type_id IS NULL
-                            AND operation_date >= '{today_start}'
-                            AND operation_date <= '{today_end}'
-                        """)
+                            AND operation_date >= %s
+                            AND operation_date <= %s
+                        """, (card_id, today_start, today_end))
                         today_row = cur.fetchone()
                         today_refueled = float(today_row[0]) if today_row and today_row[0] else 0.0
                         
@@ -154,11 +154,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'Необходимы card_id, quantity > 0, station_id'})
                     }
                 
-                cur.execute(f"""
+                cur.execute("""
                     SELECT fc.id, fc.card_code, fc.card_index, fc.balance_liters, fc.daily_limit, fc.status
                     FROM fuel_cards fc
-                    WHERE fc.id = {int(card_id)}
-                """)
+                    WHERE fc.id = %s
+                    FOR UPDATE
+                """, (int(card_id),))
                 card_row = cur.fetchone()
                 
                 if not card_row:
@@ -183,15 +184,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if daily_limit > 0:
                     today_start = date.today().strftime('%Y-%m-%d 00:00:00')
                     today_end = date.today().strftime('%Y-%m-%d 23:59:59')
-                    cur.execute(f"""
+                    cur.execute("""
                         SELECT COALESCE(SUM(quantity), 0)
                         FROM card_operations
-                        WHERE fuel_card_id = {int(card_id)}
+                        WHERE fuel_card_id = %s
                         AND operation_type = 'заправка'
                             AND fuel_type_id IS NULL
-                        AND operation_date >= '{today_start}'
-                        AND operation_date <= '{today_end}'
-                    """)
+                        AND operation_date >= %s
+                        AND operation_date <= %s
+                    """, (int(card_id), today_start, today_end))
                     today_row = cur.fetchone()
                     today_refueled = float(today_row[0]) if today_row and today_row[0] else 0.0
                     available = min(card_balance, daily_limit - today_refueled)
@@ -205,15 +206,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 new_balance = card_balance - quantity
-                cur.execute(f"""
-                    UPDATE fuel_cards SET balance_liters = {new_balance}
-                    WHERE id = {int(card_id)}
-                """)
+                cur.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_balance, int(card_id)))
                 
-                cur.execute(f"""
+                cur.execute("""
                     INSERT INTO card_operations (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-                    VALUES ({int(card_id)}, {int(station_id)}, NOW(), 'заправка', {quantity}, 0, 0, 'Отпуск топлива оператором')
-                """)
+                    VALUES (%s, %s, NOW(), 'заправка', %s, 0, 0, 'Отпуск топлива оператором')
+                """, (int(card_id), int(station_id), quantity))
                 
                 conn.commit()
                 

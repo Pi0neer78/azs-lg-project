@@ -64,8 +64,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             filter_code = params.get('card_code', '').strip()
             
             if filter_code:
-                escaped = filter_code.replace("'", "''")
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT 
                         fc.id,
                         fc.card_code,
@@ -82,9 +81,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     FROM fuel_cards fc
                     LEFT JOIN clients c ON fc.client_id = c.id
                     LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
-                    WHERE fc.card_code = '{escaped}'
+                    WHERE fc.card_code = %s
                     ORDER BY fc.card_index
-                """)
+                """, (filter_code,))
             else:
                 cursor.execute("""
                     SELECT 
@@ -139,20 +138,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
             
-            card_code = body_data.get('card_code', '').replace("'", "''")
+            card_code = str(body_data.get('card_code', ''))
             card_index = int(body_data.get('card_index', 0))
             client_id = int(body_data.get('client_id', 0))
             fuel_type_id = int(body_data.get('fuel_type_id', 0))
             balance_liters = float(body_data.get('balance_liters', 0))
-            pin_code = str(body_data.get('pin_code', '')).replace("'", "''")
-            status = str(body_data.get('status', 'активна')).replace("'", "''")
-            block_reason = str(body_data.get('block_reason', '')).replace("'", "''")
+            pin_code = str(body_data.get('pin_code', ''))
+            status = str(body_data.get('status', 'активна'))
+            block_reason = str(body_data.get('block_reason', ''))
             daily_limit = float(body_data.get('daily_limit', 0))
 
-            cursor.execute(f"""
+            cursor.execute("""
                 SELECT id FROM fuel_cards
-                WHERE card_code = '{card_code}' AND card_index = {card_index} AND client_id = {client_id}
-            """)
+                WHERE card_code = %s AND card_index = %s AND client_id = %s
+            """, (card_code, card_index, client_id))
             if cursor.fetchone():
                 cursor.close()
                 conn.close()
@@ -163,19 +162,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
 
-            cursor.execute(f"""
+            cursor.execute("""
                     INSERT INTO fuel_cards (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit)
-                    VALUES ('{card_code}', {card_index}, {client_id}, {fuel_type_id}, {balance_liters}, '{pin_code}', '{status}', '{block_reason}', {daily_limit})
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
-                """)
+                """, (card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit))
             
             row = cursor.fetchone()
             
-            cursor.execute(f"""
+            cursor.execute("""
                 SELECT c.name, ft.name
                 FROM clients c, fuel_types ft
-                WHERE c.id = {row[3]} AND ft.id = {row[4]}
-            """)
+                WHERE c.id = %s AND ft.id = %s
+            """, (row[3], row[4]))
             
             names = cursor.fetchone()
             conn.commit()
@@ -209,29 +208,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             card_id = int(body_data.get('id', 0))
             
             update_parts = []
-            
-            if 'card_code' in body_data:
-                v = str(body_data['card_code']).replace("'", "''")
-                update_parts.append(f"card_code = '{v}'")
-            if 'card_index' in body_data:
-                update_parts.append(f"card_index = {int(body_data['card_index'])}")
-            if 'client_id' in body_data:
-                update_parts.append(f"client_id = {int(body_data['client_id'])}")
-            if 'fuel_type_id' in body_data:
-                update_parts.append(f"fuel_type_id = {int(body_data['fuel_type_id'])}")
-            if 'balance_liters' in body_data:
-                update_parts.append(f"balance_liters = {float(body_data['balance_liters'])}")
-            if 'pin_code' in body_data:
-                v = str(body_data['pin_code']).replace("'", "''")
-                update_parts.append(f"pin_code = '{v}'")
-            if 'status' in body_data:
-                v = str(body_data['status']).replace("'", "''")
-                update_parts.append(f"status = '{v}'")
-            if 'block_reason' in body_data:
-                v = str(body_data['block_reason']).replace("'", "''")
-                update_parts.append(f"block_reason = '{v}'")
-            if 'daily_limit' in body_data:
-                update_parts.append(f"daily_limit = {float(body_data['daily_limit'])}")
+            update_vals = []
+            str_fields = ('card_code', 'pin_code', 'status', 'block_reason')
+            int_fields = ('card_index', 'client_id', 'fuel_type_id')
+            float_fields = ('balance_liters', 'daily_limit')
+            for k in str_fields:
+                if k in body_data:
+                    update_parts.append(k + " = %s")
+                    update_vals.append(str(body_data[k]))
+            for k in int_fields:
+                if k in body_data:
+                    update_parts.append(k + " = %s")
+                    update_vals.append(int(body_data[k]))
+            for k in float_fields:
+                if k in body_data:
+                    update_parts.append(k + " = %s")
+                    update_vals.append(float(body_data[k]))
             
             if not update_parts:
                 cursor.close()
@@ -244,18 +236,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
 
             if 'card_code' in body_data or 'card_index' in body_data:
-                new_code = str(body_data.get('card_code', '')).replace("'", "''")
+                new_code = str(body_data.get('card_code', ''))
                 new_index = int(body_data.get('card_index', 0))
                 new_client_id = int(body_data.get('client_id', 0))
                 if not new_client_id:
-                    cursor.execute(f"SELECT client_id FROM fuel_cards WHERE id = {card_id}")
+                    cursor.execute("SELECT client_id FROM fuel_cards WHERE id = %s", (card_id,))
                     row_cid = cursor.fetchone()
                     new_client_id = row_cid[0] if row_cid else 0
                 if new_code:
-                    cursor.execute(f"""
+                    cursor.execute("""
                         SELECT id FROM fuel_cards
-                        WHERE card_code = '{new_code}' AND card_index = {new_index} AND client_id = {new_client_id} AND id != {card_id}
-                    """)
+                        WHERE card_code = %s AND card_index = %s AND client_id = %s AND id != %s
+                    """, (new_code, new_index, new_client_id, card_id))
                     if cursor.fetchone():
                         cursor.close()
                         conn.close()
@@ -266,21 +258,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             'isBase64Encoded': False
                         }
 
-            cursor.execute(f"""
-                    UPDATE fuel_cards
-                    SET {', '.join(update_parts)}
-                    WHERE id = {card_id}
-                    RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit
-                """)
+            cursor.execute(
+                "UPDATE fuel_cards SET " + ', '.join(update_parts) + " WHERE id = %s "
+                "RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit",
+                tuple(update_vals) + (card_id,)
+            )
 
             row = cursor.fetchone()
             
             if row:
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT c.name, ft.name
                     FROM clients c, fuel_types ft
-                    WHERE c.id = {row[3]} AND ft.id = {row[4]}
-                """)
+                    WHERE c.id = %s AND ft.id = %s
+                """, (row[3], row[4]))
                 
                 names = cursor.fetchone()
                 conn.commit()

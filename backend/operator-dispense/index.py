@@ -82,15 +82,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     if daily_limit > 0:
                         today_start = date.today().strftime('%Y-%m-%d 00:00:00')
                         today_end = date.today().strftime('%Y-%m-%d 23:59:59')
-                        cur.execute(f"""
+                        cur.execute("""
                             SELECT COALESCE(SUM(quantity), 0)
                             FROM card_operations
-                            WHERE fuel_card_id = {card_id}
+                            WHERE fuel_card_id = %s
                             AND operation_type = 'заправка'
                             AND fuel_type_id IS NULL
-                            AND operation_date >= '{today_start}'
-                            AND operation_date <= '{today_end}'
-                        """)
+                            AND operation_date >= %s
+                            AND operation_date <= %s
+                        """, (card_id, today_start, today_end))
                         today_row = cur.fetchone()
                         today_refueled = float(today_row[0]) if today_row and today_row[0] else 0.0
                         available = min(balance_liters, daily_limit - today_refueled)
@@ -99,13 +99,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     is_ruble = (row[8] == '₽')
                     prices = []
                     if is_ruble:
-                        cur.execute(f"""
+                        cur.execute("""
                             SELECT p.fuel_type_id, ft2.name, p.price
                             FROM card_fuel_prices p
                             JOIN fuel_types ft2 ON ft2.id = p.fuel_type_id
-                            WHERE p.fuel_card_id = {card_id}
+                            WHERE p.fuel_card_id = %s
                             ORDER BY ft2.name
-                        """)
+                        """, (card_id,))
                         prices = [
                             {'fuel_type_id': r[0], 'fuel_type': r[1], 'price': float(r[2])}
                             for r in cur.fetchall()
@@ -182,12 +182,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         try:
             conn.autocommit = False
             with conn.cursor() as cur:
-                cur.execute(f"""
+                cur.execute("""
                     SELECT fc.id, fc.balance_liters, fc.status, ft.unit
                     FROM fuel_cards fc
                     LEFT JOIN fuel_types ft ON ft.id = fc.fuel_type_id
-                    WHERE fc.id = {card_id}
-                """)
+                    WHERE fc.id = %s
+                    FOR UPDATE OF fc
+                """, (card_id,))
                 row = cur.fetchone()
 
                 if not row:
@@ -219,10 +220,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             'body': json.dumps({'error': 'Выберите топливо'})
                         }
                     fuel_type_id = int(fuel_type_id)
-                    cur.execute(f"""
+                    cur.execute("""
                         SELECT price FROM card_fuel_prices
-                        WHERE fuel_card_id = {card_id} AND fuel_type_id = {fuel_type_id}
-                    """)
+                        WHERE fuel_card_id = %s AND fuel_type_id = %s
+                    """, (card_id, fuel_type_id))
                     price_row = cur.fetchone()
                     if not price_row or float(price_row[0]) <= 0:
                         conn.rollback()
@@ -252,18 +253,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             })
                         }
                     new_balance = round(current_balance - amount, 2)
-                    cur.execute(f"UPDATE fuel_cards SET balance_liters = {new_balance} WHERE id = {card_id}")
+                    cur.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_balance, card_id))
                     operation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    cur.execute(f"""
+                    cur.execute("""
                         INSERT INTO card_operations
                         (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {amount}, 1, {amount}, 'Списание суммы с баланса карты')
-                    """)
-                    cur.execute(f"""
+                        VALUES (%s, %s, %s, 'заправка', %s, 1, %s, 'Списание суммы с баланса карты')
+                    """, (card_id, station_id, operation_date, amount, amount))
+                    cur.execute("""
                         INSERT INTO card_operations
                         (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment, fuel_type_id)
-                        VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, {price}, {amount}, 'Заправка с рублевой карты (с баланса не списывается)', {fuel_type_id})
-                    """)
+                        VALUES (%s, %s, %s, 'заправка', %s, %s, %s, 'Заправка с рублевой карты (с баланса не списывается)', %s)
+                    """, (card_id, station_id, operation_date, quantity, price, amount, fuel_type_id))
                     conn.commit()
                     return {
                         'statusCode': 200,
@@ -291,16 +292,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
 
                 new_balance = current_balance - quantity
-                cur.execute(f"""
-                    UPDATE fuel_cards SET balance_liters = {new_balance} WHERE id = {card_id}
-                """)
+                cur.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_balance, card_id))
 
                 operation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                cur.execute(f"""
+                cur.execute("""
                     INSERT INTO card_operations
                     (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-                    VALUES ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, 0, 0, 'Панель оператора')
-                """)
+                    VALUES (%s, %s, %s, 'заправка', %s, 0, 0, 'Панель оператора')
+                """, (card_id, station_id, operation_date, quantity))
 
                 conn.commit()
 

@@ -43,11 +43,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'Некорректный JSON'})
         }
     
-    card_code = body_data.get('card_code', '').strip()
-    quantity = body_data.get('quantity', 0)
-    price = body_data.get('price', 0)
-    code_1c = body_data.get('code_1c', '').strip()
-    comment = body_data.get('comment', '').strip()
+    try:
+        card_code = str(body_data.get('card_code', '')).strip()
+        quantity = float(body_data.get('quantity', 0) or 0)
+        price = float(body_data.get('price', 0) or 0)
+        code_1c = str(body_data.get('code_1c', '')).strip()
+        comment = str(body_data.get('comment', '')).strip()
+    except (TypeError, ValueError):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Некорректные данные'})
+        }
     
     if not card_code:
         return {
@@ -86,13 +93,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
-            escaped_card_code = card_code.replace("'", "''")
-            
-            cur.execute(f"""
+            cur.execute("""
                 SELECT id, card_code, balance_liters
                 FROM fuel_cards
-                WHERE card_code = '{escaped_card_code}'
-            """)
+                WHERE card_code = %s
+                FOR UPDATE
+            """, (card_code,))
             
             card_row = cur.fetchone()
             
@@ -121,20 +127,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             new_balance = current_balance - quantity
             
-            cur.execute(f"""
-                UPDATE fuel_cards
-                SET balance_liters = {new_balance}
-                WHERE id = {card_id}
-            """)
+            cur.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_balance, card_id))
             
             amount = quantity * price
             operation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            escaped_code = code_1c.replace("'", "''")
-            escaped_comment = comment.replace("'", "''")
             
-            cur.execute(f"""
-                SELECT id, name FROM stations WHERE code_1c = '{escaped_code}' LIMIT 1
-            """)
+            cur.execute("SELECT id, name FROM stations WHERE code_1c = %s LIMIT 1", (code_1c,))
             station_row = cur.fetchone()
             
             if not station_row:
@@ -148,12 +146,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             station_id = station_row[0]
             station_name = station_row[1]
             
-            cur.execute(f"""
+            cur.execute("""
                 INSERT INTO card_operations 
                 (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
                 VALUES 
-                ({card_id}, {station_id}, '{operation_date}', 'заправка', {quantity}, {price}, {amount}, '{escaped_comment}')
-            """)
+                (%s, %s, %s, 'заправка', %s, %s, %s, %s)
+            """, (card_id, station_id, operation_date, quantity, price, amount, comment))
             
             conn.commit()
             

@@ -16,6 +16,7 @@ import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import ClientMemo from '@/components/ClientMemo';
 import CardFuelPrices from '@/components/CardFuelPrices';
+import DatabaseArchives from '@/components/DatabaseArchives';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -792,6 +793,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             <TabsTrigger value="operations" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Операции</TabsTrigger>
             <TabsTrigger value="stations" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">АЗС</TabsTrigger>
             <TabsTrigger value="fuel-types" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Виды топлива</TabsTrigger>
+            <TabsTrigger value="database" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">База данных</TabsTrigger>
           </TabsList>
 
           <TabsContent value="clients">
@@ -1671,6 +1673,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="database">
+            <DatabaseArchives />
           </TabsContent>
         </Tabs>
       </main>

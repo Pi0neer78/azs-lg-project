@@ -44,13 +44,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     if method == 'GET':
         card_id = int(params.get('fuel_card_id', 0))
-        cur.execute(f"""
+        cur.execute("""
             SELECT p.id, p.fuel_card_id, p.fuel_type_id, ft.name, p.price
             FROM card_fuel_prices p
             JOIN fuel_types ft ON ft.id = p.fuel_type_id
-            WHERE p.fuel_card_id = {card_id}
+            WHERE p.fuel_card_id = %s
             ORDER BY ft.name
-        """)
+        """, (card_id,))
         items = [
             {'id': r[0], 'fuel_card_id': r[1], 'fuel_type_id': r[2], 'fuel_type': r[3], 'price': float(r[4])}
             for r in cur.fetchall()
@@ -65,24 +65,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         fuel_type_id = int(body.get('fuel_type_id', 0))
         price = float(body.get('price', 0))
 
-        cur.execute(f"SELECT name, unit FROM fuel_types WHERE id = {fuel_type_id}")
+        cur.execute("SELECT name, unit FROM fuel_types WHERE id = %s", (fuel_type_id,))
         ft = cur.fetchone()
         if not ft or ft[1] == '₽':
             cur.close()
             conn.close()
             return resp(400, {'error': 'invalid_fuel_type'})
 
-        cur.execute(f"SELECT id FROM card_fuel_prices WHERE fuel_card_id = {card_id} AND fuel_type_id = {fuel_type_id}")
+        cur.execute("SELECT id FROM card_fuel_prices WHERE fuel_card_id = %s AND fuel_type_id = %s", (card_id, fuel_type_id))
         if cur.fetchone():
             cur.close()
             conn.close()
             return resp(409, {'error': 'duplicate'})
 
-        cur.execute(f"""
+        cur.execute("""
             INSERT INTO card_fuel_prices (fuel_card_id, fuel_type_id, price)
-            VALUES ({card_id}, {fuel_type_id}, {price})
+            VALUES (%s, %s, %s)
             RETURNING id
-        """)
+        """, (card_id, fuel_type_id, price))
         new_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
@@ -93,7 +93,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body = json.loads(event.get('body') or '{}')
         item_id = int(body.get('id', 0))
         price = float(body.get('price', 0))
-        cur.execute(f"UPDATE card_fuel_prices SET price = {price} WHERE id = {item_id}")
+        cur.execute("UPDATE card_fuel_prices SET price = %s WHERE id = %s", (price, item_id))
         conn.commit()
         cur.close()
         conn.close()
@@ -101,7 +101,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     if method == 'DELETE':
         item_id = int(params.get('id', 0))
-        cur.execute(f"DELETE FROM card_fuel_prices WHERE id = {item_id}")
+        cur.execute("DELETE FROM card_fuel_prices WHERE id = %s", (item_id,))
         conn.commit()
         cur.close()
         conn.close()
