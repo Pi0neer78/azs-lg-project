@@ -610,7 +610,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [cardsPage, setCardsPage] = useState(1);
   const [cardsPageSize, setCardsPageSize] = useState(20);
   const [opsPage, setOpsPage] = useState(1);
-  const [opsPageSize, setOpsPageSize] = useState(20);
+  const [opsPageSize, setOpsPageSize] = useState(50);
 
   const filteredCards = cards
     .filter(card => {
@@ -1434,54 +1434,54 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs">
                     <TableHeader>
                       <TableRow className="border-b-2 border-border">
-                        <TableHead className="text-foreground font-bold py-1">Карта</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Клиент</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Топливо</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">АЗС</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Дата</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Операция</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Кол-во</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Цена</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Сумма</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Комментарий</TableHead>
-                        <TableHead className="text-foreground font-bold py-1">Действия</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Карта</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Клиент</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Топливо</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">АЗС</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Дата</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Операция</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Кол-во</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Цена</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Сумма</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Комментарий</TableHead>
+                        <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Действия</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pagedOperations.map((op) => (
-                        <TableRow key={op.id} className="border-b border-border">
-                          <TableCell className="font-mono py-1">
+                        <TableRow key={op.id} className="border-b border-border h-6">
+                          <TableCell className="font-mono px-2 py-0.5 text-xs whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <span className={op.card_code === '0000' ? 'bg-accent text-background px-1 rounded' : 'text-accent'}>
                                 {cardLabel(op)}
                               </span>
                               {op.card_code === '0000' && (
-                                <Icon name="Wallet" size={16} className="text-accent" />
+                                <Icon name="Wallet" size={12} className="text-accent" />
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-foreground py-1 text-sm">{op.client_name}</TableCell>
-                          <TableCell className="text-foreground py-1 text-sm">{op.op_fuel_type || op.fuel_type}</TableCell>
-                          <TableCell className="text-foreground py-1">{op.station_name}</TableCell>
-                          <TableCell className="text-muted-foreground text-sm py-1">{op.operation_date}</TableCell>
-                          <TableCell className="py-1">
-                            <Badge className={getOperationColor(op.operation_type)}>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.client_name}</TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.op_fuel_type || op.fuel_type}</TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.station_name}</TableCell>
+                          <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.operation_date}</TableCell>
+                          <TableCell className="px-2 py-0.5">
+                            <Badge className={`${getOperationColor(op.operation_type)} px-1.5 py-0 text-[11px] leading-4 font-medium`}>
                               {op.operation_type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-semibold text-foreground py-1">{op.quantity.toFixed(3)}</TableCell>
-                          <TableCell className="text-foreground py-1">{op.price.toFixed(2)}</TableCell>
-                          <TableCell className="font-bold text-accent py-1">{op.amount.toFixed(2)} ₽</TableCell>
-                          <TableCell className="text-muted-foreground text-sm py-1">{op.comment}</TableCell>
-                          <TableCell className="py-1">
+                          <TableCell className="font-semibold text-foreground px-2 py-0.5 text-xs whitespace-nowrap">{op.quantity.toFixed(3)}</TableCell>
+                          <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.price.toFixed(2)}</TableCell>
+                          <TableCell className="font-bold text-accent px-2 py-0.5 text-xs whitespace-nowrap">{op.amount.toFixed(2)} ₽</TableCell>
+                          <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.comment}</TableCell>
+                          <TableCell className="px-2 py-0.5">
                             <div className="flex gap-1">
-                              <Button size="sm" variant="outline" onClick={() => handleEditOperation(op)} className="h-7 w-7 p-0 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                              <Button size="sm" variant="outline" onClick={() => handleEditOperation(op)} className="h-6 w-6 p-0 border border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
                                 <Icon name="Pencil" className="w-3 h-3" />
                               </Button>
-                              <Button size="sm" variant="destructive" onClick={() => handleDeleteOperation(op.id)} className="h-7 w-7 p-0">
+                              <Button size="sm" variant="destructive" onClick={() => handleDeleteOperation(op.id)} className="h-6 w-6 p-0">
                                 <Icon name="Trash2" className="w-3 h-3" />
                               </Button>
                             </div>
@@ -1554,25 +1554,25 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b-2 border-border">
-                      <TableHead className="text-foreground font-bold">Наименование</TableHead>
-                      <TableHead className="text-foreground font-bold">Код 1С</TableHead>
-                      <TableHead className="text-foreground font-bold">Адрес</TableHead>
-                      <TableHead className="text-foreground font-bold">Действия</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Наименование</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Код 1С</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Адрес</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {stations.map((station) => (
-                      <TableRow key={station.id} className="border-b border-border">
-                        <TableCell className="font-medium text-foreground">{station.name}</TableCell>
-                        <TableCell className="font-mono text-muted-foreground">{station.code_1c}</TableCell>
-                        <TableCell className="text-foreground">{station.address}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditStation(station)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
-                              <Icon name="Pencil" className="w-4 h-4" />
+                      <TableRow key={station.id} className="border-b border-border h-8">
+                        <TableCell className="font-medium text-foreground px-3 py-1 text-sm">{station.name}</TableCell>
+                        <TableCell className="font-mono text-muted-foreground px-3 py-1 text-sm">{station.code_1c}</TableCell>
+                        <TableCell className="text-foreground px-3 py-1 text-sm">{station.address}</TableCell>
+                        <TableCell className="px-3 py-1">
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" onClick={() => handleEditStation(station)} className="h-6 w-6 p-0 border border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                              <Icon name="Pencil" className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteStation(station.id)}>
-                              <Icon name="Trash2" className="w-4 h-4" />
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteStation(station.id)} className="h-6 w-6 p-0">
+                              <Icon name="Trash2" className="w-3 h-3" />
                             </Button>
                           </div>
                         </TableCell>
@@ -1645,25 +1645,25 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b-2 border-border">
-                      <TableHead className="text-foreground font-bold">Название</TableHead>
-                      <TableHead className="text-foreground font-bold">Код 1С</TableHead>
-                      <TableHead className="text-foreground font-bold">Ед. изм.</TableHead>
-                      <TableHead className="text-foreground font-bold">Действия</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Название</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Код 1С</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Ед. изм.</TableHead>
+                      <TableHead className="text-foreground font-bold h-8 px-3 py-0 text-sm">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {fuelTypes.map((fuelType) => (
-                      <TableRow key={fuelType.id} className="border-b border-border">
-                        <TableCell className="font-medium text-foreground">{fuelType.name}</TableCell>
-                        <TableCell className="font-mono text-muted-foreground">{fuelType.code_1c}</TableCell>
-                        <TableCell className="font-mono text-accent font-bold">{fuelType.unit || 'л'}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleEditFuelType(fuelType)} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
-                              <Icon name="Pencil" className="w-4 h-4" />
+                      <TableRow key={fuelType.id} className="border-b border-border h-8">
+                        <TableCell className="font-medium text-foreground px-3 py-1 text-sm">{fuelType.name}</TableCell>
+                        <TableCell className="font-mono text-muted-foreground px-3 py-1 text-sm">{fuelType.code_1c}</TableCell>
+                        <TableCell className="font-mono text-accent font-bold px-3 py-1 text-sm">{fuelType.unit || 'л'}</TableCell>
+                        <TableCell className="px-3 py-1">
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" onClick={() => handleEditFuelType(fuelType)} className="h-6 w-6 p-0 border border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                              <Icon name="Pencil" className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteFuelType(fuelType.id)}>
-                              <Icon name="Trash2" className="w-4 h-4" />
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteFuelType(fuelType.id)} className="h-6 w-6 p-0">
+                              <Icon name="Trash2" className="w-3 h-3" />
                             </Button>
                           </div>
                         </TableCell>
