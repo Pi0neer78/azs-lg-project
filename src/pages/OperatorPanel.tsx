@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { apiFetch } from '@/utils/authFetch';
 import ChatLauncher from '@/components/chat/ChatLauncher';
 import Icon from '@/components/ui/icon';
 
@@ -281,7 +282,7 @@ export default function OperatorPanel() {
 
     setCardLoading(true);
     try {
-      const res = await fetch(`${OPERATOR_API}?card_code=${encodeURIComponent(code)}`);
+      const res = await apiFetch(`${OPERATOR_API}?card_code=${encodeURIComponent(code)}`);
       const data = await res.json();
       if (res.ok) {
         if (data.multiple && data.cards) {
@@ -358,7 +359,7 @@ export default function OperatorPanel() {
     setDispenseLoading(true);
     const qty = isRuble ? rubLiters : parseFloat(quantity.replace(',', '.'));
     try {
-      const res = await fetch(OPERATOR_API, {
+      const res = await apiFetch(OPERATOR_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

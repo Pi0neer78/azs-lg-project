@@ -1,12 +1,13 @@
 {
   "tests": [
     {
-      "name": "Get card fuel prices",
+      "name": "No auth rejected",
       "method": "GET",
-      "path": "/?fuel_card_id=1",
-      "expectedStatus": 200,
-      "bodyMatcher": "partial",
-      "expectedBody": {}
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

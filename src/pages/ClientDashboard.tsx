@@ -195,43 +195,12 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
       
       if (sourceCard && targetCard && sourceCard.balance_liters >= amount) {
         try {
-          const avgPrice = 52.50;
-          const dateStr = formatDateForAPI();
-          
-          const debitOperation = {
-            card_code: sourceCard.card_code,
-            station_name: 'Склад',
-            operation_date: dateStr,
-            operation_type: 'списание',
-            quantity: amount,
-            price: avgPrice,
-            amount: amount * avgPrice,
-            comment: `Перемещение на карту ${cardLabel(targetCard)}`
-          };
-          
-          const creditOperation = {
-            card_code: targetCard.card_code,
-            station_name: 'Склад',
-            operation_date: dateStr,
-            operation_type: 'оприходование',
-            quantity: amount,
-            price: avgPrice,
-            amount: amount * avgPrice,
-            comment: `Перемещение с карты ${cardLabel(sourceCard)}`
-          };
-          
-          await Promise.all([
-            adminApi.operations.create(debitOperation),
-            adminApi.operations.create(creditOperation),
-            adminApi.cards.update({
-              id: selectedCardId,
-              balance_liters: sourceCard.balance_liters - amount
-            }),
-            adminApi.cards.update({
-              id: targetCardId,
-              balance_liters: targetCard.balance_liters + amount
-            })
-          ]);
+          await adminApi.transfer.execute({
+            from_card_id: selectedCardId,
+            to_card_id: targetCardId,
+            debit_quantity: amount,
+            credit_quantity: amount
+          });
           
           setCards(cards.map(card => {
             if (card.id === selectedCardId) {

@@ -1,11 +1,12 @@
 {
   "tests": [
     {
-      "name": "Get all operations",
+      "name": "No auth rejected",
       "method": "GET",
-      "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {},
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
       "bodyMatcher": "partial"
     }
   ]

@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from typing import Dict, Any
@@ -25,7 +26,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -34,6 +35,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
+    user, auth_err = authz.authenticate(conn, event)
+    if auth_err or not user['admin']:
+        cur.close()
+        conn.close()
+        return auth_err or authz.forbidden()
     params = event.get('queryStringParameters') or {}
 
     if method == 'GET':

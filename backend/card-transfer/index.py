@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from datetime import datetime, timezone, timedelta
@@ -16,7 +17,7 @@ def handler(event: dict, context) -> dict:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': ''
@@ -61,13 +62,25 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(database_url)
     cursor = conn.cursor()
 
+    user, auth_err = authz.authenticate(conn, event)
+    if auth_err:
+        cursor.close()
+        conn.close()
+        return auth_err
+    if not user['admin']:
+        cursor.execute("SELECT COUNT(*) FROM fuel_cards WHERE id IN (%s, %s) AND client_id = %s", (from_card_id, to_card_id, user['id']))
+        if cursor.fetchone()[0] != 2:
+            cursor.close()
+            conn.close()
+            return authz.forbidden()
+
     cursor.execute("""
         SELECT fc.id, fc.card_code, fc.card_index, fc.balance_liters, ft.name as fuel_type, cl.name as client_name
         FROM fuel_cards fc
         LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
         LEFT JOIN clients cl ON fc.client_id = cl.id
         WHERE fc.id = %s
-    """ % from_card_id)
+    """, (from_card_id,))
     from_row = cursor.fetchone()
 
     cursor.execute("""
@@ -76,7 +89,7 @@ def handler(event: dict, context) -> dict:
         LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
         LEFT JOIN clients cl ON fc.client_id = cl.id
         WHERE fc.id = %s
-    """ % to_card_id)
+    """, (to_card_id,))
     to_row = cursor.fetchone()
 
     if not from_row or not to_row:
@@ -91,6 +104,14 @@ def handler(event: dict, context) -> dict:
     from_card_code = from_row[1]
     from_card_index = from_row[2] if from_row[2] is not None else 0
     from_balance = float(from_row[3]) if from_row[3] else 0.0
+    if from_balance < debit_quantity:
+        cursor.close()
+        conn.close()
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Недостаточно топлива на карте-источнике'})
+        }
     from_fuel_type = from_row[4] or ''
     from_client = from_row[5] or ''
 
@@ -107,30 +128,30 @@ def handler(event: dict, context) -> dict:
 
     cursor.execute("SELECT id FROM stations WHERE name = 'Склад' LIMIT 1")
     sklat_row = cursor.fetchone()
-    station_id = sklat_row[0] if sklat_row else 'NULL'
+    station_id = sklat_row[0] if sklat_row else None
 
     debit_comment = f"Перемещение: списание {debit_quantity:.3f} л ({from_fuel_type}) -> карта {to_label} ({to_client})"
     credit_comment = f"Перемещение: оприходование {credit_quantity:.3f} л ({to_fuel_type}), с карты {from_label} ({from_client}) {debit_quantity:.3f} л ({from_fuel_type})"
 
-    cursor.execute(f"""
+    cursor.execute("""
         INSERT INTO card_operations (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-        VALUES ({from_card_id}, {station_id}, '{now}', 'списание', {debit_quantity}, 0, 0, '{debit_comment.replace("'", "''")}')
+        VALUES (%s, %s, %s, 'списание', %s, 0, 0, %s)
         RETURNING id
-    """)
+    """, (from_card_id, station_id, now, debit_quantity, debit_comment))
     debit_op_id = cursor.fetchone()[0]
 
-    cursor.execute(f"""
+    cursor.execute("""
         INSERT INTO card_operations (fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment)
-        VALUES ({to_card_id}, {station_id}, '{now}', 'оприходование', {credit_quantity}, 0, 0, '{credit_comment.replace("'", "''")}')
+        VALUES (%s, %s, %s, 'оприходование', %s, 0, 0, %s)
         RETURNING id
-    """)
+    """, (to_card_id, station_id, now, credit_quantity, credit_comment))
     credit_op_id = cursor.fetchone()[0]
 
     new_from_balance = from_balance - debit_quantity
     new_to_balance = to_balance + credit_quantity
 
-    cursor.execute(f"UPDATE fuel_cards SET balance_liters = {new_from_balance} WHERE id = {from_card_id}")
-    cursor.execute(f"UPDATE fuel_cards SET balance_liters = {new_to_balance} WHERE id = {to_card_id}")
+    cursor.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_from_balance, from_card_id))
+    cursor.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_to_balance, to_card_id))
 
     conn.commit()
     cursor.close()

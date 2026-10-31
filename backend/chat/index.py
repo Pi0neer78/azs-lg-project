@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import base64
 import uuid
@@ -39,7 +40,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {'statusCode': 200, 'headers': {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Auth-Token, X-Session-Id',
+            'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
             'Access-Control-Max-Age': '86400'}, 'body': ''}
 
     headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
@@ -51,11 +52,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     try:
         cur = conn.cursor()
-        cur.execute("SELECT id, name, admin, operator FROM clients WHERE login = %s AND password = %s", (login, password))
-        me = cur.fetchone()
-        if not me or not me[2]:
+        ip = str(((event.get('requestContext') or {}).get('identity') or {}).get('sourceIp') or '')[:64]
+        user, auth_err = authz.verify(conn, login, password, ip)
+        if auth_err:
+            return auth_err
+        if not user['admin']:
             return resp(403, {'error': 'Нет доступа к чату'})
-        my_id, my_name, _, is_operator = me
+        my_id, my_name, is_operator = user['id'], user['name'], user['operator']
         my_role = 'operator' if is_operator else 'admin'
 
         params = event.get('queryStringParameters') or {}

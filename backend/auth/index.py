@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from typing import Dict, Any
@@ -18,7 +19,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -65,47 +66,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        cursor.execute(
-            "SELECT id, name, admin, operator FROM clients WHERE login = %s AND password = %s",
-            (login, password)
-        )
-        
-        user = cursor.fetchone()
-        cursor.close()
+        ip = str(((event.get('requestContext') or {}).get('identity') or {}).get('sourceIp') or '')[:64]
+        user, auth_err = authz.verify(conn, login, password, ip)
         conn.close()
-        
-        if user:
-            user_id, user_name, is_admin, is_operator = user
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'success': True,
-                    'user': {
-                        'id': user_id,
-                        'name': user_name,
-                        'login': login,
-                        'admin': is_admin,
-                        'operator': bool(is_operator)
-                    }
-                }),
-                'isBase64Encoded': False
-            }
-        else:
-            return {
-                'statusCode': 401,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({'error': 'Неверный логин или пароль'}),
-                'isBase64Encoded': False
-            }
+        if auth_err:
+            return auth_err
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'success': True,
+                'user': {
+                    'id': user['id'],
+                    'name': user['name'],
+                    'login': login,
+                    'admin': user['admin'],
+                    'operator': user['operator']
+                }
+            }),
+            'isBase64Encoded': False
+        }
     
     except json.JSONDecodeError:
         return {
@@ -124,6 +107,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': json.dumps({'error': f'Server error: {str(e)}'}),
+            'body': json.dumps({'error': 'Ошибка сервера'}),
             'isBase64Encoded': False
         }

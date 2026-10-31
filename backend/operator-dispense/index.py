@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from typing import Dict, Any
@@ -18,7 +19,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': ''
@@ -34,6 +35,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     conn = psycopg2.connect(dsn)
 
+    user, auth_err = authz.authenticate(conn, event)
+    if auth_err or not user['admin']:
+        conn.close()
+        return auth_err or authz.forbidden()
+
     if method == 'GET':
         params = event.get('queryStringParameters', {}) or {}
         card_code = params.get('card_code', '').strip()
@@ -48,16 +54,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         try:
             with conn.cursor() as cur:
-                escaped = card_code.replace("'", "''")
-                cur.execute(f"""
+                cur.execute("""
                     SELECT fc.id, fc.card_code, fc.card_index, ft.name as fuel_type,
                            fc.balance_liters, c.name as client_name, fc.daily_limit, fc.status, ft.unit
                     FROM fuel_cards fc
                     LEFT JOIN clients c ON fc.client_id = c.id
                     LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
-                    WHERE fc.card_code = '{escaped}'
+                    WHERE fc.card_code = %s
                     ORDER BY fc.card_index
-                """)
+                """, (card_code,))
                 rows = cur.fetchall()
 
                 if not rows:
@@ -314,7 +319,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 500,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': f'Ошибка: {str(e)}'})
+                'body': json.dumps({'error': 'Ошибка выполнения операции'})
             }
         finally:
             conn.close()

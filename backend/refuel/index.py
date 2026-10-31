@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from typing import Dict, Any
@@ -19,7 +20,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Api-Key',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -78,6 +79,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     conn = psycopg2.connect(dsn)
+    auth_err = authz.integration_or_admin(conn, event)
+    if auth_err:
+        conn.close()
+        return auth_err
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -177,7 +182,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': f'Ошибка выполнения операции: {str(e)}'})
+            'body': json.dumps({'error': 'Ошибка выполнения операции'})
         }
     finally:
         conn.close()

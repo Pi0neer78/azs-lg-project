@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 from typing import Dict, Any
@@ -21,7 +22,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -43,9 +44,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
+        user, auth_err = authz.authenticate(conn, event)
+        if auth_err or (method != 'GET' and not user['admin']):
+            cursor.close()
+            conn.close()
+            return auth_err or authz.forbidden()
         
         if method == 'GET':
-            cursor.execute("""
+            where = '' if user['admin'] else 'WHERE fc.client_id = %d' % int(user['id'])
+            cursor.execute(f"""
                 SELECT 
                     co.id,
                     fc.card_code,
@@ -69,6 +76,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 LEFT JOIN clients cl ON fc.client_id = cl.id
                 LEFT JOIN fuel_types ft ON fc.fuel_type_id = ft.id
                 LEFT JOIN fuel_types ft2 ON co.fuel_type_id = ft2.id
+                {where}
                 ORDER BY co.operation_date DESC, co.id DESC
             """)
             rows = cursor.fetchall()
@@ -327,6 +335,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': json.dumps({'error': f'Server error: {str(e)}'}),
+            'body': json.dumps({'error': 'Ошибка сервера'}),
             'isBase64Encoded': False
         }

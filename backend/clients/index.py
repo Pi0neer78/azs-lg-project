@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import uuid
 import psycopg2
@@ -16,7 +17,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Accept',
+        'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
         'Access-Control-Max-Age': '86400'
     }
     
@@ -44,10 +45,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
+        user, auth_err = authz.authenticate(conn, event)
+        if auth_err:
+            cursor.close()
+            conn.close()
+            return auth_err
+        if method != 'GET' and not user['admin']:
+            cursor.close()
+            conn.close()
+            return authz.forbidden()
+        
         if method == 'GET':
-            cursor.execute("""
+            where = '' if user['admin'] else 'WHERE id = %d' % int(user['id'])
+            cursor.execute(f"""
                 SELECT id, inn, name, address, phone, email, login, password, admin, operator
-                FROM clients 
+                FROM clients {where}
                 ORDER BY id
             """)
             rows = cursor.fetchall()
@@ -82,13 +94,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
             
-            print(f"Creating client with data: {json.dumps(body_data, ensure_ascii=False)}")
             
             email = body_data.get('email', '').strip() or None
             phone = body_data.get('phone', '').strip() or None
             login = body_data.get('login', '').strip() or f'admin_{uuid.uuid4().hex[:8]}'
             
-            print(f"Normalized values - email: {email}, phone: {phone}, login: {login}")
             
             cursor.execute("""
                 SELECT COUNT(*) FROM clients 
@@ -98,7 +108,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """, (login, email, phone))
             
             conflict_count = cursor.fetchone()[0]
-            print(f"Conflicts found: {conflict_count}")
             
             if conflict_count > 0:
                 cursor.execute("""
@@ -108,7 +117,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                        OR (phone IS NOT NULL AND phone = %s)
                 """, (login, email, phone))
                 conflicts = cursor.fetchall()
-                print(f"Conflicting records: {conflicts}")
             
             inn_raw = body_data.get('inn', '').strip()
             if not inn_raw:
@@ -268,9 +276,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
     
     except Exception as e:
-        print(f"Error: {str(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
+        print(f"Error: {type(e).__name__}")
         
         if 'conn' in locals():
             conn.close()
@@ -281,6 +287,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Content-Type': 'application/json',
                 **cors_headers
             },
-            'body': json.dumps({'error': f'Server error: {str(e)}'}),
+            'body': json.dumps({'error': 'Ошибка сервера'}),
             'isBase64Encoded': False
         }

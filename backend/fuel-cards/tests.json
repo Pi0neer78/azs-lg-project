@@ -1,12 +1,13 @@
 {
   "tests": [
     {
-      "name": "Get all fuel cards",
+      "name": "No auth rejected",
       "method": "GET",
-      "path": "/",
-      "expectedStatus": 200,
-      "bodyMatcher": "partial",
-      "expectedBody": {}
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

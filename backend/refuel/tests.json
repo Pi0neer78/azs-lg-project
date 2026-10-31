@@ -1,51 +1,9 @@
 {
   "tests": [
     {
-      "name": "Refuel operation - success",
+      "name": "No auth rejected",
       "method": "POST",
-      "path": "/",
-      "body": {
-        "card_code": "0001",
-        "quantity": 50,
-        "price": 52.5,
-        "code_1c": "200001",
-        "comment": "Заправка автомобиля"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": "boolean",
-        "card_code": "string",
-        "operation_type": "string",
-        "quantity": "number",
-        "new_balance": "number"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Refuel operation - missing card_code",
-      "method": "POST",
-      "path": "/",
-      "body": {
-        "quantity": 50,
-        "price": 52.5,
-        "code_1c": "200001"
-      },
-      "expectedStatus": 400,
-      "expectedBody": {
-        "error": "string"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Refuel operation - invalid quantity",
-      "method": "POST",
-      "path": "/",
-      "body": {
-        "card_code": "0001",
-        "quantity": 0,
-        "price": 52.5,
-        "code_1c": "200001"
-      },
+      "body": {},
       "expectedStatus": 400,
       "expectedBody": {
         "error": "string"

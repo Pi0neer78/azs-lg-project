@@ -1,10 +1,1 @@
-{
-  "tests": [
-    {
-      "name": "OPTIONS preflight",
-      "method": "OPTIONS",
-      "path": "/",
-      "expectedStatus": 200
-    }
-  ]
-}
+{"tests": [{"name": "No auth rejected", "method": "POST", "body": {"from_card_id": 1, "to_card_id": 2, "debit_quantity": 1, "credit_quantity": 1}, "expectedStatus": 401, "expectedBody": {"error": "string"}, "bodyMatcher": "partial"}]}

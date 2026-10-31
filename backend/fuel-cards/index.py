@@ -1,4 +1,5 @@
 import json
+import authz
 import os
 import psycopg2
 import psycopg2.errors
@@ -21,7 +22,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': authz.ALLOW_HEADERS,
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -42,6 +43,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor = conn.cursor()
         
         params = event.get('queryStringParameters', {}) or {}
+
+        user, auth_err = authz.authenticate(conn, event)
+        if auth_err:
+            cursor.close()
+            conn.close()
+            return auth_err
+        is_admin = user['admin']
+        own_card_ids = set()
+        if not is_admin:
+            cursor.execute("SELECT id FROM fuel_cards WHERE client_id = %s", (user['id'],))
+            own_card_ids = {r[0] for r in cursor.fetchall()}
+        if method in ('POST', 'DELETE') and not is_admin:
+            cursor.close()
+            conn.close()
+            return authz.forbidden()
         
         if method == 'GET':
             # Если передан card_code — вернуть список карт по коду (для выбора индекса)
@@ -91,6 +107,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 """)
             
             rows = cursor.fetchall()
+            if not is_admin:
+                rows = [r for r in rows if r[0] in own_card_ids]
             cards = []
             for row in rows:
                 cards.append({
