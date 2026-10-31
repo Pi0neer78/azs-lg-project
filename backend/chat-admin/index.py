@@ -22,7 +22,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Управление чатами: просмотр, архивирование, очистка сообщений и вложений.
     Авторизация: X-User-Id (логин) и X-Auth-Token (пароль) из секретов CHAT_ADMIN_LOGIN / CHAT_ADMIN_PASSWORD.
-    GET ?view=active|archive&channel=all|general|private — список сообщений
+    GET ?view=active|archive&channel=all|general|private&q=текст&date_from=YYYY-MM-DD&date_to=YYYY-MM-DD — список сообщений
     POST {action: login|archive|unarchive|delete|clear_files, ids?: [..], scope?: active|archive|general|private|all}
     '''
     method = event.get('httpMethod', 'GET')
@@ -54,10 +54,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             where = f"archived = {archived}"
             if channel in ('general', 'private'):
                 where += f" AND channel = '{channel}'"
+            args = []
+            q = (params.get('q') or '').strip()
+            if q:
+                where += " AND (text ILIKE %s OR sender_name ILIKE %s OR recipient_name ILIKE %s OR file_name ILIKE %s)"
+                args += [f"%{q}%"] * 4
+            date_from = (params.get('date_from') or '').strip()
+            date_to = (params.get('date_to') or '').strip()
+            if date_from:
+                where += " AND created_at >= %s::date"
+                args.append(date_from)
+            if date_to:
+                where += " AND created_at < (%s::date + 1)"
+                args.append(date_to)
             cur.execute(f"""
                 SELECT id, channel, sender_name, sender_role, recipient_name, text, file_url, file_name, file_size, created_at, archived
                 FROM chat_messages WHERE {where} ORDER BY id DESC LIMIT 1000
-            """)
+            """, args)
             msgs = [{
                 'id': r[0], 'channel': r[1], 'sender_name': r[2], 'sender_role': r[3], 'recipient_name': r[4],
                 'text': r[5], 'file_url': r[6], 'file_name': r[7], 'file_size': r[8],

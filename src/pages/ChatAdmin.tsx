@@ -30,6 +30,9 @@ export default function ChatAdmin() {
   const [rows, setRows] = useState<Row[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const call = useCallback(async (a: { l: string; p: string }, init?: RequestInit, qs = '') => {
     const res = await fetch(`${CHAT_ADMIN_API}${qs}`, {
@@ -42,12 +45,16 @@ export default function ChatAdmin() {
   const load = useCallback(async () => {
     if (!auth) return;
     setLoading(true);
-    const { ok, data } = await call(auth, undefined, `?view=${view}&channel=${channel}`);
+    const qs = new URLSearchParams({ view, channel, q: search, date_from: dateFrom, date_to: dateTo });
+    const { ok, data } = await call(auth, undefined, `?${qs.toString()}`);
     if (ok) { setRows(data.messages || []); setSelected([]); }
     setLoading(false);
-  }, [auth, view, channel, call]);
+  }, [auth, view, channel, search, dateFrom, dateTo, call]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const t = setTimeout(load, 300);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +118,17 @@ export default function ChatAdmin() {
               {label}
             </Button>
           ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по тексту, имени, файлу" className="max-w-xs bg-input text-foreground border-2 border-border" />
+          <span className="text-sm text-muted-foreground">с</span>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 bg-input text-foreground border-2 border-border" />
+          <span className="text-sm text-muted-foreground">по</span>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 bg-input text-foreground border-2 border-border" />
+          {(search || dateFrom || dateTo) && (
+            <Button variant="outline" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); }} className="border-2 border-border text-foreground">Сбросить</Button>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2">
