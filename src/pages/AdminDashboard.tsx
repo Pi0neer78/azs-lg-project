@@ -117,6 +117,27 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
   const [newClient, setNewClient] = useState({inn: '', name: '', address: '', phone: '', email: '', login: '', password: '', admin: false, operator: false});
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+
+  const generatePassword = () => {
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const all = upper + lower + digits;
+    const rnd = (max: number) => {
+      const a = new Uint32Array(1);
+      crypto.getRandomValues(a);
+      return a[0] % max;
+    };
+    const len = 8 + rnd(7);
+    const chars = [upper[rnd(upper.length)], lower[rnd(lower.length)], digits[rnd(digits.length)]];
+    while (chars.length < len) chars.push(all[rnd(all.length)]);
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = rnd(i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    return chars.join('');
+  };
   const [filterClientType, setFilterClientType] = useState<string>('client');
   const [clientSearch, setClientSearch] = useState<string>('');
   const [operatorLinkDialog, setOperatorLinkDialog] = useState<{open: boolean, client: any}>({open: false, client: null});
@@ -137,7 +158,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   const handleEditClient = (client: any) => {
-    setEditingClient(client);
+    setEditingClient({...client, password: client.password || ''});
+    setShowEditPassword(false);
     setIsClientDialogOpen(true);
   };
 
@@ -1772,6 +1794,42 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Label htmlFor="edit-login" className="text-right text-foreground">Логин</Label>
                 <Input id="edit-login" value={editingClient.login} onChange={(e) => setEditingClient({...editingClient, login: e.target.value})} className="col-span-3" />
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-password" className="text-right text-foreground">Пароль</Label>
+                <div className="col-span-3 flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="edit-password"
+                      type={showEditPassword ? "text" : "password"}
+                      placeholder="Новый пароль"
+                      value={editingClient.password || ''}
+                      onChange={(e) => setEditingClient({...editingClient, password: e.target.value})}
+                      className="pr-9 w-full"
+                    />
+                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2 hover:bg-transparent" onClick={() => setShowEditPassword(!showEditPassword)}>
+                      <Icon name={showEditPassword ? "EyeOff" : "Eye"} className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => { setEditingClient({...editingClient, password: generatePassword()}); setShowEditPassword(true); }} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                    <Icon name="RefreshCw" className="w-4 h-4 mr-2" />
+                    Сгенерировать
+                  </Button>
+                </div>
+              </div>
+              {editingClient.admin && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-operator" className="text-right text-foreground">Оператор АЗС</Label>
+                  <div className="col-span-3 flex items-center">
+                    <input
+                      id="edit-operator"
+                      type="checkbox"
+                      checked={!!editingClient.operator}
+                      onChange={(e) => setEditingClient({...editingClient, operator: e.target.checked})}
+                      className="h-4 w-4 accent-[hsl(var(--accent))]"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div className="flex justify-end gap-2">

@@ -181,6 +181,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             ))
             
             row = cursor.fetchone()
+            new_password = (body_data.get('password') or '').strip()
+            if row and new_password:
+                cursor.execute("UPDATE clients SET password = %s WHERE id = %s", (new_password, client_id))
             conn.commit()
             
             if row:
