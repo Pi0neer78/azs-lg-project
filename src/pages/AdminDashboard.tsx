@@ -1001,7 +1001,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         >
                           {client.name}
                         </TableCell>
-                        <TableCell className="text-foreground py-2">{client.address}</TableCell>
+                        <TableCell className="text-foreground py-2 max-w-[260px]">
+                          <div className="line-clamp-2 break-words leading-snug" title={client.address || ''}>{client.address}</div>
+                        </TableCell>
                         <TableCell className="text-foreground py-2">{client.phone}</TableCell>
                         <TableCell className="text-foreground py-2">{client.email}</TableCell>
                         <TableCell className="font-mono text-foreground py-2">{client.login}</TableCell>
