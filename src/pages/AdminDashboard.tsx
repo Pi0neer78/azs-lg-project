@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ChatWidget from '@/components/chat/ChatWidget';
+import ChatLauncher from '@/components/chat/ChatLauncher';
 import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
@@ -731,11 +731,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
-  const chatAuth = JSON.parse(localStorage.getItem('chat_auth') || '{}');
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
-      {chatAuth.login && <ChatWidget login={chatAuth.login} password={chatAuth.password} />}
+      <ChatLauncher />
       <header className="bg-card border-b-4 border-accent shadow-lg no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">

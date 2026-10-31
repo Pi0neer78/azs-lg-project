@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import ChatWidget from '@/components/chat/ChatWidget';
+import ChatLauncher from '@/components/chat/ChatLauncher';
 import Icon from '@/components/ui/icon';
 
 const OPERATOR_API = 'https://functions.poehali.dev/63d97170-36d0-4590-bf1f-e247777c20db';
@@ -497,11 +497,9 @@ export default function OperatorPanel() {
     );
   }
 
-  const chatAuth = JSON.parse(localStorage.getItem('chat_auth') || '{}');
-
   return (
     <>
-      {chatAuth.login && <ChatWidget login={chatAuth.login} password={chatAuth.password} />}
+      <ChatLauncher />
       {showNumpad && (
         <NumpadModal
           value={quantity}
