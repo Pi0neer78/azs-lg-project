@@ -6,9 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuCheckboxItem, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
 import { AUDIT_API } from '@/utils/auditClient';
 
 interface Rec {
@@ -28,7 +27,7 @@ const ACTIONS = ['добавление', 'изменение', 'удаление
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
 const FILTERS_KEY = 'audit_log_filters';
-const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; search?: string; pageSize?: number } => {
+const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; search?: string; user?: string; ip?: string; section?: string; pageSize?: number } => {
   try {
     return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || '{}');
   } catch {
@@ -105,6 +104,11 @@ export default function AuditLog() {
   const [dateTo, setDateTo] = useState(() => savedFilters().dateTo ?? isoDay(0));
   const [actions, setActions] = useState<string[]>(() => (savedFilters().actions || ACTIONS).filter((a) => ACTIONS.includes(a)));
   const [search, setSearch] = useState(() => savedFilters().search || '');
+  const [userF, setUserF] = useState(() => savedFilters().user || '');
+  const [ipF, setIpF] = useState(() => savedFilters().ip || '');
+  const [sectionF, setSectionF] = useState(() => savedFilters().section || '');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [draft, setDraft] = useState({ dateFrom: '', dateTo: '', actions: ACTIONS, search: '', user: '', ip: '', section: '' });
 
   const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
     const res = await fetch(`${AUDIT_API}${qs}`, {
@@ -121,7 +125,7 @@ export default function AuditLog() {
       return;
     }
     setLoading(true);
-    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.length === ACTIONS.length ? '' : actions.join(','), q: search });
+    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.length === ACTIONS.length ? '' : actions.join(','), q: search, user: userF, ip: ipF, section: sectionF });
     try {
       const { ok, data } = await call(pass, undefined, `?${qs.toString()}`);
       if (ok) setRows(data.records || []);
@@ -132,11 +136,11 @@ export default function AuditLog() {
     } finally {
       setLoading(false);
     }
-  }, [pass, dateFrom, dateTo, actions, search, call]);
+  }, [pass, dateFrom, dateTo, actions, search, userF, ipF, sectionF, call]);
 
   useEffect(() => {
-    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ dateFrom, dateTo, actions, search, pageSize }));
-  }, [dateFrom, dateTo, actions, search, pageSize]);
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ dateFrom, dateTo, actions, search, user: userF, ip: ipF, section: sectionF, pageSize }));
+  }, [dateFrom, dateTo, actions, search, userF, ipF, sectionF, pageSize]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -206,19 +210,52 @@ export default function AuditLog() {
     return out;
   })();
   const allActions = actions.length === ACTIONS.length;
-  const hasFilters = !!(search || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
-  const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
+  const hasFilters = !!(search || userF || ipF || sectionF || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
+  const chips: string[] = [];
+  if (dateFrom || dateTo) chips.push(dateFrom === dateTo ? dateFrom : `${dateFrom || '…'} — ${dateTo || '…'}`);
+  if (!allActions) chips.push(`Операции: ${actions.length} из ${ACTIONS.length}`);
+  if (userF) chips.push(`Пользователь: ${userF}`);
+  if (ipF) chips.push(`IP: ${ipF}`);
+  if (sectionF) chips.push(`Раздел: ${sectionF}`);
+  if (search) chips.push(`Описание: ${search}`);
+  const activeCount = chips.length - (dateFrom === isoDay(0) && dateTo === isoDay(0) ? 1 : 0);
 
-  const toggleAction = (a: string) => setActions((s) => (s.includes(a) ? s.filter((x) => x !== a) : ACTIONS.filter((x) => x === a || s.includes(x))));
+  const openFilters = () => {
+    setDraft({ dateFrom, dateTo, actions, search, user: userF, ip: ipF, section: sectionF });
+    setFiltersOpen(true);
+  };
+  const applyFilters = () => {
+    setDateFrom(draft.dateFrom);
+    setDateTo(draft.dateTo);
+    setActions(draft.actions);
+    setSearch(draft.search);
+    setUserF(draft.user.trim());
+    setIpF(draft.ip.trim());
+    setSectionF(draft.section.trim());
+    setFiltersOpen(false);
+  };
+  const resetFilters = () => {
+    setSearch(''); setUserF(''); setIpF(''); setSectionF('');
+    setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS);
+    setFiltersOpen(false);
+  };
+  const setDraftPeriod = (days: number) => setDraft((d) => ({ ...d, dateFrom: isoDay(days), dateTo: isoDay(0) }));
+  const toggleDraftAction = (a: string) =>
+    setDraft((d) => ({ ...d, actions: d.actions.includes(a) ? d.actions.filter((x) => x !== a) : ACTIONS.filter((x) => x === a || d.actions.includes(x)) }));
+  const userOptions = useMemo(() => Array.from(new Set(rows.map((r) => r.user_name).filter(Boolean))).sort(), [rows]);
+  const sectionOptions = useMemo(() => Array.from(new Set(rows.map((r) => r.section).filter(Boolean))).sort(), [rows]);
 
   const filterText = useMemo(() => {
     const f: string[] = [];
     if (dateFrom) f.push(`с ${dateFrom}`);
     if (dateTo) f.push(`по ${dateTo}`);
     if (!allActions) f.push(`виды: ${actions.join(', ') || 'не выбраны'}`);
+    if (userF) f.push(`пользователь: ${userF}`);
+    if (ipF) f.push(`IP/компьютер: ${ipF}`);
+    if (sectionF) f.push(`раздел: ${sectionF}`);
     if (search.trim()) f.push(`описание: ${search.trim()}`);
     return f.join('; ');
-  }, [dateFrom, dateTo, actions, allActions, search]);
+  }, [dateFrom, dateTo, actions, allActions, search, userF, ipF, sectionF]);
 
   const report = (type: 'печать' | 'в эксель') => {
     if (!pass) return;
@@ -313,64 +350,85 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
           </div>
         </div>
 
-        <Card className="border-2 border-border bg-card">
-          <CardContent className="p-3 flex flex-col gap-3">
-            <div className="flex flex-wrap gap-2 items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-9 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
-                    <Icon name="ListFilter" size={16} className="mr-2" />
-                    Виды операций: {allActions ? 'все' : `${actions.length} из ${ACTIONS.length}`}
-                    <Icon name="ChevronDown" size={14} className="ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[220px]">
-                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setActions(ACTIONS); }}>Выбрать все</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setActions([]); }}>Снять все</DropdownMenuItem>
-                  <DropdownMenuSeparator />
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button onClick={openFilters} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+            <Icon name="ListFilter" size={16} className="mr-2" />
+            Фильтры{activeCount > 0 ? ` (${activeCount})` : ''}
+          </Button>
+          {chips.map((c) => (
+            <span key={c} className="px-3 py-1 rounded-full border-2 border-border bg-card text-xs text-foreground max-w-[320px] truncate" title={c}>{c}</span>
+          ))}
+          {hasFilters && (
+            <Button size="sm" variant="ghost" onClick={resetFilters} className="text-foreground underline">Сбросить</Button>
+          )}
+        </div>
+
+        <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <DialogContent className="max-w-xl bg-card border-2 border-accent max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-accent">Фильтры журнала</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 text-foreground">
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold">Вид операции</span>
+                  <span className="flex gap-3 text-xs">
+                    <button type="button" className="underline" onClick={() => setDraft((d) => ({ ...d, actions: ACTIONS }))}>Выбрать все</button>
+                    <button type="button" className="underline" onClick={() => setDraft((d) => ({ ...d, actions: [] }))}>Снять все</button>
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   {ACTIONS.map((a) => (
-                    <DropdownMenuCheckboxItem
-                      key={a}
-                      checked={actions.includes(a)}
-                      onCheckedChange={() => toggleAction(a)}
-                      onSelect={(e) => e.preventDefault()}
-                    >
+                    <label key={a} className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={draft.actions.includes(a)} onChange={() => toggleDraftAction(a)} className="w-4 h-4 accent-[hsl(var(--accent))]" />
                       <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold ${ACTION_STYLE[a]}`}>{a}</span>
-                    </DropdownMenuCheckboxItem>
+                    </label>
                   ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-              <span className="text-muted-foreground">—</span>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-9 px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
-                    <Icon name="MoreHorizontal" size={18} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onSelect={() => setPeriod(0)}>Сегодня</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setPeriod(6)}>7 дней</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setPeriod(29)}>30 дней</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div className="relative flex-1 min-w-[220px]">
-                <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию, пользователю, разделу" className="pl-9 h-9 bg-input text-foreground border-2 border-border" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-semibold">Период</span>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Input type="date" value={draft.dateFrom} onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+                  <span className="text-muted-foreground">—</span>
+                  <Input type="date" value={draft.dateTo} onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(0)} className="border-2 border-border text-foreground">Сегодня</Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(6)} className="border-2 border-border text-foreground">7 дней</Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(29)} className="border-2 border-border text-foreground">30 дней</Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setDraft((d) => ({ ...d, dateFrom: '', dateTo: '' }))} className="border-2 border-border text-foreground">За всё время</Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">Пользователь</span>
+                  <Input list="audit-users" value={draft.user} onChange={(e) => setDraft((d) => ({ ...d, user: e.target.value }))} placeholder="Имя или логин" className="h-9 bg-input text-foreground border-2 border-border" />
+                  <datalist id="audit-users">{userOptions.map((u) => <option key={u} value={u} />)}</datalist>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">IP / Имя компьютера</span>
+                  <Input value={draft.ip} onChange={(e) => setDraft((d) => ({ ...d, ip: e.target.value }))} placeholder="Например 192.168 или Windows" className="h-9 bg-input text-foreground border-2 border-border" />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">Раздел</span>
+                  <Input list="audit-sections" value={draft.section} onChange={(e) => setDraft((d) => ({ ...d, section: e.target.value }))} placeholder="Например Карты" className="h-9 bg-input text-foreground border-2 border-border" />
+                  <datalist id="audit-sections">{sectionOptions.map((u) => <option key={u} value={u} />)}</datalist>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">Описание</span>
+                  <Input value={draft.search} onChange={(e) => setDraft((d) => ({ ...d, search: e.target.value }))} placeholder="Текст в описании" className="h-9 bg-input text-foreground border-2 border-border" />
+                </label>
               </div>
             </div>
-            {hasFilters && (
-              <div>
-                <Button size="sm" variant="ghost" onClick={() => { setSearch(''); setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS); }} className="text-foreground underline">
-                  Сбросить фильтры
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button type="button" variant="outline" onClick={resetFilters} className="border-2 border-border text-foreground">Сбросить</Button>
+              <Button type="button" onClick={applyFilters} className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold">Применить</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="flex justify-between items-center flex-wrap gap-2 text-sm text-muted-foreground">
           <span>

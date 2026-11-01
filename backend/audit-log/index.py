@@ -19,7 +19,7 @@ def check_password(event: dict) -> bool:
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Журнал операций. GET (заголовок X-Auth-Token = пароль из секрета AUDIT_LOG_PASSWORD):
-    ?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&action=вид&q=текст — список записей.
+    ?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&action=вид&user=имя&ip=адрес&section=раздел&q=текст — список записей.
     POST {action: login} — проверка пароля журнала.
     POST {action: event, type: выход|печать|в эксель|действия оператора, section, description} — запись события от авторизованного пользователя.
     '''
@@ -45,6 +45,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if acts:
                 where.append('action = ANY(%s)')
                 args.append(acts)
+            for param, cols in (('user', ('user_name', 'user_login')), ('ip', ('ip', 'device')), ('section', ('section',))):
+                v = (p.get(param) or '').strip()
+                if v:
+                    where.append('(' + ' OR '.join(c + ' ILIKE %s' for c in cols) + ')')
+                    args += ['%' + v + '%'] * len(cols)
             q = (p.get('q') or '').strip()
             if q:
                 where.append('(description ILIKE %s OR user_name ILIKE %s OR section ILIKE %s)')
