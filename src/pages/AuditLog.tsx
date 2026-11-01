@@ -5,6 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuCheckboxItem, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { AUDIT_API } from '@/utils/auditClient';
 
 interface Rec {
@@ -89,9 +93,9 @@ export default function AuditLog() {
   const [error, setError] = useState('');
   const [rows, setRows] = useState<Rec[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [actions, setActions] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState(() => isoDay(0));
+  const [dateTo, setDateTo] = useState(() => isoDay(0));
+  const [actions, setActions] = useState<string[]>(ACTIONS);
   const [search, setSearch] = useState('');
 
   const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
@@ -104,8 +108,12 @@ export default function AuditLog() {
 
   const load = useCallback(async () => {
     if (!pass) return;
+    if (actions.length === 0) {
+      setRows([]);
+      return;
+    }
     setLoading(true);
-    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.join(','), q: search });
+    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.length === ACTIONS.length ? '' : actions.join(','), q: search });
     try {
       const { ok, data } = await call(pass, undefined, `?${qs.toString()}`);
       if (ok) setRows(data.records || []);
@@ -185,19 +193,20 @@ export default function AuditLog() {
     });
     return out;
   })();
-  const hasFilters = !!(search || dateFrom || dateTo || actions.length);
+  const allActions = actions.length === ACTIONS.length;
+  const hasFilters = !!(search || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
   const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
 
-  const toggleAction = (a: string) => setActions((s) => (s.includes(a) ? s.filter((x) => x !== a) : [...s, a]));
+  const toggleAction = (a: string) => setActions((s) => (s.includes(a) ? s.filter((x) => x !== a) : ACTIONS.filter((x) => x === a || s.includes(x))));
 
   const filterText = useMemo(() => {
     const f: string[] = [];
     if (dateFrom) f.push(`с ${dateFrom}`);
     if (dateTo) f.push(`по ${dateTo}`);
-    if (actions.length) f.push(`виды: ${actions.join(', ')}`);
+    if (!allActions) f.push(`виды: ${actions.join(', ') || 'не выбраны'}`);
     if (search.trim()) f.push(`описание: ${search.trim()}`);
     return f.join('; ');
-  }, [dateFrom, dateTo, actions, search]);
+  }, [dateFrom, dateTo, actions, allActions, search]);
 
   const report = (type: 'печать' | 'в эксель') => {
     if (!pass) return;
@@ -298,27 +307,52 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
               <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
               <span className="text-muted-foreground">—</span>
               <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-              <Button size="sm" variant="outline" onClick={() => setPeriod(0)} className="border-2 border-border text-foreground">Сегодня</Button>
-              <Button size="sm" variant="outline" onClick={() => setPeriod(6)} className="border-2 border-border text-foreground">7 дней</Button>
-              <Button size="sm" variant="outline" onClick={() => setPeriod(29)} className="border-2 border-border text-foreground">30 дней</Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-9 px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
+                    <Icon name="MoreHorizontal" size={18} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onSelect={() => setPeriod(0)}>Сегодня</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPeriod(6)}>7 дней</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPeriod(29)}>30 дней</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="relative flex-1 min-w-[220px]">
                 <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию, пользователю, разделу" className="pl-9 h-9 bg-input text-foreground border-2 border-border" />
               </div>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
-              {ACTIONS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => toggleAction(a)}
-                  className={`px-3 py-1 rounded-full border-2 text-xs font-semibold text-foreground transition-opacity ${ACTION_STYLE[a]} ${actions.length && !actions.includes(a) ? 'opacity-40' : ''} ${actions.includes(a) ? 'ring-2 ring-accent' : ''}`}
-                >
-                  {a}
-                </button>
-              ))}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-9 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+                    <Icon name="ListFilter" size={16} className="mr-2" />
+                    Виды операций: {allActions ? 'все' : `${actions.length} из ${ACTIONS.length}`}
+                    <Icon name="ChevronDown" size={14} className="ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-[220px]">
+                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setActions(ACTIONS); }}>Выбрать все</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setActions([]); }}>Снять все</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {ACTIONS.map((a) => (
+                    <DropdownMenuCheckboxItem
+                      key={a}
+                      checked={actions.includes(a)}
+                      onCheckedChange={() => toggleAction(a)}
+                      onSelect={(e) => e.preventDefault()}
+                    >
+                      <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold ${ACTION_STYLE[a]}`}>{a}</span>
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {hasFilters && (
-                <Button size="sm" variant="ghost" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setActions([]); }} className="text-foreground underline">
+                <Button size="sm" variant="ghost" onClick={() => { setSearch(''); setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS); }} className="text-foreground underline">
                   Сбросить фильтры
                 </Button>
               )}
