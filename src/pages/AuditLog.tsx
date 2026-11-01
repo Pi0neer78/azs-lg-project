@@ -27,6 +27,14 @@ interface Rec {
 const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель', 'действия оператора'];
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
+const FILTERS_KEY = 'audit_log_filters';
+const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; search?: string; pageSize?: number } => {
+  try {
+    return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
 const PAGE_SIZES = [25, 50, 100, 200];
 type SortKey = 'id' | 'created_at' | 'user' | 'device' | 'action' | 'section' | 'description';
 const COLUMNS: { key: SortKey; label: string }[] = [
@@ -85,7 +93,7 @@ export default function AuditLog() {
   const showAlert = useAlert();
   const [cleanDays, setCleanDays] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(() => savedFilters().pageSize || 50);
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'id', dir: 'desc' });
   const [showClean, setShowClean] = useState(false);
   const [password, setPassword] = useState('');
@@ -93,10 +101,10 @@ export default function AuditLog() {
   const [error, setError] = useState('');
   const [rows, setRows] = useState<Rec[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dateFrom, setDateFrom] = useState(() => isoDay(0));
-  const [dateTo, setDateTo] = useState(() => isoDay(0));
-  const [actions, setActions] = useState<string[]>(ACTIONS);
-  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState(() => savedFilters().dateFrom ?? isoDay(0));
+  const [dateTo, setDateTo] = useState(() => savedFilters().dateTo ?? isoDay(0));
+  const [actions, setActions] = useState<string[]>(() => (savedFilters().actions || ACTIONS).filter((a) => ACTIONS.includes(a)));
+  const [search, setSearch] = useState(() => savedFilters().search || '');
 
   const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
     const res = await fetch(`${AUDIT_API}${qs}`, {
@@ -125,6 +133,10 @@ export default function AuditLog() {
       setLoading(false);
     }
   }, [pass, dateFrom, dateTo, actions, search, call]);
+
+  useEffect(() => {
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ dateFrom, dateTo, actions, search, pageSize }));
+  }, [dateFrom, dateTo, actions, search, pageSize]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -304,29 +316,6 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
         <Card className="border-2 border-border bg-card">
           <CardContent className="p-3 flex flex-col gap-3">
             <div className="flex flex-wrap gap-2 items-center">
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-              <span className="text-muted-foreground">—</span>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-9 px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
-                    <Icon name="MoreHorizontal" size={18} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onSelect={() => setPeriod(0)}>Сегодня</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setPeriod(6)}>7 дней</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setPeriod(29)}>30 дней</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div className="relative flex-1 min-w-[220px]">
-                <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию, пользователю, разделу" className="pl-9 h-9 bg-input text-foreground border-2 border-border" />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="sm" variant="outline" className="h-9 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
@@ -351,12 +340,35 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              {hasFilters && (
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+              <span className="text-muted-foreground">—</span>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-9 px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
+                    <Icon name="MoreHorizontal" size={18} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onSelect={() => setPeriod(0)}>Сегодня</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPeriod(6)}>7 дней</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPeriod(29)}>30 дней</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="relative flex-1 min-w-[220px]">
+                <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию, пользователю, разделу" className="pl-9 h-9 bg-input text-foreground border-2 border-border" />
+              </div>
+            </div>
+            {hasFilters && (
+              <div>
                 <Button size="sm" variant="ghost" onClick={() => { setSearch(''); setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS); }} className="text-foreground underline">
                   Сбросить фильтры
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
