@@ -279,6 +279,50 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
                 </TableBody>
               </Table>
             </div>
+            {report.fuelTotals.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-foreground font-bold mb-2 flex items-center gap-2">
+                  <Icon name="Droplets" className="text-accent w-4 h-4" />
+                  Итого по видам топлива (все клиенты)
+                </h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-border">
+                        <TableHead rowSpan={2} className="text-foreground font-bold align-middle">Вид топлива</TableHead>
+                        <TableHead rowSpan={2} className="text-foreground font-bold align-middle">Карт</TableHead>
+                        <TableHead rowSpan={2} className="text-foreground font-bold align-middle text-center">Ед. изм.</TableHead>
+                        <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Остаток на начало</TableHead>
+                        <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Приход</TableHead>
+                        <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Расход</TableHead>
+                        <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Остаток на конец</TableHead>
+                      </TableRow>
+                      <TableRow className="border-b border-border">
+                        {[0, 1, 2, 3].map((i) => (
+                          <Fragment key={i}>
+                            <TableHead className="text-foreground text-right h-7 border-l border-border">Кол-во</TableHead>
+                            <TableHead className="text-foreground text-right h-7">Сумма</TableHead>
+                          </Fragment>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {report.fuelTotals.map((r) => (
+                        <TableRow key={`${r.fuel}-${r.unit}`} className="border-b border-border">
+                          <TableCell className="text-accent font-semibold py-1.5">{r.fuel}</TableCell>
+                          <TableCell className="text-foreground py-1.5">{r.cardsCount}</TableCell>
+                          <TableCell className="text-foreground text-center py-1.5">{r.unit}</TableCell>
+                          <PairCells p={r.open} />
+                          <PairCells p={r.income} />
+                          <PairCells p={r.outcome} />
+                          <PairCells p={r.close} />
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>

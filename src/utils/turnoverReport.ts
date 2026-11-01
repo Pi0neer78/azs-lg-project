@@ -34,6 +34,7 @@ export interface TurnoverReport {
   to: string;
   clientLabel: string;
   groups: TurnoverClientGroup[];
+  fuelTotals: TurnoverCardRow[];
   units: string[];
   open: Pair;
   income: Pair;
@@ -174,12 +175,42 @@ export function buildTurnoverReport(params: {
       groups.push(g);
     });
 
+  const fuelMap = new Map<string, TurnoverCardRow>();
+  if (clientId === 'all') {
+    groups.forEach((g) =>
+      g.cards.forEach((r) => {
+        const key = `${r.fuel}|${r.unit}`;
+        const cur = fuelMap.get(key);
+        if (!cur) {
+          fuelMap.set(key, {
+            cardLabel: '',
+            cardsCount: r.cardsCount,
+            fuel: r.fuel,
+            unit: r.unit,
+            open: { ...r.open },
+            income: { ...r.income },
+            outcome: { ...r.outcome },
+            close: { ...r.close },
+          });
+        } else {
+          cur.cardsCount += r.cardsCount;
+          add(cur.open, r.open);
+          add(cur.income, r.income);
+          add(cur.outcome, r.outcome);
+          add(cur.close, r.close);
+        }
+      })
+    );
+  }
+  const fuelTotals = Array.from(fuelMap.values()).sort((x, y) => x.fuel.localeCompare(y.fuel, 'ru'));
+
   const total: TurnoverReport = {
     mode,
     from,
     to,
     clientLabel: clientId === 'all' ? 'Все клиенты' : selectedClients[0]?.name || '',
     groups,
+    fuelTotals,
     units: Array.from(new Set(groups.flatMap((g) => g.units))),
     open: zero(),
     income: zero(),
@@ -230,6 +261,22 @@ export function printTurnover(report: TurnoverReport) {
     report.groups.length > 0
       ? `<tfoot><tr><td colspan="3">Итого${tSingle ? '' : ' (количество не суммируется: разные единицы)'}</td>${pairCells(report.open, tSingle)}${pairCells(report.income, tSingle)}${pairCells(report.outcome, tSingle)}${pairCells(report.close, tSingle)}</tr></tfoot>`
       : '';
+  const fuelBlock =
+    report.fuelTotals.length > 0
+      ? `<h2>Итого по видам топлива (все клиенты)</h2>
+<table>
+<thead>
+<tr><th rowspan="2">Вид топлива</th><th rowspan="2">Карт</th><th rowspan="2">Ед. изм.</th><th colspan="2">Остаток на начало</th><th colspan="2">Приход</th><th colspan="2">Расход</th><th colspan="2">Остаток на конец</th></tr>
+<tr><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th></tr>
+</thead>
+<tbody>${report.fuelTotals
+          .map(
+            (r) =>
+              `<tr><td>${esc(r.fuel)}</td><td class="c">${r.cardsCount}</td><td class="c">${esc(r.unit)}</td>${pairCells(r.open)}${pairCells(r.income)}${pairCells(r.outcome)}${pairCells(r.close)}</tr>`
+          )
+          .join('')}</tbody>
+</table>`
+      : '';
 
   const html = `<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8"><title>${esc(reportTitle(report))}</title>
@@ -238,6 +285,7 @@ export function printTurnover(report: TurnoverReport) {
 * { box-sizing: border-box; }
 body { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; color: #000; margin: 0; }
 h1 { font-size: 12pt; margin: 0 0 2mm; }
+h2 { font-size: 10pt; margin: 6mm 0 2mm; page-break-after: avoid; }
 .meta { font-size: 8pt; margin-bottom: 3mm; color: #333; line-height: 1.4; }
 table { width: 100%; border-collapse: collapse; }
 th, td { border: 0.3mm solid #444; padding: 0.7mm 1.2mm; vertical-align: middle; line-height: 1.15; }
@@ -260,6 +308,7 @@ ${report.mode === 'fuel' ? '<tr><th rowspan="2">Вид топлива</th><th ro
 <tbody>${body}${empty}</tbody>
 ${foot}
 </table>
+${fuelBlock}
 <script>window.onload=function(){setTimeout(function(){window.focus();window.print();},300);};</script>
 </body></html>`;
 
@@ -291,8 +340,19 @@ export function exportTurnoverToExcel(report: TurnoverReport) {
     });
   });
   const tSingle = report.units.length === 1;
-  const totalRow = aoa.length;
   aoa.push(['Итого', '', unitLabel(report.units), ...pairs(report.open, tSingle), ...pairs(report.income, tSingle), ...pairs(report.outcome, tSingle), ...pairs(report.close, tSingle)]);
+
+  const fuelHeaderRow = report.fuelTotals.length > 0 ? aoa.length + 1 : -1;
+  if (report.fuelTotals.length > 0) {
+    aoa.push([]);
+    aoa.push(['Итого по видам топлива (все клиенты)']);
+    aoa.push(['Вид топлива', 'Карт', 'Ед. изм.', 'Остаток на начало', '', 'Приход', '', 'Расход', '', 'Остаток на конец', '']);
+    aoa.push(['', '', '', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма']);
+    report.fuelTotals.forEach((r) => {
+      aoa.push([r.fuel, r.cardsCount, r.unit, ...pairs(r.open), ...pairs(r.income), ...pairs(r.outcome), ...pairs(r.close)]);
+    });
+  }
+  const lastRow = aoa.length - 1;
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{ wch: 34 }, { wch: 18 }, { wch: 9 }, ...Array(8).fill({ wch: 14 })];
@@ -305,7 +365,12 @@ export function exportTurnoverToExcel(report: TurnoverReport) {
     { s: { r: 3, c: 7 }, e: { r: 3, c: 8 } },
     { s: { r: 3, c: 9 }, e: { r: 3, c: 10 } },
   ];
-  for (let r = 5; r <= totalRow; r++) {
+  if (fuelHeaderRow > 0) {
+    const h = fuelHeaderRow + 1;
+    [0, 1, 2].forEach((c) => ws['!merges']!.push({ s: { r: h, c }, e: { r: h + 1, c } }));
+    [3, 5, 7, 9].forEach((c) => ws['!merges']!.push({ s: { r: h, c }, e: { r: h, c: c + 1 } }));
+  }
+  for (let r = 5; r <= lastRow; r++) {
     for (let c = 3; c <= 10; c++) {
       const cell = ws[XLSX.utils.encode_cell({ r, c })];
       if (cell && typeof cell.v === 'number') cell.z = c % 2 === 1 ? '#,##0.000' : '#,##0.00';
