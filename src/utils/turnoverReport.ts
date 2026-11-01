@@ -120,7 +120,6 @@ export function buildTurnoverReport(params: {
             close,
           });
         });
-      if (rows.length === 0) return;
       const g: TurnoverClientGroup = {
         clientName: client.name,
         cards: rows,
