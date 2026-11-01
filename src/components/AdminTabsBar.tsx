@@ -13,6 +13,7 @@ const TABS: AdminTab[] = [
   { value: 'clients', label: 'Клиенты', icon: 'Users', description: 'Список клиентов и сотрудников: логины, пароли, права, памятки для печати.' },
   { value: 'cards', label: 'Карты', icon: 'CreditCard', description: 'Топливные карты клиентов: остатки, лимиты, блокировка и PIN-коды.' },
   { value: 'operations', label: 'Операции', icon: 'History', description: 'История заправок, списаний и оприходований с фильтрами, печатью и выгрузкой в Excel.' },
+  { value: 'reports', label: 'Отчёты', icon: 'FileBarChart', description: 'Оборотная ведомость по картам за период: остаток на начало, приход, расход, остаток на конец.' },
   { value: 'stations', label: 'АЗС', icon: 'Fuel', description: 'Справочник заправочных станций и их кодов в 1С.' },
   { value: 'fuel-types', label: 'Виды топлива', icon: 'Droplets', description: 'Справочник видов топлива и единиц измерения (литры, рубли).' },
   { value: 'database', label: 'База данных', icon: 'Database', description: 'Архивы данных под паролем: создание, скачивание и удаление старых копий.' },

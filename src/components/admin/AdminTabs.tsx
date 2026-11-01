@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import ClampText from '@/components/ClampText';
+import TurnoverReportTab from './TurnoverReportTab';
 import AdminTabsBar from '@/components/AdminTabsBar';
 import DatabaseArchives from '@/components/DatabaseArchives';
 import type { AdminState } from './useAdminDashboard';
@@ -17,6 +18,7 @@ import type { AdminState } from './useAdminDashboard';
 export default function AdminTabs({ dash }: { dash: AdminState }) {
   const {
     navigate,
+    showAlert,
     clients,
     stations,
     fuelTypes,
@@ -841,6 +843,10 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                 onPageSizeChange={(s) => { setOpsPageSize(s); localStorage.setItem('admin_ops_page_size', String(s)); setOpsPage(1); }}
               />
             </Card>
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <TurnoverReportTab clients={clients} showAlert={showAlert} />
           </TabsContent>
 
           <TabsContent value="stations">
