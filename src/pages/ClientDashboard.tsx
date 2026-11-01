@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRememberedTab } from '@/hooks/useRememberedTab';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
   const confirmAction = useConfirm();
   const showAlert = (message: string) => window.alert(message);
   const navigate = useNavigate();
+  const [clientTab, setClientTab] = useRememberedTab('client', ['cards', 'operations', 'reports'], 'cards');
   const { addTransferOperations } = useOperations();
   const [isFromAdmin, setIsFromAdmin] = useState(false);
   const [clientData, setClientData] = useState<ClientData | null>(null);
@@ -336,7 +338,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
               </CardContent>
             </Card>
 
-            <Tabs defaultValue="cards" className="space-y-4">
+            <Tabs value={clientTab} onValueChange={setClientTab} className="space-y-4">
               <TabsList className="h-auto flex-wrap gap-1 bg-card/50 border-2 border-primary p-1">
                 {[
                   { value: 'cards', label: 'Топливные карты', icon: 'CreditCard' },
