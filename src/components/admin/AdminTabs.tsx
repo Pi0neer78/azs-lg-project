@@ -128,7 +128,7 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
   } = dash;
 
   return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden print:overflow-visible"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="clients" className="space-y-6">
           <AdminTabsBar />
 
@@ -1025,6 +1025,6 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
             <DatabaseArchives />
           </TabsContent>
         </Tabs>
-      </main>
+      </div></main>
   );
 }

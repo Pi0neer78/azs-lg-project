@@ -14,7 +14,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="h-[calc(100vh-40px)] overflow-hidden flex flex-col print:h-auto print:overflow-visible bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.5), rgba(6,26,18,0.65)), url('/bg-admin.webp')" }}
     >
       <ChatLauncher />

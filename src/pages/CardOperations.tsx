@@ -206,8 +206,11 @@ export default function CardOperations() {
   const pagedOperations = operationsWithBalance.slice((safeOpsPage - 1) * opsPageSize, safeOpsPage * opsPageSize);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
-      <header className="bg-card border-b-4 border-accent shadow-lg">
+    <div
+      className="h-[calc(100vh-40px)] overflow-hidden flex flex-col print:h-auto print:overflow-visible bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.5), rgba(6,26,18,0.65)), url('/bg-admin.webp')" }}
+    >
+      <header className="bg-transparent border-b-4 border-accent shadow-lg shrink-0">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Icon name="Fuel" size={32} className="text-accent" />
@@ -265,7 +268,7 @@ export default function CardOperations() {
         )}
       </div>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden print:overflow-visible"><div className="container mx-auto px-4 py-6 space-y-6">
         <Card className="border-2 border-accent bg-card/95 backdrop-blur-sm no-print">
           <CardContent className="py-4">
             <div className="grid md:grid-cols-4 gap-4 items-center">
@@ -420,7 +423,7 @@ export default function CardOperations() {
             )}
           </CardContent>
         </Card>
-      </main>
+      </div></main>
     </div>
   );
 }

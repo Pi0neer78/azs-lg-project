@@ -260,10 +260,10 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="h-[calc(100vh-40px)] overflow-hidden flex flex-col print:h-auto print:overflow-visible bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.5), rgba(6,26,18,0.65)), url('/bg-admin.webp')" }}
     >
-      <header className="bg-transparent border-b-4 border-accent shadow-lg">
+      <header className="bg-transparent border-b-4 border-accent shadow-lg shrink-0">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Icon name="Fuel" size={32} className="text-accent" />
@@ -303,7 +303,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden print:overflow-visible"><div className="container mx-auto px-4 py-6 space-y-6">
         {loading ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">Загрузка данных...</p>
@@ -543,7 +543,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             <p className="text-muted-foreground">Клиент не найден</p>
           </div>
         )}
-      </main>
+      </div></main>
 
       <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
         <DialogContent>
