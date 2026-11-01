@@ -357,6 +357,9 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             <CardTitle className="text-2xl text-foreground flex items-center gap-2">
               <Icon name="CreditCard" size={28} className="text-accent" />
               Топливные карты
+              <span className="ml-3 text-sm font-normal text-muted-foreground">
+                Найдено карт: <strong className="text-accent">{filteredCards.length}</strong> из {cards.length}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -400,10 +403,7 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                   </Select>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="text-muted-foreground">
-                  Найдено карт: <strong className="text-accent">{filteredCards.length}</strong> из {cards.length}
-                </div>
+              <div className="flex items-center justify-end text-sm">
                 {(cardSearch || fuelTypeFilter !== 'all' || statusFilter !== 'all') && (
                   <Button
                     variant="ghost"
