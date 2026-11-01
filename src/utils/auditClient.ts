@@ -21,5 +21,9 @@ export async function logoutAndGo(url = '/') {
     logEvent('выход', 'Вход в кабинет', `Логин : ${user.login || '—'}`),
     new Promise((r) => setTimeout(r, 1500)),
   ]);
+  localStorage.removeItem('user');
+  localStorage.removeItem('chat_auth');
+  sessionStorage.removeItem('fromAdmin');
+  sessionStorage.removeItem('viewClientLogin');
   window.location.href = url;
 }

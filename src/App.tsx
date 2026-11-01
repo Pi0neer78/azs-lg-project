@@ -18,14 +18,19 @@ import { ConfirmProvider } from "./components/ConfirmDialog";
 const queryClient = new QueryClient();
 
 const ClientRoute = () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  let user: any = {};
+  try {
+    user = JSON.parse(localStorage.getItem('user') || '{}') || {};
+  } catch {
+    user = {};
+  }
   const viewClientLogin = user.admin ? sessionStorage.getItem('viewClientLogin') : null;
-  const clientLogin = viewClientLogin || user.login || '';
-  
-  if (!clientLogin) {
+  const clientLogin = viewClientLogin || (user.admin ? '' : user.login) || '';
+
+  if (!user.login || !clientLogin) {
     return <Navigate to="/" replace />;
   }
-  
+
   return <ClientDashboard clientLogin={clientLogin} onLogout={() => logoutAndGo('/')} />;
 };
 
