@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ClientOperationsTab from '@/components/client/ClientOperationsTab';
+import TurnoverReportTab from '@/components/admin/TurnoverReportTab';
 import { useOperations } from '@/contexts/OperationsContext';
 import { useConfirm } from '@/components/ConfirmDialog';
 import { adminApi } from '@/utils/adminApi';
@@ -42,6 +45,7 @@ interface ClientDashboardProps {
 
 export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboardProps) {
   const confirmAction = useConfirm();
+  const showAlert = (message: string) => window.alert(message);
   const navigate = useNavigate();
   const { addTransferOperations } = useOperations();
   const [isFromAdmin, setIsFromAdmin] = useState(false);
@@ -329,6 +333,25 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
               </CardContent>
             </Card>
 
+            <Tabs defaultValue="cards" className="space-y-4">
+              <TabsList className="h-auto flex-wrap gap-1 bg-card/50 border-2 border-primary p-1">
+                {[
+                  { value: 'cards', label: 'Топливные карты', icon: 'CreditCard' },
+                  { value: 'operations', label: 'Все операции', icon: 'History' },
+                  { value: 'reports', label: 'Отчёты', icon: 'FileBarChart' },
+                ].map((t) => (
+                  <TabsTrigger
+                    key={t.value}
+                    value={t.value}
+                    className="gap-1.5 rounded-md border-b-[3px] border-transparent px-3 py-1 text-sm font-semibold text-foreground/80 transition-all hover:bg-primary/20 hover:text-foreground data-[state=active]:border-yellow-700 data-[state=active]:bg-gradient-to-b data-[state=active]:from-yellow-200 data-[state=active]:to-yellow-400 data-[state=active]:text-emerald-950"
+                  >
+                    <Icon name={t.icon} size={16} />
+                    {t.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="cards">
         <Card className="border-2 border-primary bg-card/95 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-2xl text-foreground flex items-center gap-2">
@@ -501,6 +524,16 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
             </Table>
           </CardContent>
         </Card>
+              </TabsContent>
+
+              <TabsContent value="operations">
+                <ClientOperationsTab clientLogin={clientLogin} showAlert={showAlert} />
+              </TabsContent>
+
+              <TabsContent value="reports">
+                <TurnoverReportTab clientLogin={clientLogin} showAlert={showAlert} />
+              </TabsContent>
+            </Tabs>
           </>
         ) : (
           <div className="text-center py-8">

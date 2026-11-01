@@ -19,7 +19,8 @@ import {
 } from '@/utils/turnoverReport';
 
 interface Props {
-  clients: any[];
+  clients?: any[];
+  clientLogin?: string;
   showAlert: (message: string) => void;
 }
 
@@ -45,7 +46,8 @@ function PairCells({ p, showQty = true, bold = false }: { p: Pair; showQty?: boo
   );
 }
 
-export default function TurnoverReportTab({ clients, showAlert }: Props) {
+export default function TurnoverReportTab({ clients = [], clientLogin, showAlert }: Props) {
+  const clientMode = !!clientLogin;
   const [dateFrom, setDateFrom] = useState(monthStart());
   const [dateTo, setDateTo] = useState(today());
   const [clientId, setClientId] = useState('all');
@@ -71,11 +73,22 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
         adminApi.fuelTypes.getAll(),
         adminApi.operations.getAll(),
       ]);
+      let effectiveClientId = clientId;
+      if (clientMode) {
+        const own =
+          freshClients.find((c: any) => c.login === clientLogin) ||
+          (freshClients.length === 1 ? freshClients[0] : undefined);
+        if (!own) {
+          showAlert('Не удалось определить клиента для отчёта.');
+          return;
+        }
+        effectiveClientId = String(own.id);
+      }
       setReport(
         buildTurnoverReport({
           from: dateFrom,
           to: dateTo,
-          clientId,
+          clientId: effectiveClientId,
           mode,
           clients: freshClients,
           cards: freshCards,
@@ -150,22 +163,24 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
               className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
             />
           </div>
-          <div className="w-64">
-            <Label className="text-foreground text-xs">Клиент</Label>
-            <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger className="h-8 text-sm bg-input border-2 border-border text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все клиенты</SelectItem>
-                {reportClients.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!clientMode && (
+            <div className="w-64">
+              <Label className="text-foreground text-xs">Клиент</Label>
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger className="h-8 text-sm bg-input border-2 border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все клиенты</SelectItem>
+                  {reportClients.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -193,7 +208,7 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
 
         {!report ? (
           <p className="text-muted-foreground text-center py-10">
-            Выберите период и клиента, нажмите «Сформировать» и выберите вид отчёта.
+            {clientMode ? 'Выберите период, нажмите «Сформировать» и выберите вид отчёта.' : 'Выберите период и клиента, нажмите «Сформировать» и выберите вид отчёта.'}
           </p>
         ) : (
           <>
