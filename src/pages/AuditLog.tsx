@@ -53,6 +53,28 @@ const esc = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g,
 const userText = (r: Rec) => `${r.user_name}${r.user_role && ROLES[r.user_role] ? ` (${ROLES[r.user_role]})` : ''}`;
 const deviceText = (r: Rec) => [r.ip, r.device].filter(Boolean).join(' / ');
 
+const highlight = (text: string, q: string) => {
+  const term = q.trim();
+  if (!term) return text;
+  const lower = text.toLowerCase();
+  const needle = term.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let pos = 0;
+  let idx = lower.indexOf(needle, pos);
+  while (idx !== -1) {
+    if (idx > pos) parts.push(text.slice(pos, idx));
+    parts.push(
+      <mark key={idx} className="bg-accent text-accent-foreground rounded px-0.5">
+        {text.slice(idx, idx + needle.length)}
+      </mark>
+    );
+    pos = idx + needle.length;
+    idx = lower.indexOf(needle, pos);
+  }
+  if (pos < text.length) parts.push(text.slice(pos));
+  return parts;
+};
+
 export default function AuditLog() {
   const confirmAction = useConfirm();
   const showAlert = useAlert();
@@ -349,13 +371,13 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
                   <tr key={r.id} className="border-b border-border/50 align-top hover:bg-secondary/40">
                     <td className="p-2 whitespace-nowrap tabular-nums text-muted-foreground">{r.id}</td>
                     <td className="p-2 whitespace-nowrap tabular-nums">{r.created_at}</td>
-                    <td className="p-2">{userText(r)}</td>
+                    <td className="p-2">{highlight(userText(r), search)}</td>
                     <td className="p-2 text-xs break-words max-w-[200px]">{deviceText(r)}</td>
                     <td className="p-2">
                       <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold whitespace-nowrap ${ACTION_STYLE[r.action] || 'border-border'}`}>{r.action}</span>
                     </td>
-                    <td className="p-2 whitespace-nowrap">{r.section}</td>
-                    <td className="p-2 whitespace-pre-wrap break-words min-w-[280px]">{r.description}</td>
+                    <td className="p-2 whitespace-nowrap">{highlight(r.section, search)}</td>
+                    <td className="p-2 whitespace-pre-wrap break-words min-w-[280px]">{highlight(r.description, search)}</td>
                   </tr>
                 ))}
                 {rows.length === 0 && (
