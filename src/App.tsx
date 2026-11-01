@@ -49,6 +49,21 @@ const AdminRoute = () => {
   return <AdminDashboard onLogout={() => logoutAndGo('/')} />;
 };
 
+const CardOperationsRoute = () => {
+  let user: any = {};
+  try {
+    user = JSON.parse(localStorage.getItem('user') || '{}') || {};
+  } catch {
+    user = {};
+  }
+
+  if (!user.login) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <CardOperations />;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -61,7 +76,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Login onLogin={() => {}} />} />
               <Route path="/client" element={<ClientRoute />} />
-              <Route path="/card-operations" element={<CardOperations />} />
+              <Route path="/card-operations" element={<CardOperationsRoute />} />
               <Route path="/admin" element={<AdminRoute />} />
               <Route path="/operator" element={<OperatorPanel />} />
               <Route path="/chat-admin" element={<ChatAdmin />} />
