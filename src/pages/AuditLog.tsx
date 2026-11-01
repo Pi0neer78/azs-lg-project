@@ -31,6 +31,7 @@ const ACTIONS = ['добавление', 'изменение', 'удаление
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const ROLE_KEYS = Object.keys(ROLES);
 const STORAGE_KEY = 'audit_log_pass';
+const LOGIN_KEY = 'audit_log_login';
 const FILTERS_KEY = 'audit_log_filters';
 const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; roles?: string[]; search?: string; user?: string; ip?: string; section?: string; pageSize?: number } => {
   try {
@@ -105,6 +106,7 @@ export default function AuditLog() {
   const [detail, setDetail] = useState<Rec | null>(null);
   const [autoSize, setAutoSize] = useState(15);
   const tableBoxRef = useRef<HTMLDivElement>(null);
+  const [loginName, setLoginName] = useState('');
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
   const [error, setError] = useState('');
@@ -121,10 +123,10 @@ export default function AuditLog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [draft, setDraft] = useState({ actions: ACTIONS, roles: ROLE_KEYS, search: '', user: '', ip: '', section: '' });
 
-  const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
+  const call = useCallback(async (p: string, init?: RequestInit, qs = '', loginOverride = '') => {
     const res = await fetch(`${AUDIT_API}${qs}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': p },
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': p, 'X-User-Id': sessionStorage.getItem(LOGIN_KEY) || loginOverride || '' },
     });
     return { ok: res.ok, data: await res.json().catch(() => ({})) };
   }, []);
@@ -140,8 +142,9 @@ export default function AuditLog() {
     try {
       const { ok, data } = await call(pass, undefined, `?${qs.toString()}`);
       if (ok) setRows(data.records || []);
-      else if (data.error === 'Неверный пароль') {
+      else if (data.error === 'Неверный логин или пароль') {
         sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(LOGIN_KEY);
         setPass(null);
       }
     } finally {
@@ -163,9 +166,11 @@ export default function AuditLog() {
     setError('');
     const p = password.trim();
     try {
-      const { ok, data } = await call(p, { method: 'POST', body: JSON.stringify({ action: 'login' }) });
+      const l = loginName.trim();
+      const { ok, data } = await call(p, { method: 'POST', body: JSON.stringify({ action: 'login' }) }, '', l);
       if (ok) {
         sessionStorage.setItem(STORAGE_KEY, p);
+        sessionStorage.setItem(LOGIN_KEY, l);
         setPass(p);
       } else setError(data.error || 'Ошибка входа');
     } catch {
@@ -286,7 +291,7 @@ export default function AuditLog() {
     if (!pass) return;
     fetch(AUDIT_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass, 'X-User-Id': sessionStorage.getItem(LOGIN_KEY) || '' },
       body: JSON.stringify({
         action: 'event', type, section: 'Журнал операций',
         description: `Записей : ${rows.length}, Фильтр : ${filterText || 'без фильтров'}`,
@@ -344,6 +349,7 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
         <Card className="w-full max-w-sm border-2 border-accent shadow-xl bg-card/95">
           <CardContent className="pt-6">
             <form onSubmit={handleLogin} className="space-y-4">
+              <Input type="text" value={loginName} onChange={(e) => setLoginName(e.target.value)} placeholder="Логин" autoComplete="username" className="bg-input text-foreground border-2 border-border" />
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Пароль" className="bg-input text-foreground border-2 border-border" />
               {error && <div className="text-destructive text-sm text-center">{error}</div>}
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-bold">Войти</Button>
@@ -369,7 +375,8 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
             <Button size="sm" onClick={handleExcel} variant="outline" className={btn}>
               <Icon name="FileSpreadsheet" size={16} className="mr-2" />Excel
             </Button>
-            <Button size="sm" variant="outline" onClick={() => { sessionStorage.removeItem(STORAGE_KEY); setPass(null); setPassword(''); }} className={btn}>
+            <Button size="sm" variant="outline" onClick={() => { sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(LOGIN_KEY); setPass(null); setPassword(''); }} className={btn}>
               <Icon name="LogOut" size={16} className="mr-2" />Выход
             </Button>
           </div>

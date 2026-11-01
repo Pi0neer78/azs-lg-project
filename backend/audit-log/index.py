@@ -12,13 +12,20 @@ CLIENT_EVENTS = ('выход', 'печать', 'в эксель', 'действ�
 
 def check_password(event: dict) -> bool:
     secret = os.environ.get('AUDIT_LOG_PASSWORD') or ''
-    given = authz._headers(event).get('x-auth-token', '')
-    return bool(secret) and bool(given) and hmac.compare_digest(given.encode(), secret.encode())
+    secret_login = os.environ.get('AUDIT_LOG_LOGIN') or ''
+    headers = authz._headers(event)
+    given = headers.get('x-auth-token', '')
+    given_login = headers.get('x-user-id', '')
+    return (
+        bool(secret) and bool(given) and bool(secret_login) and bool(given_login)
+        and hmac.compare_digest(given.encode(), secret.encode())
+        and hmac.compare_digest(given_login.encode(), secret_login.encode())
+    )
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Журнал операций. GET (заголовок X-Auth-Token = пароль из секрета AUDIT_LOG_PASSWORD):
+    Журнал операций. GET (заголовки X-User-Id = логин из AUDIT_LOG_LOGIN, X-Auth-Token = пароль из AUDIT_LOG_PASSWORD):
     ?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&action=вид&user=имя&ip=адрес&section=раздел&role=admin,operator,client&q=текст — список записей.
     POST {action: login} — проверка пароля журнала.
     POST {action: event, type: выход|печать|в эксель|действия оператора, section, description} — запись события от авторизованного пользователя.
@@ -31,7 +38,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         if method == 'GET':
             if not check_password(event):
-                return authz.resp(401, {'error': 'Неверный пароль'})
+                return authz.resp(401, {'error': 'Неверный логин или пароль'})
             p = event.get('queryStringParameters') or {}
             where = ['TRUE']
             args = []
@@ -75,11 +82,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             act = body.get('action')
             if act == 'login':
                 if not check_password(event):
-                    return authz.resp(401, {'error': 'Неверный пароль'})
+                    return authz.resp(401, {'error': 'Неверный логин или пароль'})
                 return authz.resp(200, {'success': True})
             if act == 'cleanup':
                 if not check_password(event):
-                    return authz.resp(401, {'error': 'Неверный пароль'})
+                    return authz.resp(401, {'error': 'Неверный логин или пароль'})
                 try:
                     days = int(body.get('days'))
                 except (TypeError, ValueError):
