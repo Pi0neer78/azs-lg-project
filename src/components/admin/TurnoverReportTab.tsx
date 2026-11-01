@@ -90,7 +90,7 @@ export default function TurnoverReportTab({ clients = [], clientLogin, showAlert
           to: dateTo,
           clientId: effectiveClientId,
           mode,
-          withRubleUsage: clientMode,
+          withRubleUsage: effectiveClientId !== 'all',
           clients: freshClients,
           cards: freshCards,
           fuelTypes: freshFuelTypes,
