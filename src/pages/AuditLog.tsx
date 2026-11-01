@@ -24,6 +24,16 @@ const ACTIONS = ['добавление', 'изменение', 'удаление
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
 const PAGE_SIZES = [25, 50, 100, 200];
+type SortKey = 'id' | 'created_at' | 'user' | 'device' | 'action' | 'section' | 'description';
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: 'id', label: '№' },
+  { key: 'created_at', label: 'Дата/время' },
+  { key: 'user', label: 'Пользователь' },
+  { key: 'device', label: 'IP / Компьютер' },
+  { key: 'action', label: 'Операция' },
+  { key: 'section', label: 'Раздел' },
+  { key: 'description', label: 'Описание' },
+];
 const ACTION_STYLE: Record<string, string> = {
   'добавление': 'border-green-600 bg-green-600/15',
   'изменение': 'border-yellow-600 bg-yellow-600/15',
@@ -49,6 +59,7 @@ export default function AuditLog() {
   const [cleanDays, setCleanDays] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'id', dir: 'desc' });
   const [showClean, setShowClean] = useState(false);
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
@@ -121,10 +132,24 @@ export default function AuditLog() {
     }
   };
 
-  useEffect(() => setPage(1), [rows, pageSize]);
+  const sortedRows = useMemo(() => {
+    const val = (r: Rec): string | number =>
+      sort.key === 'id' ? r.id : sort.key === 'user' ? userText(r) : sort.key === 'device' ? deviceText(r) : r[sort.key];
+    const k = sort.dir === 'asc' ? 1 : -1;
+    return rows.slice().sort((a, b) => {
+      const x = val(a);
+      const y = val(b);
+      if (typeof x === 'number' && typeof y === 'number') return (x - y) * k;
+      return String(x).localeCompare(String(y), 'ru') * k;
+    });
+  }, [rows, sort]);
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'id' || key === 'created_at' ? 'desc' : 'asc' }));
+
+  useEffect(() => setPage(1), [rows, pageSize, sort]);
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paged = sortedRows.slice((safePage - 1) * pageSize, safePage * pageSize);
   const fromIdx = rows.length ? (safePage - 1) * pageSize + 1 : 0;
   const toIdx = Math.min(safePage * pageSize, rows.length);
   const pageNumbers = (() => {
@@ -164,8 +189,8 @@ export default function AuditLog() {
   };
 
   const handlePrint = () => {
-    const body = rows
-      .map((r) => `<tr><td class="nw">${esc(r.created_at)}</td><td>${esc(userText(r))}</td><td>${esc(deviceText(r))}</td><td>${esc(r.action)}</td><td>${esc(r.section)}</td><td>${esc(r.description)}</td></tr>`)
+    const body = sortedRows
+      .map((r) => `<tr><td class="nw">${r.id}</td><td class="nw">${esc(r.created_at)}</td><td>${esc(userText(r))}</td><td>${esc(deviceText(r))}</td><td>${esc(r.action)}</td><td>${esc(r.section)}</td><td>${esc(r.description)}</td></tr>`)
       .join('');
     const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Журнал операций</title><style>
 @page { size: A4 landscape; margin: 8mm; }
@@ -175,11 +200,11 @@ table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 th, td { border: 1px solid #000; padding: 1mm 1.5mm; vertical-align: top; word-wrap: break-word; overflow-wrap: anywhere; }
 th { background: #e8e8e8; text-align: left; } thead { display: table-header-group; } tr { page-break-inside: avoid; }
 .nw { white-space: nowrap; }
-col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { width: 22mm; } col.s { width: 28mm; }
+col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { width: 22mm; } col.s { width: 28mm; }
 </style></head><body><h1>Журнал операций</h1>
 <div class="meta">Сформировано: ${esc(new Date().toLocaleString('ru-RU'))}. Записей: ${rows.length}.${filterText ? ' Фильтр: ' + esc(filterText) + '.' : ' Без фильтров.'}</div>
-<table><colgroup><col class="d"><col class="u"><col class="i"><col class="a"><col class="s"><col></colgroup>
-<thead><tr><th>Дата/время</th><th>Пользователь</th><th>IP / Имя компьютера</th><th>Вид операции</th><th>Раздел</th><th>Описание</th></tr></thead>
+<table><colgroup><col class="n"><col class="d"><col class="u"><col class="i"><col class="a"><col class="s"><col></colgroup>
+<thead><tr><th>№</th><th>Дата/время</th><th>Пользователь</th><th>IP / Имя компьютера</th><th>Вид операции</th><th>Раздел</th><th>Описание</th></tr></thead>
 <tbody>${body}</tbody></table>
 <script>window.onload=function(){setTimeout(function(){window.focus();window.print();},300);};</script></body></html>`;
     const win = window.open('', '_blank');
@@ -194,11 +219,11 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
   };
 
   const handleExcel = () => {
-    const header = ['Дата/время', 'Пользователь', 'IP / Имя компьютера', 'Вид операции', 'Раздел', 'Описание'];
-    const data = rows.map((r) => [r.created_at, userText(r), deviceText(r), r.action, r.section, r.description]);
+    const header = ['№', 'Дата/время', 'Пользователь', 'IP / Имя компьютера', 'Вид операции', 'Раздел', 'Описание'];
+    const data = sortedRows.map((r) => [r.id, r.created_at, userText(r), deviceText(r), r.action, r.section, r.description]);
     const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 19 }, { wch: 28 }, { wch: 34 }, { wch: 14 }, { wch: 18 }, { wch: 100 }];
-    ws['!autofilter'] = { ref: `A1:F${rows.length + 1}` };
+    ws['!cols'] = [{ wch: 8 }, { wch: 19 }, { wch: 28 }, { wch: 34 }, { wch: 14 }, { wch: 18 }, { wch: 100 }];
+    ws['!autofilter'] = { ref: `A1:G${rows.length + 1}` };
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Журнал операций');
     const d = new Date().toISOString().slice(0, 10);
@@ -305,17 +330,24 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
             <table className="w-full text-sm text-foreground">
               <thead className="sticky top-0 z-10 bg-secondary">
                 <tr className="border-b-2 border-border text-left text-foreground">
-                  <th className="p-2 whitespace-nowrap">Дата/время</th>
-                  <th className="p-2">Пользователь</th>
-                  <th className="p-2">IP / Компьютер</th>
-                  <th className="p-2">Операция</th>
-                  <th className="p-2">Раздел</th>
-                  <th className="p-2 w-full">Описание</th>
+                  {COLUMNS.map((c) => (
+                    <th key={c.key} className={`p-2 ${c.key === 'description' ? 'w-full' : 'whitespace-nowrap'}`}>
+                      <button type="button" onClick={() => toggleSort(c.key)} className="flex items-center gap-1 font-bold hover:text-accent">
+                        {c.label}
+                        <Icon
+                          name={sort.key === c.key ? (sort.dir === 'asc' ? 'ArrowUp' : 'ArrowDown') : 'ArrowUpDown'}
+                          size={13}
+                          className={sort.key === c.key ? 'text-accent' : 'text-muted-foreground'}
+                        />
+                      </button>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {paged.map((r) => (
                   <tr key={r.id} className="border-b border-border/50 align-top hover:bg-secondary/40">
+                    <td className="p-2 whitespace-nowrap tabular-nums text-muted-foreground">{r.id}</td>
                     <td className="p-2 whitespace-nowrap tabular-nums">{r.created_at}</td>
                     <td className="p-2">{userText(r)}</td>
                     <td className="p-2 text-xs break-words max-w-[200px]">{deviceText(r)}</td>
@@ -327,7 +359,7 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
                   </tr>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
                 )}
               </tbody>
             </table>
