@@ -19,7 +19,7 @@ interface Station {
   address: string;
 }
 
-const OP_BG = { backgroundImage: "linear-gradient(rgba(6,26,18,0.45), rgba(6,26,18,0.6)), url('/bg-operator.webp')" };
+const OP_BG = { backgroundImage: "linear-gradient(rgba(6,26,18,0.55), rgba(6,26,18,0.7)), url('/bg-operator.webp')" };
 
 interface CardInfo {
   id: number;
@@ -463,7 +463,7 @@ export default function OperatorPanel() {
 
   if (stage === 'login') {
     return (
-      <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col items-center justify-center px-4" style={OP_BG}>
+      <div className="h-[calc(100vh-40px)] overflow-hidden bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4" style={OP_BG}>
         <h1 className="text-3xl font-bold text-accent mb-8 text-center">Панель оператора</h1>
         <Card className="w-full max-w-sm border-2 border-accent shadow-xl bg-card/95">
           <CardContent className="pt-6">
@@ -570,8 +570,8 @@ export default function OperatorPanel() {
         </div>
       )}
 
-      <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col" style={OP_BG}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80">
+      <div className="h-[calc(100vh-40px)] overflow-hidden bg-cover bg-center bg-no-repeat flex flex-col" style={OP_BG}>
+        <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-card/80 shrink-0">
           <div>
             <h1 className="text-2xl font-bold text-accent tracking-wide">Панель оператора</h1>
             {selectedStation && (
@@ -601,7 +601,7 @@ export default function OperatorPanel() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-6">
+        <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center justify-center px-4 py-3 gap-6">
 
           {stage === 'scan' && (
             <div className="w-full max-w-xl flex flex-col items-center gap-5">
