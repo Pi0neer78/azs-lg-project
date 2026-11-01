@@ -386,7 +386,21 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
           {hasFilters && (
             <Button size="sm" variant="ghost" onClick={resetFilters} className="text-foreground underline">Сбросить</Button>
           )}
+          <button type="button" onClick={() => setShowClean((v) => !v)} className="ml-auto flex items-center gap-1 text-sm text-foreground hover:text-accent">
+            <Icon name="Trash2" size={14} />Очистка старых записей
+          </button>
         </div>
+
+        {showClean && (
+          <Card className="border-2 border-destructive bg-card">
+            <CardContent className="p-3 flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-foreground">Удалить записи старше</span>
+              <Input type="number" min={1} value={cleanDays} onChange={(e) => setCleanDays(e.target.value)} placeholder="дней" className="w-24 h-9 bg-input text-foreground border-2 border-border" />
+              <span className="text-sm text-foreground">дней</span>
+              <Button size="sm" variant="destructive" onClick={handleCleanup}>Очистить</Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
           <DialogContent className="max-w-xl bg-card border-2 border-accent max-h-[90vh] overflow-y-auto">
@@ -452,25 +466,11 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
           </DialogContent>
         </Dialog>
 
-        <div className="flex justify-between items-center flex-wrap gap-2 text-sm text-muted-foreground">
-          <span>
+        {(rows.length >= 5000 || loading) && (
+          <div className="text-sm text-muted-foreground">
             {rows.length >= 5000 ? 'Показаны последние 5000 записей, уточните период' : ''}
             {loading ? (rows.length >= 5000 ? ' · ' : '') + 'обновление...' : ''}
-          </span>
-          <button type="button" onClick={() => setShowClean((v) => !v)} className="flex items-center gap-1 text-foreground hover:text-accent">
-            <Icon name="Trash2" size={14} />Очистка старых записей
-          </button>
-        </div>
-
-        {showClean && (
-          <Card className="border-2 border-destructive bg-card">
-            <CardContent className="p-3 flex flex-wrap gap-2 items-center">
-              <span className="text-sm text-foreground">Удалить записи старше</span>
-              <Input type="number" min={1} value={cleanDays} onChange={(e) => setCleanDays(e.target.value)} placeholder="дней" className="w-24 h-9 bg-input text-foreground border-2 border-border" />
-              <span className="text-sm text-foreground">дней</span>
-              <Button size="sm" variant="destructive" onClick={handleCleanup}>Очистить</Button>
-            </CardContent>
-          </Card>
+          </div>
         )}
 
         <Card className="border-2 border-border bg-card">
