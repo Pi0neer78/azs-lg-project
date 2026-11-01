@@ -114,7 +114,7 @@ export default function Login({ onLogin }: LoginProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 font-bold text-base text-accent-foreground border-0 rounded-lg bg-gradient-to-r from-yellow-200 via-accent to-amber-600 hover:brightness-105 shadow-[0_6px_0_0_rgb(146,82,10),0_10px_18px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.6)] active:translate-y-[4px] active:shadow-[0_2px_0_0_rgb(146,82,10),0_4px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] transition-all disabled:opacity-50 mt-3 mb-1.5"
+              className="w-full h-11 mt-4 font-bold text-base text-accent-foreground border-0 rounded-lg bg-gradient-to-r from-yellow-200 via-accent to-amber-600 hover:brightness-105 shadow-[0_6px_0_0_rgb(146,82,10),0_10px_18px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.6)] active:translate-y-[4px] active:shadow-[0_2px_0_0_rgb(146,82,10),0_4px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] transition-all disabled:opacity-50 mt-3 mb-1.5"
             >
               {loading ? 'Вход...' : 'Войти'}
             </Button>
