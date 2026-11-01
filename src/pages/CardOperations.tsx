@@ -320,11 +320,11 @@ export default function CardOperations() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 no-print">
-              <div className="space-y-2">
-                <Label className="text-foreground">Фильтр по АЗС</Label>
+            <div className="flex flex-wrap items-end gap-3 mb-3 no-print">
+              <div className="w-56 space-y-1">
+                <Label className="text-foreground text-xs">Фильтр по АЗС</Label>
                 <Select value={selectedStation} onValueChange={setSelectedStation}>
-                  <SelectTrigger className="bg-input border-2 border-border text-foreground">
+                  <SelectTrigger className="h-8 text-sm bg-input border-2 border-border text-foreground">
                     <SelectValue placeholder="Все АЗС" />
                   </SelectTrigger>
                   <SelectContent>
@@ -337,22 +337,22 @@ export default function CardOperations() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Дата с</Label>
+              <div className="w-36 space-y-1">
+                <Label className="text-foreground text-xs">Дата с</Label>
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="bg-input border-2 border-border text-foreground"
+                  className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Дата по</Label>
+              <div className="w-36 space-y-1">
+                <Label className="text-foreground text-xs">Дата по</Label>
                 <Input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="bg-input border-2 border-border text-foreground"
+                  className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
                 />
               </div>
             </div>
@@ -366,38 +366,38 @@ export default function CardOperations() {
                 <Table>
                 <TableHeader>
                   <TableRow className="border-b-2 border-border">
-                    <TableHead className="text-foreground font-bold py-2">АЗС</TableHead>
-                    <TableHead className="text-foreground font-bold py-2">Дата</TableHead>
-                    <TableHead className="text-foreground font-bold py-2">Операция</TableHead>
-                    <TableHead className="text-foreground font-bold text-right py-2">Литры</TableHead>
-                    <TableHead className="text-foreground font-bold text-right py-2">Цена</TableHead>
-                    <TableHead className="text-foreground font-bold text-right py-2 no-print">Сумма</TableHead>
-                    <TableHead className="text-foreground font-bold text-right py-2">Баланс</TableHead>
-                    <TableHead className="text-foreground font-bold py-2">Комментарий</TableHead>
+                    <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">АЗС</TableHead>
+                    <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Дата</TableHead>
+                    <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Операция</TableHead>
+                    <TableHead className="text-foreground font-bold text-right h-7 px-2 py-0 text-xs whitespace-nowrap">Литры</TableHead>
+                    <TableHead className="text-foreground font-bold text-right h-7 px-2 py-0 text-xs whitespace-nowrap">Цена</TableHead>
+                    <TableHead className="text-foreground font-bold text-right h-7 px-2 py-0 text-xs whitespace-nowrap no-print">Сумма</TableHead>
+                    <TableHead className="text-foreground font-bold text-right h-7 px-2 py-0 text-xs whitespace-nowrap">Баланс</TableHead>
+                    <TableHead className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">Комментарий</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredOperations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
                         Операций не найдено
                       </TableCell>
                     </TableRow>
                   ) : (
                     pagedOperations.map((op) => (
                       <TableRow key={op.id} className="border-b border-border">
-                        <TableCell className="text-foreground py-2">{op.station_name}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm py-2">{op.operation_date}</TableCell>
-                        <TableCell className="py-2">
-                          <Badge className={getOperationColor(op.operation_type)}>
+                        <TableCell className="text-foreground px-2 py-0.5 text-xs">{op.station_name}</TableCell>
+                        <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.operation_date}</TableCell>
+                        <TableCell className="px-2 py-0.5">
+                          <Badge className={`${getOperationColor(op.operation_type)} px-1.5 py-0 text-[11px] leading-4 font-medium`}>
                             {op.operation_type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-foreground py-2">{op.quantity.toFixed(3)}</TableCell>
-                        <TableCell className="text-right text-foreground py-2">{op.price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-bold text-accent py-2 no-print">{op.amount.toFixed(2)} ₽</TableCell>
-                        <TableCell className="text-right font-bold text-accent py-2">{op.balance.toFixed(3)}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm py-2">{op.comment}</TableCell>
+                        <TableCell className="text-right font-semibold text-foreground px-2 py-0.5 text-xs whitespace-nowrap">{op.quantity.toFixed(3)}</TableCell>
+                        <TableCell className="text-right text-foreground px-2 py-0.5 text-xs">{op.price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-bold text-accent px-2 py-0.5 text-xs whitespace-nowrap no-print">{op.amount.toFixed(2)} ₽</TableCell>
+                        <TableCell className="text-right font-bold text-accent px-2 py-0.5 text-xs whitespace-nowrap">{op.balance.toFixed(3)}</TableCell>
+                        <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{op.comment}</TableCell>
                       </TableRow>
                     ))
                   )}
