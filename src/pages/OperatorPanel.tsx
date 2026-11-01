@@ -571,7 +571,7 @@ export default function OperatorPanel() {
       )}
 
       <div className="h-[calc(100vh-40px)] overflow-hidden bg-cover bg-center bg-no-repeat flex flex-col" style={OP_BG}>
-        <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-card/80 shrink-0">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-border/40 bg-transparent shrink-0">
           <div>
             <h1 className="text-2xl font-bold text-accent tracking-wide">Панель оператора</h1>
             {selectedStation && (
