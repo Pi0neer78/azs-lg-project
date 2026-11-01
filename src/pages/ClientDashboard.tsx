@@ -56,11 +56,16 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const referrer = document.referrer;
-    const fromAdmin = referrer.includes('/admin') || sessionStorage.getItem('fromAdmin') === 'true';
+    let isAdminUser = false;
+    try {
+      isAdminUser = !!JSON.parse(localStorage.getItem('user') || '{}')?.admin;
+    } catch {
+      isAdminUser = false;
+    }
+    const fromAdmin = isAdminUser && sessionStorage.getItem('fromAdmin') === 'true';
     setIsFromAdmin(fromAdmin);
-    if (fromAdmin) {
-      sessionStorage.setItem('fromAdmin', 'true');
+    if (!fromAdmin) {
+      sessionStorage.removeItem('fromAdmin');
     }
   }, []);
 
