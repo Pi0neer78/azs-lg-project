@@ -68,6 +68,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if not check_password(event):
                     return authz.resp(401, {'error': 'Неверный пароль'})
                 return authz.resp(200, {'success': True})
+            if act == 'cleanup':
+                if not check_password(event):
+                    return authz.resp(401, {'error': 'Неверный пароль'})
+                try:
+                    days = int(body.get('days'))
+                except (TypeError, ValueError):
+                    return authz.resp(400, {'error': 'Укажите количество дней'})
+                if days < 1:
+                    return authz.resp(400, {'error': 'Количество дней должно быть не меньше 1'})
+                cur = conn.cursor()
+                cur.execute("DELETE FROM audit_log WHERE created_at < NOW() - make_interval(days => %s)", (days,))
+                deleted = cur.rowcount
+                conn.commit()
+                cur.close()
+                audit.log(conn, event, {'name': 'Просмотр журнала', 'login': '', 'role': 'журнал'}, 'удаление', 'Журнал операций',
+                          audit.fmt([('Удалены записи старше (дней)', days), ('Удалено записей', deleted)]))
+                return authz.resp(200, {'success': True, 'deleted': deleted})
             if act == 'event':
                 if check_password(event):
                     user = {'name': 'Просмотр журнала', 'login': '', 'role': 'журнал'}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import { AUDIT_API } from '@/utils/auditClient';
 
 interface Rec {
@@ -28,6 +29,9 @@ const userText = (r: Rec) => `${r.user_name}${r.user_role && ROLES[r.user_role] 
 const deviceText = (r: Rec) => [r.ip, r.device].filter(Boolean).join(' / ');
 
 export default function AuditLog() {
+  const confirmAction = useConfirm();
+  const showAlert = useAlert();
+  const [cleanDays, setCleanDays] = useState('');
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
   const [error, setError] = useState('');
@@ -79,6 +83,23 @@ export default function AuditLog() {
       } else setError(data.error || 'Ошибка входа');
     } catch {
       setError('Ошибка соединения с сервером');
+    }
+  };
+
+  const handleCleanup = async () => {
+    const days = parseInt(cleanDays, 10);
+    if (!pass || !days || days < 1) {
+      showAlert('Укажите количество дней (число от 1).');
+      return;
+    }
+    if (!(await confirmAction({ title: 'Очистка журнала', message: `Удалить безвозвратно все записи журнала старше ${days} дн.?` }))) return;
+    const { ok, data } = await call(pass, { method: 'POST', body: JSON.stringify({ action: 'cleanup', days }) });
+    if (ok) {
+      showAlert(`Удалено записей: ${data.deleted}`);
+      setCleanDays('');
+      load();
+    } else {
+      showAlert(data.error || 'Не удалось очистить журнал');
     }
   };
 
@@ -201,6 +222,15 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
               {a}
             </Button>
           ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-sm text-muted-foreground">Удалить записи старше</span>
+          <Input type="number" min={1} value={cleanDays} onChange={(e) => setCleanDays(e.target.value)} placeholder="дней" className="w-28 bg-input text-foreground border-2 border-border" />
+          <span className="text-sm text-muted-foreground">дней</span>
+          <Button variant="destructive" onClick={handleCleanup}>
+            <Icon name="Trash2" size={16} className="mr-2" />Очистить
+          </Button>
         </div>
 
         <div className="text-sm text-muted-foreground">Записей: {rows.length}{rows.length >= 5000 ? ' (показаны последние 5000, уточните период)' : ''}</div>
