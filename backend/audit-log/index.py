@@ -6,8 +6,8 @@ import authz
 import audit
 from typing import Dict, Any
 
-ACTIONS = ('добавление', 'удаление', 'изменение', 'вход', 'выход', 'печать', 'в эксель')
-CLIENT_EVENTS = ('выход', 'печать', 'в эксель')
+ACTIONS = ('добавление', 'удаление', 'изменение', 'вход', 'выход', 'печать', 'в эксель', 'действия оператора')
+CLIENT_EVENTS = ('выход', 'печать', 'в эксель', 'действия оператора')
 
 
 def check_password(event: dict) -> bool:
@@ -21,7 +21,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Журнал операций. GET (заголовок X-Auth-Token = пароль из секрета AUDIT_LOG_PASSWORD):
     ?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&action=вид&q=текст — список записей.
     POST {action: login} — проверка пароля журнала.
-    POST {action: event, type: выход|печать|в эксель, section, description} — запись события от авторизованного пользователя.
+    POST {action: event, type: выход|печать|в эксель|действия оператора, section, description} — запись события от авторизованного пользователя.
     '''
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':

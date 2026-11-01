@@ -20,7 +20,7 @@ interface Rec {
   description: string;
 }
 
-const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель'];
+const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель', 'действия оператора'];
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
 const PAGE_SIZES = [25, 50, 100, 200];
@@ -42,6 +42,7 @@ const ACTION_STYLE: Record<string, string> = {
   'выход': 'border-slate-500 bg-slate-500/15',
   'печать': 'border-purple-600 bg-purple-600/15',
   'в эксель': 'border-teal-600 bg-teal-600/15',
+  'действия оператора': 'border-orange-500 bg-orange-500/15',
 };
 const isoDay = (offset: number) => {
   const d = new Date();

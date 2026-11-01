@@ -209,6 +209,7 @@ export default function OperatorPanel() {
         localStorage.setItem('chat_auth', JSON.stringify({ login: l, password: p }));
         setSelectedStation(st);
         setStage('scan');
+        opLog('Автоматический вход в панель оператора', [], st);
       } else {
         localStorage.removeItem('operator_session');
       }
@@ -228,6 +229,15 @@ export default function OperatorPanel() {
     }
   }, [stage]);
 
+  const opLog = (text: string, extra: [string, unknown][] = [], station: Station | null = selectedStation) => {
+    const parts = [text, ...extra.filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v]) => `${k} : ${v}`)];
+    if (station) parts.push(`АЗС : ${station.name}`);
+    logEvent('действия оператора', 'Панель оператора', parts.join(', '));
+  };
+
+  const cardDesc = (c: { card_code: string; card_index: number; client_name?: string; fuel_type?: string }) =>
+    `${c.card_code}/${c.card_index}${c.client_name ? `, клиент ${c.client_name}` : ''}${c.fuel_type ? `, топливо ${c.fuel_type}` : ''}`;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -245,6 +255,7 @@ export default function OperatorPanel() {
           localStorage.setItem('operator_session', JSON.stringify({ login, password, stationId: selectedStation.id }));
         }
         setStage('scan');
+        opLog('Вход в панель оператора, выбрана АЗС');
       } else if (res.ok && data.success && !data.user.admin) {
         setAuthError('Доступ только для операторов');
       } else {
@@ -269,13 +280,16 @@ export default function OperatorPanel() {
     if (!barcode.trim()) return;
     setCardError('');
     const code = extractCardCode(barcode);
+    opLog('Введён штрихкод', [['Штрихкод', barcode.trim()], ['Код карты', code]]);
 
     if (code === '0000') {
+      opLog('Отказ: системная карта 0000');
       setInvalidCodeWarning('Карта с кодом 0000 является системной и не может использоваться для отпуска топлива.');
       setBarcode('');
       return;
     }
     if (!/^\d{1,4}$/.test(code)) {
+      opLog('Отказ: недопустимый код карты', [['Код карты', code]]);
       setInvalidCodeWarning(`Код карты «${code}» содержит недопустимые символы. Код карты должен состоять только из цифр.`);
       setBarcode('');
       return;
@@ -287,12 +301,14 @@ export default function OperatorPanel() {
       const data = await res.json();
       if (res.ok) {
         if (data.multiple && data.cards) {
+          opLog('Найдено несколько карт, требуется выбор', [['Код карты', code], ['Карты', data.cards.map((c: CardInfo) => cardLabel(c)).join(' ; ')]]);
           setMultipleCards(data.cards);
           setQuantity('');
           setDispenseError('');
           setSuccessMsg('');
           setStage('select');
         } else {
+          opLog('Карта найдена', [['Карта', cardDesc(data)], ['Статус', data.status], ['Остаток', data.balance_liters], ['Доступно', data.available_balance]]);
           setCardInfo(data);
           setSelectedFuelId(null);
           setInputMode('amount');
@@ -302,11 +318,13 @@ export default function OperatorPanel() {
           setStage('card');
         }
       } else {
+        opLog('Карта не найдена или недоступна', [['Код карты', code], ['Причина', data.error]]);
         setCardError(data.error || 'Карта не найдена');
         setBarcode('');
         setTimeout(() => barcodeRef.current?.focus(), 50);
       }
     } catch {
+      opLog('Ошибка соединения при поиске карты', [['Код карты', code]]);
       setCardError('Ошибка соединения с сервером');
     } finally {
       setCardLoading(false);
@@ -328,29 +346,36 @@ export default function OperatorPanel() {
     if (!cardInfo) return;
     if (isRuble) {
       if (!selectedPrice) {
+        opLog('Отказ: не выбрано топливо', [['Карта', cardDesc(cardInfo)]]);
         setDispenseError('Выберите топливо');
         return;
       }
       if (!hasValue || rubLiters <= 0 || rubAmount <= 0) {
+        opLog('Отказ: некорректное значение', [['Карта', cardDesc(cardInfo)], ['Введено', quantity]]);
         setDispenseError('Введите корректное значение');
         return;
       }
       if (rubAmount > cardInfo.balance_liters) {
+        opLog('Отказ: недостаточно средств', [['Карта', cardDesc(cardInfo)], ['Сумма', rubAmount], ['Баланс', cardInfo.balance_liters]]);
         setDispenseError(`Недостаточно средств. Баланс: ${cardInfo.balance_liters.toFixed(2)} ₽`);
         return;
       }
+      opLog('Запрошено подтверждение отпуска', [['Карта', cardDesc(cardInfo)], ['Топливо', selectedPrice.fuel_type], ['Литры', rubLiters], ['Сумма', rubAmount]]);
       setStage('confirm');
       return;
     }
     const qty = parseFloat(quantity.replace(',', '.'));
     if (isNaN(qty) || qty <= 0) {
+      opLog('Отказ: некорректное количество', [['Карта', cardDesc(cardInfo)], ['Введено', quantity]]);
       setDispenseError('Введите корректное количество топлива');
       return;
     }
     if (qty > cardInfo.available_balance) {
+      opLog('Отказ: превышен доступный остаток', [['Карта', cardDesc(cardInfo)], ['Запрошено', qty], ['Доступно', cardInfo.available_balance]]);
       setDispenseError(`Превышает доступный остаток: ${cardInfo.available_balance.toFixed(3)} л`);
       return;
     }
+    opLog('Запрошено подтверждение отпуска', [['Карта', cardDesc(cardInfo)], ['Количество', qty]]);
     setStage('confirm');
   };
 
@@ -378,10 +403,12 @@ export default function OperatorPanel() {
         setSuccessMsg(`Отпущено ${qty.toFixed(3)} ${cardInfo.fuel_type}. Остаток: ${data.new_balance.toFixed(3)} ${cardInfo.fuel_type}`);
         setTimeout(() => handleReset(), 4000);
       } else {
+        opLog('Отпуск не выполнен', [['Карта', cardDesc(cardInfo)], ['Количество', qty], ['Причина', data.error || 'Ошибка списания']]);
         setDispenseError(data.error || 'Ошибка списания');
         setStage('card');
       }
     } catch {
+      opLog('Ошибка соединения при отпуске', [['Карта', cardDesc(cardInfo)], ['Количество', qty]]);
       setDispenseError('Ошибка соединения с сервером');
       setStage('card');
     } finally {
@@ -402,7 +429,13 @@ export default function OperatorPanel() {
     setStage('scan');
   };
 
+  const handleUserReset = () => {
+    opLog('Отмена, возврат к вводу штрихкода', [['Карта', cardInfo ? cardDesc(cardInfo) : '']]);
+    handleReset();
+  };
+
   const handleSelectCard = (card: CardInfo) => {
+    opLog('Выбрана карта', [['Карта', cardDesc(card)], ['Остаток', card.balance_liters]]);
     setCardInfo(card);
     setMultipleCards([]);
     setSelectedFuelId(null);
@@ -417,6 +450,7 @@ export default function OperatorPanel() {
     `${card.card_code}/${card.card_index}`;
 
   const handleNumpadConfirm = (val: string) => {
+    opLog('Введено значение на цифровой клавиатуре', [['Значение', val], ['Режим', isRuble ? (inputMode === 'amount' ? 'сумма, ₽' : 'литры') : 'литры']]);
     setQuantity(val);
     setShowNumpad(false);
     setDispenseError('');
@@ -556,7 +590,7 @@ export default function OperatorPanel() {
             </Button>
             <Button
               variant="outline"
-              onClick={async () => { await logEvent('выход', 'Вход в кабинет', 'Роль : Оператор'); localStorage.removeItem('operator_session'); navigate('/'); }}
+              onClick={async () => { await logEvent('выход', 'Вход в кабинет', `Роль : Оператор${selectedStation ? `, АЗС : ${selectedStation.name}` : ''}`); localStorage.removeItem('operator_session'); navigate('/'); }}
               className="border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold px-6 h-10"
             >
               <Icon name="LogOut" size={16} className="mr-2" />
@@ -637,7 +671,7 @@ export default function OperatorPanel() {
                 ))}
               </div>
               <Button
-                onClick={handleReset}
+                onClick={handleUserReset}
                 variant="outline"
                 className="h-12 font-bold text-lg border-2 border-border"
               >
@@ -708,14 +742,14 @@ export default function OperatorPanel() {
                   </div>
                   <div className="flex gap-3">
                     <Button
-                      onClick={handleConfirmYes}
+                      onClick={() => { opLog('Оператор подтвердил отпуск', [['Карта', cardInfo ? cardDesc(cardInfo) : '']]); handleConfirmYes(); }}
                       disabled={dispenseLoading}
                       className="flex-1 h-16 font-bold text-xl bg-accent text-accent-foreground hover:bg-accent/90"
                     >
                       {dispenseLoading ? 'Выполняется...' : 'Да, отпустить'}
                     </Button>
                     <Button
-                      onClick={() => setStage('card')}
+                      onClick={() => { opLog('Отпуск отменён оператором на подтверждении', [['Карта', cardInfo ? cardDesc(cardInfo) : '']]); setStage('card'); }}
                       variant="outline"
                       disabled={dispenseLoading}
                       className="flex-1 h-16 font-bold text-xl border-2 border-border"
@@ -740,7 +774,7 @@ export default function OperatorPanel() {
                               <button
                                 key={p.fuel_type_id}
                                 type="button"
-                                onClick={() => { setSelectedFuelId(p.fuel_type_id); setDispenseError(''); }}
+                                onClick={() => { opLog('Выбрано топливо', [['Топливо', p.fuel_type], ['Цена', p.price]]); setSelectedFuelId(p.fuel_type_id); setDispenseError(''); }}
                                 className={`rounded-xl border-2 border-accent px-3 py-3 flex flex-col items-center transition-all ${selectedFuelId === p.fuel_type_id ? 'bg-accent text-accent-foreground' : 'bg-accent/10 text-foreground hover:bg-accent/20'}`}
                               >
                                 <span className="text-xl font-bold">{p.fuel_type}</span>
@@ -752,14 +786,14 @@ export default function OperatorPanel() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => { setInputMode('amount'); setQuantity(''); }}
+                            onClick={() => { opLog('Выбран ввод суммы, ₽'); setInputMode('amount'); setQuantity(''); }}
                             className={`flex-1 rounded-lg border-2 border-accent py-2 font-semibold ${inputMode === 'amount' ? 'bg-accent text-accent-foreground' : 'text-foreground'}`}
                           >
                             Ввод суммы, ₽
                           </button>
                           <button
                             type="button"
-                            onClick={() => { setInputMode('liters'); setQuantity(''); }}
+                            onClick={() => { opLog('Выбран ввод литров'); setInputMode('liters'); setQuantity(''); }}
                             className={`flex-1 rounded-lg border-2 border-accent py-2 font-semibold ${inputMode === 'liters' ? 'bg-accent text-accent-foreground' : 'text-foreground'}`}
                           >
                             Ввод литров
@@ -822,7 +856,7 @@ export default function OperatorPanel() {
                       Отпустить топливо
                     </Button>
                     <Button
-                      onClick={handleReset}
+                      onClick={handleUserReset}
                       variant="outline"
                       className="flex-1 h-14 font-bold text-xl border-2 border-border"
                     >

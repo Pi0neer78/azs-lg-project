@@ -2,7 +2,7 @@ import { apiFetch } from './authFetch';
 
 export const AUDIT_API = 'https://functions.poehali.dev/c8fef7d8-88e0-4f29-9354-bdf1e9fa3a23';
 
-export type AuditEventType = 'выход' | 'печать' | 'в эксель';
+export type AuditEventType = 'выход' | 'печать' | 'в эксель' | 'действия оператора';
 
 export function logEvent(type: AuditEventType, section: string, description: string): Promise<void> {
   return apiFetch(AUDIT_API, {
