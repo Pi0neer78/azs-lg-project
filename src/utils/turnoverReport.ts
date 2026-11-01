@@ -7,6 +7,7 @@ export interface Pair {
 
 export interface TurnoverCardRow {
   cardLabel: string;
+  cardsCount: number;
   fuel: string;
   unit: string;
   open: Pair;
@@ -25,7 +26,10 @@ export interface TurnoverClientGroup {
   close: Pair;
 }
 
+export type TurnoverMode = 'cards' | 'fuel';
+
 export interface TurnoverReport {
+  mode: TurnoverMode;
   from: string;
   to: string;
   clientLabel: string;
@@ -56,12 +60,14 @@ export function buildTurnoverReport(params: {
   from: string;
   to: string;
   clientId: string;
+  mode?: TurnoverMode;
   clients: any[];
   cards: any[];
   fuelTypes: any[];
   operations: any[];
 }): TurnoverReport {
   const { from, to, clientId, clients, cards, fuelTypes, operations } = params;
+  const mode: TurnoverMode = params.mode || 'cards';
 
   const selectedClients =
     clientId === 'all'
@@ -112,6 +118,7 @@ export function buildTurnoverReport(params: {
           const ft = fuelTypes.find((f) => f.id === card.fuel_type_id);
           rows.push({
             cardLabel: `${card.card_code}/${card.card_index ?? 0}`,
+            cardsCount: 1,
             fuel: card.fuel_type || ft?.name || '',
             unit: ft?.unit || 'л',
             open: s.open,
@@ -120,6 +127,35 @@ export function buildTurnoverReport(params: {
             close,
           });
         });
+      if (mode === 'fuel') {
+        const byFuel = new Map<string, TurnoverCardRow>();
+        rows.forEach((r) => {
+          const key = `${r.fuel}|${r.unit}`;
+          const cur = byFuel.get(key);
+          if (!cur) {
+            byFuel.set(key, {
+              cardLabel: '',
+              cardsCount: 1,
+              fuel: r.fuel,
+              unit: r.unit,
+              open: { ...r.open },
+              income: { ...r.income },
+              outcome: { ...r.outcome },
+              close: { ...r.close },
+            });
+          } else {
+            cur.cardsCount += 1;
+            add(cur.open, r.open);
+            add(cur.income, r.income);
+            add(cur.outcome, r.outcome);
+            add(cur.close, r.close);
+          }
+        });
+        rows.length = 0;
+        Array.from(byFuel.values())
+          .sort((x, y) => x.fuel.localeCompare(y.fuel, 'ru'))
+          .forEach((r) => rows.push(r));
+      }
       const g: TurnoverClientGroup = {
         clientName: client.name,
         cards: rows,
@@ -139,6 +175,7 @@ export function buildTurnoverReport(params: {
     });
 
   const total: TurnoverReport = {
+    mode,
     from,
     to,
     clientLabel: clientId === 'all' ? 'Все клиенты' : selectedClients[0]?.name || '',
@@ -166,6 +203,8 @@ const esc = (v: unknown) =>
 const qty = (n: number) => n.toLocaleString('ru-RU', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 const money = (n: number) => n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const ruDate = (s: string) => (s ? s.split('-').reverse().join('.') : '');
+export const reportTitle = (r: { mode: TurnoverMode }) =>
+  r.mode === 'fuel' ? 'Оборотная ведомость по видам топлива' : 'Оборотная ведомость по картам';
 const unitLabel = (units: string[]) => (units.length === 1 ? units[0] : '');
 
 const pairCells = (p: Pair, showQty = true) =>
@@ -179,7 +218,7 @@ export function printTurnover(report: TurnoverReport) {
       const rows = g.cards
         .map(
           (r) =>
-            `<tr><td class="nw">${esc(r.cardLabel)}</td><td>${esc(r.fuel)}</td><td class="c">${esc(r.unit)}</td>${pairCells(r.open)}${pairCells(r.income)}${pairCells(r.outcome)}${pairCells(r.close)}</tr>`
+            `${report.mode === 'fuel' ? `<tr><td>${esc(r.fuel)}</td><td class="c">Карт: ${r.cardsCount}</td>` : `<tr><td class="nw">${esc(r.cardLabel)}</td><td>${esc(r.fuel)}</td>`}<td class="c">${esc(r.unit)}</td>${pairCells(r.open)}${pairCells(r.income)}${pairCells(r.outcome)}${pairCells(r.close)}</tr>`
         )
         .join('');
       return head + rows;
@@ -193,7 +232,7 @@ export function printTurnover(report: TurnoverReport) {
       : '';
 
   const html = `<!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>Оборотная ведомость</title>
+<html lang="ru"><head><meta charset="utf-8"><title>${esc(reportTitle(report))}</title>
 <style>
 @page { size: A4 landscape; margin: 8mm; }
 * { box-sizing: border-box; }
@@ -211,11 +250,11 @@ tr { page-break-inside: avoid; }
 tr.grp td { background: #f0f0f0; font-weight: bold; }
 tfoot td { font-weight: bold; background: #dcdcdc; }
 </style></head><body>
-<h1>Оборотная ведомость по топливным картам</h1>
+<h1>${esc(reportTitle(report))}</h1>
 <div class="meta">Период: ${esc(ruDate(report.from))} — ${esc(ruDate(report.to))}. Клиент: ${esc(report.clientLabel)}.<br>Сформировано: ${esc(new Date().toLocaleString('ru-RU'))}.</div>
 <table>
 <thead>
-<tr><th rowspan="2">Карта</th><th rowspan="2">Вид топлива</th><th rowspan="2">Ед. изм.</th><th colspan="2">Остаток на начало</th><th colspan="2">Приход</th><th colspan="2">Расход</th><th colspan="2">Остаток на конец</th></tr>
+${report.mode === 'fuel' ? '<tr><th rowspan="2">Вид топлива</th><th rowspan="2">Карт</th><th rowspan="2">Ед. изм.</th>' : '<tr><th rowspan="2">Карта</th><th rowspan="2">Вид топлива</th><th rowspan="2">Ед. изм.</th>'}<th colspan="2">Остаток на начало</th><th colspan="2">Приход</th><th colspan="2">Расход</th><th colspan="2">Остаток на конец</th></tr>
 <tr><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th><th>Кол-во</th><th>Сумма</th></tr>
 </thead>
 <tbody>${body}${empty}</tbody>
@@ -234,10 +273,10 @@ ${foot}
 
 export function exportTurnoverToExcel(report: TurnoverReport) {
   const aoa: (string | number)[][] = [
-    ['Оборотная ведомость по топливным картам'],
+    [reportTitle(report)],
     [`Период: ${ruDate(report.from)} — ${ruDate(report.to)}. Клиент: ${report.clientLabel}`],
     [],
-    ['Клиент / Карта', 'Вид топлива', 'Ед. изм.', 'Остаток на начало', '', 'Приход', '', 'Расход', '', 'Остаток на конец', ''],
+    [report.mode === 'fuel' ? 'Клиент / Вид топлива' : 'Клиент / Карта', report.mode === 'fuel' ? 'Карт' : 'Вид топлива', 'Ед. изм.', 'Остаток на начало', '', 'Приход', '', 'Расход', '', 'Остаток на конец', ''],
     ['', '', '', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма', 'Кол-во', 'Сумма'],
   ];
   const groupRows: number[] = [];
@@ -248,7 +287,7 @@ export function exportTurnoverToExcel(report: TurnoverReport) {
     groupRows.push(aoa.length);
     aoa.push([g.clientName, '', unitLabel(g.units), ...pairs(g.open, single), ...pairs(g.income, single), ...pairs(g.outcome, single), ...pairs(g.close, single)]);
     g.cards.forEach((r) => {
-      aoa.push([`    ${r.cardLabel}`, r.fuel, r.unit, ...pairs(r.open), ...pairs(r.income), ...pairs(r.outcome), ...pairs(r.close)]);
+      aoa.push([report.mode === 'fuel' ? `    ${r.fuel}` : `    ${r.cardLabel}`, report.mode === 'fuel' ? r.cardsCount : r.fuel, r.unit, ...pairs(r.open), ...pairs(r.income), ...pairs(r.outcome), ...pairs(r.close)]);
     });
   });
   const tSingle = report.units.length === 1;
@@ -273,6 +312,6 @@ export function exportTurnoverToExcel(report: TurnoverReport) {
     }
   }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Оборотка');
-  XLSX.writeFile(wb, `turnover_${report.from}_${report.to}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, report.mode === 'fuel' ? 'Оборотка по топливу' : 'Оборотка по картам');
+  XLSX.writeFile(wb, `turnover_${report.mode}_${report.from}_${report.to}.xlsx`);
 }

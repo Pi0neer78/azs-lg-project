@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Icon from '@/components/ui/icon';
@@ -11,6 +12,8 @@ import {
   buildTurnoverReport,
   printTurnover,
   exportTurnoverToExcel,
+  reportTitle,
+  type TurnoverMode,
   type TurnoverReport,
   type Pair,
 } from '@/utils/turnoverReport';
@@ -55,7 +58,7 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
 
   const validPeriod = !!dateFrom && !!dateTo && dateFrom <= dateTo;
 
-  const generate = async () => {
+  const generate = async (mode: TurnoverMode) => {
     if (!validPeriod) {
       showAlert('Укажите период: дата «с» не должна быть позже даты «по».');
       return;
@@ -73,6 +76,7 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
           from: dateFrom,
           to: dateTo,
           clientId,
+          mode,
           clients: freshClients,
           cards: freshCards,
           fuelTypes: freshFuelTypes,
@@ -100,7 +104,7 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
         <div className="flex justify-between items-center flex-wrap gap-2">
           <CardTitle className="text-foreground flex items-center gap-2">
             <Icon name="FileBarChart" className="text-accent" />
-            Отчёты: оборотная ведомость
+            Отчёты
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
             <Button
@@ -127,29 +131,29 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 items-end">
-          <div>
-            <Label className="text-foreground">Период с</Label>
+        <div className="flex flex-wrap items-end gap-3 mb-4">
+          <div className="w-36">
+            <Label className="text-foreground text-xs">Период с</Label>
             <Input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-input border-2 border-border text-foreground"
+              className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
             />
           </div>
-          <div>
-            <Label className="text-foreground">Период по</Label>
+          <div className="w-36">
+            <Label className="text-foreground text-xs">Период по</Label>
             <Input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="bg-input border-2 border-border text-foreground"
+              className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
             />
           </div>
-          <div>
-            <Label className="text-foreground">Клиент</Label>
+          <div className="w-64">
+            <Label className="text-foreground text-xs">Клиент</Label>
             <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger className="bg-input border-2 border-border text-foreground">
+              <SelectTrigger className="h-8 text-sm bg-input border-2 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -162,23 +166,39 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button
-            onClick={generate}
-            disabled={busy || !validPeriod}
-            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-          >
-            <Icon name="Play" className="w-4 h-4 mr-2" />
-            {busy ? 'Формирую...' : 'Сформировать'}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                disabled={busy || !validPeriod}
+                size="sm"
+                className="h-8 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+              >
+                <Icon name="Play" className="w-4 h-4 mr-2" />
+                {busy ? 'Формирую...' : 'Сформировать'}
+                <Icon name="ChevronDown" className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-card border-2 border-accent">
+              <DropdownMenuItem onSelect={() => generate('cards')} className="cursor-pointer text-foreground">
+                <Icon name="CreditCard" className="w-4 h-4 mr-2 text-accent" />
+                Оборотка по картам
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => generate('fuel')} className="cursor-pointer text-foreground">
+                <Icon name="Droplets" className="w-4 h-4 mr-2 text-accent" />
+                Оборотка по видам топлива
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {!report ? (
           <p className="text-muted-foreground text-center py-10">
-            Выберите период и клиента, затем нажмите «Сформировать».
+            Выберите период и клиента, нажмите «Сформировать» и выберите вид отчёта.
           </p>
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-2">
+              <strong className="text-accent">{reportTitle(report)}.</strong>{' '}
               Период: <strong className="text-foreground">{report.from.split('-').reverse().join('.')} — {report.to.split('-').reverse().join('.')}</strong>.
               {' '}Клиент: <strong className="text-foreground">{report.clientLabel}</strong>.
             </p>
@@ -186,8 +206,8 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-border">
-                    <TableHead rowSpan={2} className="text-foreground font-bold align-middle">Клиент / Карта</TableHead>
-                    <TableHead rowSpan={2} className="text-foreground font-bold align-middle">Вид топлива</TableHead>
+                    <TableHead rowSpan={2} className="text-foreground font-bold align-middle">{report.mode === 'fuel' ? 'Клиент / Вид топлива' : 'Клиент / Карта'}</TableHead>
+                    <TableHead rowSpan={2} className="text-foreground font-bold align-middle">{report.mode === 'fuel' ? 'Карт' : 'Вид топлива'}</TableHead>
                     <TableHead rowSpan={2} className="text-foreground font-bold align-middle text-center">Ед. изм.</TableHead>
                     <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Остаток на начало</TableHead>
                     <TableHead colSpan={2} className="text-foreground font-bold text-center border-l border-border">Приход</TableHead>
@@ -223,9 +243,18 @@ export default function TurnoverReportTab({ clients, showAlert }: Props) {
                           <PairCells p={g.close} showQty={single} bold />
                         </TableRow>
                         {g.cards.map((r) => (
-                          <TableRow key={`${g.clientName}-${r.cardLabel}`} className="border-b border-border">
-                            <TableCell className="font-mono text-accent pl-8 py-1.5">{r.cardLabel}</TableCell>
-                            <TableCell className="text-foreground py-1.5">{r.fuel}</TableCell>
+                          <TableRow key={`${g.clientName}-${r.cardLabel}-${r.fuel}-${r.unit}`} className="border-b border-border">
+                            {report.mode === 'fuel' ? (
+                              <>
+                                <TableCell className="text-accent font-semibold pl-8 py-1.5">{r.fuel}</TableCell>
+                                <TableCell className="text-foreground py-1.5">{r.cardsCount}</TableCell>
+                              </>
+                            ) : (
+                              <>
+                                <TableCell className="font-mono text-accent pl-8 py-1.5">{r.cardLabel}</TableCell>
+                                <TableCell className="text-foreground py-1.5">{r.fuel}</TableCell>
+                              </>
+                            )}
                             <TableCell className="text-foreground text-center py-1.5">{r.unit}</TableCell>
                             <PairCells p={r.open} />
                             <PairCells p={r.income} />
