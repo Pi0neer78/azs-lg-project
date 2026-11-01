@@ -26,6 +26,28 @@ export interface TurnoverClientGroup {
   close: Pair;
 }
 
+export interface RubleFuelRow {
+  fuel: string;
+  unit: string;
+  qty: number;
+  amount: number;
+}
+
+export interface RubleCardUsage {
+  clientName: string;
+  cardLabel: string;
+  rows: RubleFuelRow[];
+  amount: number;
+}
+
+export interface RubleUsage {
+  cards: RubleCardUsage[];
+  totals: RubleFuelRow[];
+  amount: number;
+  singleUnit: boolean;
+  showClient: boolean;
+}
+
 export type TurnoverMode = 'cards' | 'fuel';
 
 export interface TurnoverReport {
@@ -35,6 +57,7 @@ export interface TurnoverReport {
   clientLabel: string;
   groups: TurnoverClientGroup[];
   fuelTotals: TurnoverCardRow[];
+  rubleUsage: RubleUsage | null;
   units: string[];
   open: Pair;
   income: Pair;
@@ -62,6 +85,7 @@ export function buildTurnoverReport(params: {
   to: string;
   clientId: string;
   mode?: TurnoverMode;
+  withRubleUsage?: boolean;
   clients: any[];
   cards: any[];
   fuelTypes: any[];
@@ -204,6 +228,59 @@ export function buildTurnoverReport(params: {
   }
   const fuelTotals = Array.from(fuelMap.values()).sort((x, y) => x.fuel.localeCompare(y.fuel, 'ru'));
 
+  let rubleUsage: RubleUsage | null = null;
+  if (mode === 'fuel' && params.withRubleUsage) {
+    const clientIds = new Set(selectedClients.map((c) => c.id));
+    const clientNameById = new Map<number, string>(clients.map((c) => [c.id, c.name]));
+    const rubleCards = cards
+      .filter((c) => clientIds.has(c.client_id) && fuelTypes.find((f) => f.id === c.fuel_type_id)?.unit === '₽')
+      .sort((a, b) => a.card_code.localeCompare(b.card_code) || (a.card_index ?? 0) - (b.card_index ?? 0));
+    if (rubleCards.length > 0) {
+      const usage = new Map<number, Map<string, RubleFuelRow>>();
+      operations.forEach((op) => {
+        if (op.operation_type !== 'заправка' || !op.op_fuel_type_id) return;
+        const day = String(op.operation_date || '').slice(0, 10);
+        if (!day || day < from || day > to) return;
+        if (!rubleCards.some((c) => c.id === op.fuel_card_id)) return;
+        const ft = fuelTypes.find((f) => f.id === op.op_fuel_type_id);
+        const name = op.op_fuel_type || ft?.name || '';
+        const unit = ft?.unit || 'л';
+        const byFuel = usage.get(op.fuel_card_id) || new Map<string, RubleFuelRow>();
+        const key = `${name}|${unit}`;
+        const row = byFuel.get(key) || { fuel: name, unit, qty: 0, amount: 0 };
+        row.qty += op.quantity || 0;
+        row.amount += op.amount || 0;
+        byFuel.set(key, row);
+        usage.set(op.fuel_card_id, byFuel);
+      });
+      const totalsMap = new Map<string, RubleFuelRow>();
+      const cardsUsage: RubleCardUsage[] = rubleCards.map((card) => {
+        const rows = Array.from(usage.get(card.id)?.values() || []).sort((x, y) => x.fuel.localeCompare(y.fuel, 'ru'));
+        rows.forEach((r) => {
+          const key = `${r.fuel}|${r.unit}`;
+          const t = totalsMap.get(key) || { fuel: r.fuel, unit: r.unit, qty: 0, amount: 0 };
+          t.qty += r.qty;
+          t.amount += r.amount;
+          totalsMap.set(key, t);
+        });
+        return {
+          clientName: clientNameById.get(card.client_id) || '',
+          cardLabel: `${card.card_code}/${card.card_index ?? 0}`,
+          rows,
+          amount: rows.reduce((sum, r) => sum + r.amount, 0),
+        };
+      });
+      const totals = Array.from(totalsMap.values()).sort((x, y) => x.fuel.localeCompare(y.fuel, 'ru'));
+      rubleUsage = {
+        cards: cardsUsage,
+        totals,
+        amount: totals.reduce((sum, r) => sum + r.amount, 0),
+        singleUnit: new Set(totals.map((t) => t.unit)).size <= 1,
+        showClient: clientId === 'all',
+      };
+    }
+  }
+
   const total: TurnoverReport = {
     mode,
     from,
@@ -211,6 +288,7 @@ export function buildTurnoverReport(params: {
     clientLabel: clientId === 'all' ? 'Все клиенты' : selectedClients[0]?.name || '',
     groups,
     fuelTotals,
+    rubleUsage,
     units: Array.from(new Set(groups.flatMap((g) => g.units))),
     open: zero(),
     income: zero(),
@@ -236,6 +314,8 @@ const money = (n: number) => n.toLocaleString('ru-RU', { minimumFractionDigits: 
 const ruDate = (s: string) => (s ? s.split('-').reverse().join('.') : '');
 export const reportTitle = (r: { mode: TurnoverMode }) =>
   r.mode === 'fuel' ? 'Оборотная ведомость по видам топлива' : 'Оборотная ведомость по картам';
+const rubleCardTitle = (u: RubleCardUsage, showClient: boolean) =>
+  `Карта ${u.cardLabel}${showClient && u.clientName ? ` (${u.clientName})` : ''}`;
 const unitLabel = (units: string[]) => (units.length === 1 ? units[0] : '');
 
 const pairCells = (p: Pair, showQty = true) =>
@@ -278,6 +358,31 @@ export function printTurnover(report: TurnoverReport) {
 </table>`
       : '';
 
+  const ru = report.rubleUsage;
+  const ruRows = (rows: RubleFuelRow[], showQty: boolean) =>
+    rows
+      .map(
+        (r) =>
+          `<tr><td>${esc(r.fuel)}</td><td class="c">${esc(r.unit)}</td><td class="r nw">${showQty ? qty(r.qty) : ''}</td><td class="r nw">${money(r.amount)}</td></tr>`
+      )
+      .join('');
+  const ruHead = '<thead><tr><th>Вид топлива</th><th>Ед. изм.</th><th>Кол-во</th><th>Сумма, ₽</th></tr></thead>';
+  const rubleBlock = ru
+    ? `<h2>Рублёвые карты: использованное топливо за период</h2>
+${ru.cards
+  .map(
+    (u) =>
+      `<table style="width:auto;min-width:50%;margin-bottom:3mm"><tr class="grp"><td colspan="3">${esc(rubleCardTitle(u, ru.showClient))}</td><td class="r nw">${money(u.amount)}</td></tr>${
+        u.rows.length ? ruRows(u.rows, true) : '<tr><td colspan="4" class="c">Заправок за период нет</td></tr>'
+      }</table>`
+  )
+  .join('')}
+<h2>Итого по всем рублёвым картам и видам топлива</h2>
+<table style="width:auto;min-width:50%">${ruHead}<tbody>${
+        ru.totals.length ? ruRows(ru.totals, true) : '<tr><td colspan="4" class="c">Заправок за период нет</td></tr>'
+      }</tbody><tfoot><tr><td colspan="3">Итого сумма</td><td class="r nw">${money(ru.amount)}</td></tr></tfoot></table>`
+    : '';
+
   const html = `<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8"><title>${esc(reportTitle(report))}</title>
 <style>
@@ -309,6 +414,7 @@ ${report.mode === 'fuel' ? '<tr><th rowspan="2">Вид топлива</th><th ro
 ${foot}
 </table>
 ${fuelBlock}
+${rubleBlock}
 <script>window.onload=function(){setTimeout(function(){window.focus();window.print();},300);};</script>
 </body></html>`;
 
@@ -351,6 +457,22 @@ export function exportTurnoverToExcel(report: TurnoverReport) {
     report.fuelTotals.forEach((r) => {
       aoa.push([r.fuel, r.cardsCount, r.unit, ...pairs(r.open), ...pairs(r.income), ...pairs(r.outcome), ...pairs(r.close)]);
     });
+  }
+  const ru = report.rubleUsage;
+  if (ru) {
+    aoa.push([]);
+    aoa.push(['Рублёвые карты: использованное топливо за период']);
+    aoa.push(['Карта / Вид топлива', '', 'Ед. изм.', 'Количество', 'Сумма, ₽']);
+    ru.cards.forEach((u) => {
+      aoa.push([rubleCardTitle(u, ru.showClient), '', '', '', u.amount]);
+      if (u.rows.length === 0) aoa.push(['    Заправок за период нет']);
+      u.rows.forEach((r) => aoa.push([`    ${r.fuel}`, '', r.unit, r.qty, r.amount]));
+    });
+    aoa.push([]);
+    aoa.push(['Итого по всем рублёвым картам и видам топлива']);
+    aoa.push(['Вид топлива', '', 'Ед. изм.', 'Количество', 'Сумма, ₽']);
+    ru.totals.forEach((r) => aoa.push([r.fuel, '', r.unit, r.qty, r.amount]));
+    aoa.push(['Итого сумма', '', '', '', ru.amount]);
   }
   const lastRow = aoa.length - 1;
 

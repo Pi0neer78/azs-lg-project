@@ -90,6 +90,7 @@ export default function TurnoverReportTab({ clients = [], clientLogin, showAlert
           to: dateTo,
           clientId: effectiveClientId,
           mode,
+          withRubleUsage: clientMode,
           clients: freshClients,
           cards: freshCards,
           fuelTypes: freshFuelTypes,
@@ -333,6 +334,89 @@ export default function TurnoverReportTab({ clients = [], clientLogin, showAlert
                           <PairCells p={r.close} />
                         </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+            {report.rubleUsage && (
+              <div className="mt-6 space-y-4">
+                <h3 className="text-foreground font-bold flex items-center gap-2">
+                  <Icon name="Wallet" className="text-accent w-4 h-4" />
+                  Рублёвые карты: использованное топливо за период
+                </h3>
+                {report.rubleUsage.cards.map((u) => (
+                  <div key={`${u.clientName}-${u.cardLabel}`} className="overflow-x-auto">
+                    <Table className="max-w-3xl">
+                      <TableHeader>
+                        <TableRow className="bg-secondary/60 border-b border-border">
+                          <TableHead colSpan={3} className="text-accent font-bold h-8">
+                            Карта {u.cardLabel}
+                            {report.rubleUsage!.showClient && u.clientName ? ` (${u.clientName})` : ''}
+                          </TableHead>
+                          <TableHead className="text-foreground font-bold text-right h-8 whitespace-nowrap">
+                            {money(u.amount)} ₽
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {u.rows.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-muted-foreground text-center py-2">
+                              Заправок за период нет
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          u.rows.map((r) => (
+                            <TableRow key={`${r.fuel}-${r.unit}`} className="border-b border-border">
+                              <TableCell className="text-foreground py-1.5 pl-6">{r.fuel}</TableCell>
+                              <TableCell className="text-foreground text-center py-1.5">{r.unit}</TableCell>
+                              <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{qty(r.qty)}</TableCell>
+                              <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{money(r.amount)}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ))}
+                <h3 className="text-foreground font-bold flex items-center gap-2 pt-2">
+                  <Icon name="Droplets" className="text-accent w-4 h-4" />
+                  Итого по всем рублёвым картам и видам топлива
+                </h3>
+                <div className="overflow-x-auto">
+                  <Table className="max-w-3xl">
+                    <TableHeader>
+                      <TableRow className="border-b border-border">
+                        <TableHead className="text-foreground font-bold">Вид топлива</TableHead>
+                        <TableHead className="text-foreground font-bold text-center">Ед. изм.</TableHead>
+                        <TableHead className="text-foreground font-bold text-right">Кол-во</TableHead>
+                        <TableHead className="text-foreground font-bold text-right">Сумма, ₽</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {report.rubleUsage.totals.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-muted-foreground text-center py-2">
+                            Заправок за период нет
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        report.rubleUsage.totals.map((r) => (
+                          <TableRow key={`${r.fuel}-${r.unit}`} className="border-b border-border">
+                            <TableCell className="text-accent font-semibold py-1.5">{r.fuel}</TableCell>
+                            <TableCell className="text-foreground text-center py-1.5">{r.unit}</TableCell>
+                            <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{qty(r.qty)}</TableCell>
+                            <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{money(r.amount)}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                      <TableRow className="bg-primary/20">
+                        <TableCell colSpan={3} className="font-bold text-foreground py-2">Итого сумма</TableCell>
+                        <TableCell className="font-bold text-foreground text-right py-2 whitespace-nowrap">
+                          {money(report.rubleUsage.amount)}
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>
