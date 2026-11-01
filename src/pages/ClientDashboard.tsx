@@ -259,8 +259,11 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
     .sort((a, b) => a.card_code.localeCompare(b.card_code));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
-      <header className="bg-card border-b-4 border-accent shadow-lg">
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.5), rgba(6,26,18,0.65)), url('/bg-admin.webp')" }}
+    >
+      <header className="bg-transparent border-b-4 border-accent shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Icon name="Fuel" size={32} className="text-accent" />
