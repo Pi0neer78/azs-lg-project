@@ -6,6 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { AUDIT_API } from '@/utils/auditClient';
@@ -108,7 +111,7 @@ export default function AuditLog() {
   const [ipF, setIpF] = useState(() => savedFilters().ip || '');
   const [sectionF, setSectionF] = useState(() => savedFilters().section || '');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState({ dateFrom: '', dateTo: '', actions: ACTIONS, search: '', user: '', ip: '', section: '' });
+  const [draft, setDraft] = useState({ actions: ACTIONS, search: '', user: '', ip: '', section: '' });
 
   const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
     const res = await fetch(`${AUDIT_API}${qs}`, {
@@ -212,21 +215,19 @@ export default function AuditLog() {
   const allActions = actions.length === ACTIONS.length;
   const hasFilters = !!(search || userF || ipF || sectionF || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
   const chips: string[] = [];
-  if (dateFrom || dateTo) chips.push(dateFrom === dateTo ? dateFrom : `${dateFrom || '…'} — ${dateTo || '…'}`);
   if (!allActions) chips.push(`Операции: ${actions.length} из ${ACTIONS.length}`);
   if (userF) chips.push(`Пользователь: ${userF}`);
   if (ipF) chips.push(`IP: ${ipF}`);
   if (sectionF) chips.push(`Раздел: ${sectionF}`);
   if (search) chips.push(`Описание: ${search}`);
-  const activeCount = chips.length - (dateFrom === isoDay(0) && dateTo === isoDay(0) ? 1 : 0);
+  const activeCount = chips.length;
+  const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
 
   const openFilters = () => {
-    setDraft({ dateFrom, dateTo, actions, search, user: userF, ip: ipF, section: sectionF });
+    setDraft({ actions, search, user: userF, ip: ipF, section: sectionF });
     setFiltersOpen(true);
   };
   const applyFilters = () => {
-    setDateFrom(draft.dateFrom);
-    setDateTo(draft.dateTo);
     setActions(draft.actions);
     setSearch(draft.search);
     setUserF(draft.user.trim());
@@ -239,7 +240,6 @@ export default function AuditLog() {
     setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS);
     setFiltersOpen(false);
   };
-  const setDraftPeriod = (days: number) => setDraft((d) => ({ ...d, dateFrom: isoDay(days), dateTo: isoDay(0) }));
   const toggleDraftAction = (a: string) =>
     setDraft((d) => ({ ...d, actions: d.actions.includes(a) ? d.actions.filter((x) => x !== a) : ACTIONS.filter((x) => x === a || d.actions.includes(x)) }));
   const userOptions = useMemo(() => Array.from(new Set(rows.map((r) => r.user_name).filter(Boolean))).sort(), [rows]);
@@ -351,6 +351,23 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-10 bg-input text-foreground border-2 border-border" />
+          <span className="text-muted-foreground">—</span>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-10 bg-input text-foreground border-2 border-border" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
+                <Icon name="MoreHorizontal" size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onSelect={() => setPeriod(0)}>Сегодня</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setPeriod(6)}>7 дней</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setPeriod(29)}>30 дней</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={openFilters} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
             <Icon name="ListFilter" size={16} className="mr-2" />
             Фильтры{activeCount > 0 ? ` (${activeCount})` : ''}
@@ -384,21 +401,6 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
                       <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold ${ACTION_STYLE[a]}`}>{a}</span>
                     </label>
                   ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-semibold">Период</span>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <Input type="date" value={draft.dateFrom} onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-                  <span className="text-muted-foreground">—</span>
-                  <Input type="date" value={draft.dateTo} onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(0)} className="border-2 border-border text-foreground">Сегодня</Button>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(6)} className="border-2 border-border text-foreground">7 дней</Button>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setDraftPeriod(29)} className="border-2 border-border text-foreground">30 дней</Button>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setDraft((d) => ({ ...d, dateFrom: '', dateTo: '' }))} className="border-2 border-border text-foreground">За всё время</Button>
                 </div>
               </div>
 
