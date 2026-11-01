@@ -209,7 +209,7 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
             <TableHeader>
               <TableRow className="border-b border-border">
                 {['Дата', 'Карта', 'Топливо', 'АЗС', 'Операция', 'Кол-во', 'Цена', 'Сумма', 'Комментарий'].map((h) => (
-                  <TableHead key={h} className="text-foreground font-bold py-2 whitespace-nowrap">
+                  <TableHead key={h} className="text-foreground font-bold h-7 px-2 py-0 text-xs whitespace-nowrap">
                     {h}
                   </TableHead>
                 ))}
@@ -231,19 +231,19 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
               ) : (
                 paged.map((o) => (
                   <TableRow key={o.id} className="border-b border-border">
-                    <TableCell className="text-foreground py-1.5 whitespace-nowrap">{o.operation_date}</TableCell>
-                    <TableCell className="font-mono text-accent py-1.5 whitespace-nowrap">{cardText(o)}</TableCell>
-                    <TableCell className="text-foreground py-1.5">{fuelText(o)}</TableCell>
-                    <TableCell className="text-foreground py-1.5">{o.station_name}</TableCell>
-                    <TableCell className="py-1.5">
-                      <Badge className={`${opColor(o.operation_type)} px-1.5 py-0 text-[11px] font-medium`}>
+                    <TableCell className="text-foreground px-2 py-0.5 text-xs whitespace-nowrap">{o.operation_date}</TableCell>
+                    <TableCell className="font-mono text-accent px-2 py-0.5 text-xs whitespace-nowrap">{cardText(o)}</TableCell>
+                    <TableCell className="text-foreground px-2 py-0.5 text-xs">{fuelText(o)}</TableCell>
+                    <TableCell className="text-foreground px-2 py-0.5 text-xs">{o.station_name}</TableCell>
+                    <TableCell className="px-2 py-0.5 text-xs">
+                      <Badge className={`${opColor(o.operation_type)} px-1.5 py-0 text-[11px] leading-4 font-medium`}>
                         {o.operation_type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{(o.quantity || 0).toFixed(3)}</TableCell>
-                    <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{(o.price || 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-foreground text-right py-1.5 whitespace-nowrap">{(o.amount || 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-muted-foreground py-1.5">{o.comment}</TableCell>
+                    <TableCell className="text-foreground text-right px-2 py-0.5 text-xs whitespace-nowrap">{(o.quantity || 0).toFixed(3)}</TableCell>
+                    <TableCell className="text-foreground text-right px-2 py-0.5 text-xs whitespace-nowrap">{(o.price || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-foreground text-right px-2 py-0.5 text-xs whitespace-nowrap">{(o.amount || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground px-2 py-0.5 text-xs">{o.comment}</TableCell>
                   </TableRow>
                 ))
               )}
