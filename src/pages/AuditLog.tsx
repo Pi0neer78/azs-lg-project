@@ -23,7 +23,7 @@ interface Rec {
 const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель'];
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
-const PAGE_SIZE = 50;
+const PAGE_SIZES = [25, 50, 100, 200];
 const ACTION_STYLE: Record<string, string> = {
   'добавление': 'border-green-600 bg-green-600/15',
   'изменение': 'border-yellow-600 bg-yellow-600/15',
@@ -48,6 +48,7 @@ export default function AuditLog() {
   const showAlert = useAlert();
   const [cleanDays, setCleanDays] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [showClean, setShowClean] = useState(false);
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
@@ -120,10 +121,22 @@ export default function AuditLog() {
     }
   };
 
-  useEffect(() => setPage(1), [rows]);
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  useEffect(() => setPage(1), [rows, pageSize]);
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const paged = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const fromIdx = rows.length ? (safePage - 1) * pageSize + 1 : 0;
+  const toIdx = Math.min(safePage * pageSize, rows.length);
+  const pageNumbers = (() => {
+    const set = new Set<number>([1, totalPages, safePage - 1, safePage, safePage + 1]);
+    const list = Array.from(set).filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b);
+    const out: (number | 'gap')[] = [];
+    list.forEach((n, i) => {
+      if (i > 0 && n - list[i - 1] > 1) out.push('gap');
+      out.push(n);
+    });
+    return out;
+  })();
   const hasFilters = !!(search || dateFrom || dateTo || actions.length);
   const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
 
@@ -321,15 +334,50 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
           </CardContent>
         </Card>
 
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-3">
-            <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className={btn}>
-              <Icon name="ChevronLeft" size={16} />
-            </Button>
-            <span className="text-sm text-foreground">Страница {safePage} из {totalPages}</span>
-            <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)} className={btn}>
-              <Icon name="ChevronRight" size={16} />
-            </Button>
+        {rows.length > 0 && (
+          <div className="flex justify-between items-center flex-wrap gap-3">
+            <div className="flex items-center gap-2 text-sm text-foreground">
+              <span>Показывать по</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="h-8 rounded-md border-2 border-border bg-input text-foreground px-2"
+              >
+                {PAGE_SIZES.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+              <span className="text-muted-foreground">{fromIdx}–{toIdx} из {rows.length}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(1)} className={btn} title="В начало">
+                <Icon name="ChevronsLeft" size={16} />
+              </Button>
+              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className={btn} title="Назад">
+                <Icon name="ChevronLeft" size={16} />
+              </Button>
+              {pageNumbers.map((n, idx) =>
+                n === 'gap' ? (
+                  <span key={`g${idx}`} className="px-1 text-muted-foreground">…</span>
+                ) : (
+                  <Button
+                    key={n}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPage(n)}
+                    className={`border-2 border-accent min-w-8 ${n === safePage ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                  >
+                    {n}
+                  </Button>
+                )
+              )}
+              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)} className={btn} title="Вперёд">
+                <Icon name="ChevronRight" size={16} />
+              </Button>
+              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)} className={btn} title="В конец">
+                <Icon name="ChevronsRight" size={16} />
+              </Button>
+            </div>
           </div>
         )}
       </div>
