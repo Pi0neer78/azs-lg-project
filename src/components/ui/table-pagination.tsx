@@ -1,22 +1,24 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import { PAGE_SIZE_OPTIONS } from '@/hooks/usePageSize';
 
 interface TablePaginationProps {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+  pageSizeSetting?: number;
   totalItems: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
 
-const PAGE_SIZES = [10, 15, 20, 50, 100];
 
 export default function TablePagination({
   currentPage,
   totalPages,
   pageSize,
+  pageSizeSetting,
   totalItems,
   onPageChange,
   onPageSizeChange,
@@ -28,13 +30,13 @@ export default function TablePagination({
     <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-card flex-shrink-0">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Строк на странице:</span>
-        <Select value={String(pageSize)} onValueChange={(v) => { onPageSizeChange(Number(v)); onPageChange(1); }}>
-          <SelectTrigger className="h-7 w-20 text-sm border-border bg-input text-foreground">
+        <Select value={String(pageSizeSetting ?? pageSize)} onValueChange={(v) => { onPageSizeChange(Number(v)); onPageChange(1); }}>
+          <SelectTrigger className="h-7 w-24 text-sm border-border bg-input text-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PAGE_SIZES.map((s) => (
-              <SelectItem key={s} value={String(s)}>{s}</SelectItem>
+            {PAGE_SIZE_OPTIONS.map((s) => (
+              <SelectItem key={s} value={String(s)}>{s === 0 ? 'Авто' : s}</SelectItem>
             ))}
           </SelectContent>
         </Select>

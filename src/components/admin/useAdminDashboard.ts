@@ -4,6 +4,7 @@ import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
 import { logEvent } from '@/utils/auditClient';
+import { usePageSize } from '@/hooks/usePageSize';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
 
 export function useAdminDashboard() {
@@ -595,12 +596,11 @@ export function useAdminDashboard() {
   };
 
   const [cardsPage, setCardsPage] = useState(1);
-  const [cardsPageSize, setCardsPageSize] = useState(20);
+  const cardsPS = usePageSize('admin_cards');
+  const cardsPageSize = cardsPS.size;
   const [opsPage, setOpsPage] = useState(1);
-  const [opsPageSize, setOpsPageSize] = useState<number>(() => {
-    const saved = parseInt(localStorage.getItem('admin_ops_page_size') || '', 10);
-    return [10, 15, 20, 50, 100].includes(saved) ? saved : 50;
-  });
+  const opsPS = usePageSize('admin_ops');
+  const opsPageSize = opsPS.size;
 
   const filteredCards = cards
     .filter(card => {
@@ -930,11 +930,15 @@ export function useAdminDashboard() {
     cardsPage,
     setCardsPage,
     cardsPageSize,
-    setCardsPageSize,
+    setCardsPageSize: cardsPS.setSetting,
+    cardsPageSizeSetting: cardsPS.setting,
+    cardsTableRef: cardsPS.ref,
     opsPage,
     setOpsPage,
     opsPageSize,
-    setOpsPageSize,
+    setOpsPageSize: opsPS.setSetting,
+    opsPageSizeSetting: opsPS.setting,
+    opsTableRef: opsPS.ref,
     filteredCards,
     nonAdminClientNames,
     uniqueClientNames,

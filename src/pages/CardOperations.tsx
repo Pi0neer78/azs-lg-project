@@ -12,6 +12,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { useOperations } from '@/contexts/OperationsContext';
 import * as XLSX from 'xlsx';
 import { logEvent } from '@/utils/auditClient';
+import { usePageSize } from '@/hooks/usePageSize';
 import { adminApi } from '@/utils/adminApi';
 
 interface ClientData {
@@ -113,7 +114,8 @@ export default function CardOperations() {
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [opsPage, setOpsPage] = useState(1);
-  const [opsPageSize, setOpsPageSize] = useState(20);
+  const ps = usePageSize('card_ops');
+  const opsPageSize = ps.size;
 
   const selectedCardData = cards.find(c => c.id === selectedCard);
 
@@ -368,7 +370,7 @@ export default function CardOperations() {
                 <p className="text-muted-foreground">Загрузка операций...</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" ref={ps.ref}>
                 <Table>
                 <TableHeader>
                   <TableRow className="border-b-2 border-border">
@@ -418,7 +420,8 @@ export default function CardOperations() {
                 pageSize={opsPageSize}
                 totalItems={filteredOperations.length}
                 onPageChange={setOpsPage}
-                onPageSizeChange={(s) => { setOpsPageSize(s); setOpsPage(1); }}
+                pageSizeSetting={ps.setting}
+                onPageSizeChange={(s) => { ps.setSetting(s); setOpsPage(1); }}
               />
             )}
           </CardContent>

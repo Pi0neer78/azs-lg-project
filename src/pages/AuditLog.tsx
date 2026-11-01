@@ -11,6 +11,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import { PAGE_SIZE_OPTIONS, readPageSize, savePageSize } from '@/hooks/usePageSize';
 import { AUDIT_API } from '@/utils/auditClient';
 
 interface Rec {
@@ -38,7 +39,7 @@ const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[
     return {};
   }
 };
-const PAGE_SIZES = [0, 25, 50, 100, 200];
+const PAGE_SIZES = PAGE_SIZE_OPTIONS;
 const ROW_H = 30;
 const HEAD_H = 34;
 type SortKey = 'id' | 'created_at' | 'user' | 'device' | 'action' | 'section' | 'description';
@@ -98,7 +99,7 @@ export default function AuditLog() {
   const showAlert = useAlert();
   const [cleanDays, setCleanDays] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(() => savedFilters().pageSize ?? 0);
+  const [pageSize, setPageSize] = useState(() => readPageSize('audit_log'));
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'id', dir: 'desc' });
   const [showClean, setShowClean] = useState(false);
   const [detail, setDetail] = useState<Rec | null>(null);
@@ -567,7 +568,7 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
               <span>Показывать по</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
+                onChange={(e) => { const v = Number(e.target.value); setPageSize(v); savePageSize('audit_log', v); }}
                 className="h-7 rounded-md border-2 border-border bg-input text-foreground px-2 text-sm"
               >
                 {PAGE_SIZES.map((n) => (

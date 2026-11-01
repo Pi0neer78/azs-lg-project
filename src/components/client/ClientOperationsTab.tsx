@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
 import { logEvent } from '@/utils/auditClient';
+import { usePageSize } from '@/hooks/usePageSize';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
 
 interface Props {
@@ -45,7 +46,8 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const ps = usePageSize('client_ops');
+  const pageSize = ps.size;
 
   useEffect(() => {
     Promise.all([adminApi.operations.getAll(), adminApi.cards.getAll(), adminApi.clients.getAll()])
@@ -213,7 +215,7 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
           )}
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" ref={ps.ref}>
           <Table>
             <TableHeader>
               <TableRow className="border-b border-border">
@@ -265,8 +267,9 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
           pageSize={pageSize}
           totalItems={filtered.length}
           onPageChange={setPage}
+          pageSizeSetting={ps.setting}
           onPageSizeChange={(s) => {
-            setPageSize(s);
+            ps.setSetting(s);
             setPage(1);
           }}
         />

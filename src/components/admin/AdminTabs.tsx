@@ -80,9 +80,13 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
     setCardsPage,
     cardsPageSize,
     setCardsPageSize,
+    cardsPageSizeSetting,
+    cardsTableRef,
     setOpsPage,
     opsPageSize,
     setOpsPageSize,
+    opsPageSizeSetting,
+    opsTableRef,
     filteredCards,
     uniqueClientNames,
     uniqueCardFuelTypes,
@@ -494,6 +498,7 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                     </Select>
                   </div>
                 </div>
+                <div className="overflow-x-auto" ref={cardsTableRef}>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b-2 border-border">
@@ -569,11 +574,13 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
               <TablePagination
                 currentPage={safeCardsPage}
                 totalPages={cardsTotalPages}
                 pageSize={cardsPageSize}
+                pageSizeSetting={cardsPageSizeSetting}
                 totalItems={filteredCards.length}
                 onPageChange={setCardsPage}
                 onPageSizeChange={(s) => { setCardsPageSize(s); setCardsPage(1); }}
@@ -775,7 +782,7 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                     />
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" ref={opsTableRef}>
                   <Table className="text-xs">
                     <TableHeader>
                       <TableRow className="border-b-2 border-border">
@@ -838,9 +845,10 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                 currentPage={safeOpsPage}
                 totalPages={opsTotalPages}
                 pageSize={opsPageSize}
+                pageSizeSetting={opsPageSizeSetting}
                 totalItems={filteredOperations.length}
                 onPageChange={setOpsPage}
-                onPageSizeChange={(s) => { setOpsPageSize(s); localStorage.setItem('admin_ops_page_size', String(s)); setOpsPage(1); }}
+                onPageSizeChange={(s) => { setOpsPageSize(s); setOpsPage(1); }}
               />
             </Card>
           </TabsContent>
