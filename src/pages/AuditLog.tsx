@@ -355,7 +355,7 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
 
   const btn = 'border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground';
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-secondary to-background px-3 pt-2 pb-8">
+    <div className="h-[calc(100vh-40px)] overflow-hidden bg-gradient-to-br from-background via-secondary to-background px-3 pt-2 pb-1">
       <div className="max-w-[1500px] mx-auto h-full flex flex-col gap-2">
         <div className="flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-lg md:text-xl font-bold text-accent flex items-center gap-2">
