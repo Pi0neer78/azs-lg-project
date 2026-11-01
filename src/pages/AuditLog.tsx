@@ -23,6 +23,21 @@ interface Rec {
 const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель'];
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
 const STORAGE_KEY = 'audit_log_pass';
+const PAGE_SIZE = 50;
+const ACTION_STYLE: Record<string, string> = {
+  'добавление': 'border-green-600 bg-green-600/15',
+  'изменение': 'border-yellow-600 bg-yellow-600/15',
+  'удаление': 'border-red-600 bg-red-600/15',
+  'вход': 'border-blue-600 bg-blue-600/15',
+  'выход': 'border-slate-500 bg-slate-500/15',
+  'печать': 'border-purple-600 bg-purple-600/15',
+  'в эксель': 'border-teal-600 bg-teal-600/15',
+};
+const isoDay = (offset: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - offset);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+};
 
 const esc = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const userText = (r: Rec) => `${r.user_name}${r.user_role && ROLES[r.user_role] ? ` (${ROLES[r.user_role]})` : ''}`;
@@ -32,6 +47,8 @@ export default function AuditLog() {
   const confirmAction = useConfirm();
   const showAlert = useAlert();
   const [cleanDays, setCleanDays] = useState('');
+  const [page, setPage] = useState(1);
+  const [showClean, setShowClean] = useState(false);
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
   const [error, setError] = useState('');
@@ -102,6 +119,13 @@ export default function AuditLog() {
       showAlert(data.error || 'Не удалось очистить журнал');
     }
   };
+
+  useEffect(() => setPage(1), [rows]);
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const hasFilters = !!(search || dateFrom || dateTo || actions.length);
+  const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
 
   const toggleAction = (a: string) => setActions((s) => (s.includes(a) ? s.filter((x) => x !== a) : [...s, a]));
 
@@ -186,86 +210,128 @@ col.d { width: 28mm; } col.u { width: 34mm; } col.i { width: 40mm; } col.a { wid
     );
   }
 
+  const btn = 'border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground';
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background p-4">
-      <div className="max-w-[1500px] mx-auto flex flex-col gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background p-3 md:p-4">
+      <div className="max-w-[1500px] mx-auto flex flex-col gap-3">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <h1 className="text-2xl font-bold text-accent">Журнал операций</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-accent flex items-center gap-2">
+            <Icon name="ScrollText" size={24} />Журнал операций
+          </h1>
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={handlePrint} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+            <Button size="sm" onClick={handlePrint} variant="outline" className={btn}>
               <Icon name="Printer" size={16} className="mr-2" />Печать
             </Button>
-            <Button onClick={handleExcel} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
-              <Icon name="FileSpreadsheet" size={16} className="mr-2" />Экспорт в Excel
+            <Button size="sm" onClick={handleExcel} variant="outline" className={btn}>
+              <Icon name="FileSpreadsheet" size={16} className="mr-2" />Excel
             </Button>
-            <Button variant="outline" onClick={() => { sessionStorage.removeItem(STORAGE_KEY); setPass(null); setPassword(''); }} className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+            <Button size="sm" variant="outline" onClick={() => { sessionStorage.removeItem(STORAGE_KEY); setPass(null); setPassword(''); }} className={btn}>
               <Icon name="LogOut" size={16} className="mr-2" />Выход
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-muted-foreground">Период: с</span>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 bg-input text-foreground border-2 border-border" />
-          <span className="text-sm text-muted-foreground">по</span>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 bg-input text-foreground border-2 border-border" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию" className="max-w-xs bg-input text-foreground border-2 border-border" />
-          {(search || dateFrom || dateTo || actions.length > 0) && (
-            <Button variant="outline" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setActions([]); }} className="border-2 border-border text-foreground">Сбросить</Button>
-          )}
+        <Card className="border-2 border-border bg-card">
+          <CardContent className="p-3 flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+              <span className="text-muted-foreground">—</span>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-9 bg-input text-foreground border-2 border-border" />
+              <Button size="sm" variant="outline" onClick={() => setPeriod(0)} className="border-2 border-border text-foreground">Сегодня</Button>
+              <Button size="sm" variant="outline" onClick={() => setPeriod(6)} className="border-2 border-border text-foreground">7 дней</Button>
+              <Button size="sm" variant="outline" onClick={() => setPeriod(29)} className="border-2 border-border text-foreground">30 дней</Button>
+              <div className="relative flex-1 min-w-[220px]">
+                <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Поиск по описанию, пользователю, разделу" className="pl-9 h-9 bg-input text-foreground border-2 border-border" />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              {ACTIONS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => toggleAction(a)}
+                  className={`px-3 py-1 rounded-full border-2 text-xs font-semibold text-foreground transition-opacity ${ACTION_STYLE[a]} ${actions.length && !actions.includes(a) ? 'opacity-40' : ''} ${actions.includes(a) ? 'ring-2 ring-accent' : ''}`}
+                >
+                  {a}
+                </button>
+              ))}
+              {hasFilters && (
+                <Button size="sm" variant="ghost" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setActions([]); }} className="text-foreground underline">
+                  Сбросить фильтры
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-between items-center flex-wrap gap-2 text-sm text-muted-foreground">
+          <span>
+            Записей: <b className="text-foreground">{rows.length}</b>
+            {rows.length >= 5000 ? ' (последние 5000, уточните период)' : ''}
+            {loading ? ' · обновление...' : ''}
+          </span>
+          <button type="button" onClick={() => setShowClean((v) => !v)} className="flex items-center gap-1 text-foreground hover:text-accent">
+            <Icon name="Trash2" size={14} />Очистка старых записей
+          </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-muted-foreground">Вид операции:</span>
-          {ACTIONS.map((a) => (
-            <Button key={a} size="sm" variant="outline" onClick={() => toggleAction(a)} className={`border-2 border-accent ${actions.includes(a) ? 'bg-accent text-accent-foreground' : 'text-foreground'}`}>
-              {a}
-            </Button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-muted-foreground">Удалить записи старше</span>
-          <Input type="number" min={1} value={cleanDays} onChange={(e) => setCleanDays(e.target.value)} placeholder="дней" className="w-28 bg-input text-foreground border-2 border-border" />
-          <span className="text-sm text-muted-foreground">дней</span>
-          <Button variant="destructive" onClick={handleCleanup}>
-            <Icon name="Trash2" size={16} className="mr-2" />Очистить
-          </Button>
-        </div>
-
-        <div className="text-sm text-muted-foreground">Записей: {rows.length}{rows.length >= 5000 ? ' (показаны последние 5000, уточните период)' : ''}</div>
+        {showClean && (
+          <Card className="border-2 border-destructive bg-card">
+            <CardContent className="p-3 flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-foreground">Удалить записи старше</span>
+              <Input type="number" min={1} value={cleanDays} onChange={(e) => setCleanDays(e.target.value)} placeholder="дней" className="w-24 h-9 bg-input text-foreground border-2 border-border" />
+              <span className="text-sm text-foreground">дней</span>
+              <Button size="sm" variant="destructive" onClick={handleCleanup}>Очистить</Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border-2 border-border bg-card">
-          <CardContent className="p-0 overflow-x-auto">
+          <CardContent className="p-0 overflow-auto max-h-[calc(100vh-330px)] min-h-[240px]">
             <table className="w-full text-sm text-foreground">
-              <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="p-2">Дата/время</th>
+              <thead className="sticky top-0 z-10 bg-secondary">
+                <tr className="border-b-2 border-border text-left text-foreground">
+                  <th className="p-2 whitespace-nowrap">Дата/время</th>
                   <th className="p-2">Пользователь</th>
-                  <th className="p-2">IP / Имя компьютера</th>
-                  <th className="p-2">Вид операции</th>
+                  <th className="p-2">IP / Компьютер</th>
+                  <th className="p-2">Операция</th>
                   <th className="p-2">Раздел</th>
-                  <th className="p-2">Описание</th>
+                  <th className="p-2 w-full">Описание</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-border/50 align-top">
-                    <td className="p-2 whitespace-nowrap">{r.created_at}</td>
+                {paged.map((r) => (
+                  <tr key={r.id} className="border-b border-border/50 align-top hover:bg-secondary/40">
+                    <td className="p-2 whitespace-nowrap tabular-nums">{r.created_at}</td>
                     <td className="p-2">{userText(r)}</td>
-                    <td className="p-2 break-words max-w-[220px]">{deviceText(r)}</td>
-                    <td className="p-2 whitespace-nowrap text-accent font-semibold">{r.action}</td>
-                    <td className="p-2">{r.section}</td>
-                    <td className="p-2 whitespace-pre-wrap break-words max-w-xl">{r.description}</td>
+                    <td className="p-2 text-xs break-words max-w-[200px]">{deviceText(r)}</td>
+                    <td className="p-2">
+                      <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold whitespace-nowrap ${ACTION_STYLE[r.action] || 'border-border'}`}>{r.action}</span>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">{r.section}</td>
+                    <td className="p-2 whitespace-pre-wrap break-words min-w-[280px]">{r.description}</td>
                   </tr>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
+                  <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
                 )}
               </tbody>
             </table>
           </CardContent>
         </Card>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-3">
+            <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className={btn}>
+              <Icon name="ChevronLeft" size={16} />
+            </Button>
+            <span className="text-sm text-foreground">Страница {safePage} из {totalPages}</span>
+            <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)} className={btn}>
+              <Icon name="ChevronRight" size={16} />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
