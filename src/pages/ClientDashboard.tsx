@@ -361,21 +361,21 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
           </CardHeader>
           <CardContent>
             <div className="mb-4 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="card-search" className="text-sm text-foreground">Поиск по номеру</Label>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="w-48 space-y-1">
+                  <Label htmlFor="card-search" className="text-xs text-foreground">Поиск по номеру</Label>
                   <Input
                     id="card-search"
                     placeholder="Введите номер карты"
                     value={cardSearch}
                     onChange={(e) => setCardSearch(e.target.value)}
-                    className="bg-input border-2 border-border text-foreground"
+                    className="h-8 px-2 text-sm bg-input border-2 border-border text-foreground"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="fuel-filter" className="text-sm text-foreground">Вид топлива</Label>
+                <div className="w-44 space-y-1">
+                  <Label htmlFor="fuel-filter" className="text-xs text-foreground">Вид топлива</Label>
                   <Select value={fuelTypeFilter} onValueChange={setFuelTypeFilter}>
-                    <SelectTrigger id="fuel-filter" className="bg-input border-2 border-border text-foreground">
+                    <SelectTrigger id="fuel-filter" className="h-8 text-sm bg-input border-2 border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -386,10 +386,10 @@ export default function ClientDashboard({ clientLogin, onLogout }: ClientDashboa
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="status-filter" className="text-sm text-foreground">Статус</Label>
+                <div className="w-44 space-y-1">
+                  <Label htmlFor="status-filter" className="text-xs text-foreground">Статус</Label>
                   <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as 'all' | 'активна' | 'заблокирована')}>
-                    <SelectTrigger id="status-filter" className="bg-input border-2 border-border text-foreground">
+                    <SelectTrigger id="status-filter" className="h-8 text-sm bg-input border-2 border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
