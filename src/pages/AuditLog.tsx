@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,9 @@ const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[
     return {};
   }
 };
-const PAGE_SIZES = [25, 50, 100, 200];
+const PAGE_SIZES = [0, 25, 50, 100, 200];
+const ROW_H = 30;
+const HEAD_H = 34;
 type SortKey = 'id' | 'created_at' | 'user' | 'device' | 'action' | 'section' | 'description';
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: 'id', label: '№' },
@@ -96,9 +98,12 @@ export default function AuditLog() {
   const showAlert = useAlert();
   const [cleanDays, setCleanDays] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(() => savedFilters().pageSize || 50);
+  const [pageSize, setPageSize] = useState(() => savedFilters().pageSize ?? 0);
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'id', dir: 'desc' });
   const [showClean, setShowClean] = useState(false);
+  const [detail, setDetail] = useState<Rec | null>(null);
+  const [autoSize, setAutoSize] = useState(15);
+  const tableBoxRef = useRef<HTMLDivElement>(null);
   const [password, setPassword] = useState('');
   const [pass, setPass] = useState<string | null>(sessionStorage.getItem(STORAGE_KEY));
   const [error, setError] = useState('');
@@ -198,12 +203,23 @@ export default function AuditLog() {
   const toggleSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'id' || key === 'created_at' ? 'desc' : 'asc' }));
 
-  useEffect(() => setPage(1), [rows, pageSize, sort]);
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  useEffect(() => {
+    const el = tableBoxRef.current;
+    if (!el) return;
+    const measure = () => setAutoSize(Math.max(5, Math.floor((el.clientHeight - HEAD_H - 2) / ROW_H)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [pass]);
+
+  const effSize = pageSize === 0 ? autoSize : pageSize;
+  useEffect(() => setPage(1), [rows, effSize, sort]);
+  const totalPages = Math.max(1, Math.ceil(rows.length / effSize));
   const safePage = Math.min(page, totalPages);
-  const paged = sortedRows.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const fromIdx = rows.length ? (safePage - 1) * pageSize + 1 : 0;
-  const toIdx = Math.min(safePage * pageSize, rows.length);
+  const paged = sortedRows.slice((safePage - 1) * effSize, safePage * effSize);
+  const fromIdx = rows.length ? (safePage - 1) * effSize + 1 : 0;
+  const toIdx = Math.min(safePage * effSize, rows.length);
   const pageNumbers = (() => {
     const set = new Set<number>([1, totalPages, safePage - 1, safePage, safePage + 1]);
     const list = Array.from(set).filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b);
@@ -339,11 +355,11 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
 
   const btn = 'border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground';
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background p-3 md:p-4">
-      <div className="max-w-[1500px] mx-auto flex flex-col gap-3">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-secondary to-background px-3 pt-2 pb-8">
+      <div className="max-w-[1500px] mx-auto h-full flex flex-col gap-2">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <h1 className="text-xl md:text-2xl font-bold text-accent flex items-center gap-2">
-            <Icon name="ScrollText" size={24} />Журнал операций
+          <h1 className="text-lg md:text-xl font-bold text-accent flex items-center gap-2">
+            <Icon name="ScrollText" size={22} />Журнал операций
           </h1>
           <div className="flex gap-2 flex-wrap">
             <Button size="sm" onClick={handlePrint} variant="outline" className={btn}>
@@ -359,12 +375,12 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40 h-10 bg-input text-foreground border-2 border-border" />
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-8 px-2 text-sm bg-input text-foreground border-2 border-border" />
           <span className="text-muted-foreground">—</span>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40 h-10 bg-input text-foreground border-2 border-border" />
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-8 px-2 text-sm bg-input text-foreground border-2 border-border" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
+              <Button size="sm" variant="outline" className="h-8 px-2 border-2 border-border text-foreground" title="Быстрый выбор периода">
                 <Icon name="MoreHorizontal" size={18} />
               </Button>
             </DropdownMenuTrigger>
@@ -376,7 +392,7 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
               <DropdownMenuItem onSelect={() => { setDateFrom(''); setDateTo(''); }}>За всё время</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={openFilters} variant="outline" className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
+          <Button size="sm" onClick={openFilters} variant="outline" className="h-8 border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground">
             <Icon name="ListFilter" size={16} className="mr-2" />
             Фильтры{activeCount > 0 ? ` (${activeCount})` : ''}
           </Button>
@@ -473,67 +489,98 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
           </div>
         )}
 
-        <Card className="border-2 border-border bg-card">
-          <CardContent className="p-0 overflow-auto max-h-[calc(100vh-330px)] min-h-[240px]">
-            <table className="w-full text-sm text-foreground">
-              <thead className="sticky top-0 z-10 bg-secondary">
-                <tr className="border-b-2 border-border text-left text-foreground">
-                  {COLUMNS.map((c) => (
-                    <th key={c.key} className={`p-2 ${c.key === 'description' ? 'w-full' : 'whitespace-nowrap'}`}>
-                      <button type="button" onClick={() => toggleSort(c.key)} className="flex items-center gap-1 font-bold hover:text-accent">
-                        {c.label}
-                        <Icon
-                          name={sort.key === c.key ? (sort.dir === 'asc' ? 'ArrowUp' : 'ArrowDown') : 'ArrowUpDown'}
-                          size={13}
-                          className={sort.key === c.key ? 'text-accent' : 'text-muted-foreground'}
-                        />
-                      </button>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paged.map((r) => (
-                  <tr key={r.id} className="border-b border-border/50 align-top hover:bg-secondary/40">
-                    <td className="p-2 whitespace-nowrap tabular-nums text-muted-foreground">{r.id}</td>
-                    <td className="p-2 whitespace-nowrap tabular-nums">{r.created_at}</td>
-                    <td className="p-2">{highlight(userText(r), search)}</td>
-                    <td className="p-2 text-xs break-words max-w-[200px]">{deviceText(r)}</td>
-                    <td className="p-2">
-                      <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold whitespace-nowrap ${ACTION_STYLE[r.action] || 'border-border'}`}>{r.action}</span>
-                    </td>
-                    <td className="p-2 whitespace-nowrap">{highlight(r.section, search)}</td>
-                    <td className="p-2 whitespace-pre-wrap break-words min-w-[280px]">{highlight(r.description, search)}</td>
-                  </tr>
+        <div
+          ref={tableBoxRef}
+          className={`flex-1 min-h-0 rounded-lg border-2 border-border bg-card overflow-x-auto ${pageSize === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'}`}
+        >
+          <table className="w-full min-w-[1000px] table-fixed text-[13px] text-foreground">
+            <colgroup>
+              <col style={{ width: 56 }} /><col style={{ width: 138 }} /><col style={{ width: 170 }} /><col style={{ width: 190 }} />
+              <col style={{ width: 128 }} /><col style={{ width: 120 }} /><col />
+            </colgroup>
+            <thead className="sticky top-0 z-10 bg-secondary">
+              <tr className="border-b-2 border-border text-left text-foreground" style={{ height: HEAD_H }}>
+                {COLUMNS.map((c) => (
+                  <th key={c.key} className="px-2 whitespace-nowrap">
+                    <button type="button" onClick={() => toggleSort(c.key)} className="flex items-center gap-1 font-bold hover:text-accent">
+                      {c.label}
+                      <Icon
+                        name={sort.key === c.key ? (sort.dir === 'asc' ? 'ArrowUp' : 'ArrowDown') : 'ArrowUpDown'}
+                        size={12}
+                        className={sort.key === c.key ? 'text-accent' : 'text-muted-foreground'}
+                      />
+                    </button>
+                  </th>
                 ))}
-                {rows.length === 0 && (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {paged.map((r, i) => (
+                <tr
+                  key={r.id}
+                  onClick={() => setDetail(r)}
+                  style={{ height: ROW_H }}
+                  className={`border-b border-border/40 cursor-pointer hover:bg-accent/10 ${i % 2 ? 'bg-secondary/30' : ''}`}
+                >
+                  <td className="px-2 tabular-nums text-muted-foreground truncate">{r.id}</td>
+                  <td className="px-2 tabular-nums truncate">{r.created_at}</td>
+                  <td className="px-2 truncate" title={userText(r)}>{highlight(userText(r), search)}</td>
+                  <td className="px-2 text-xs truncate" title={deviceText(r)}>{deviceText(r)}</td>
+                  <td className="px-2">
+                    <span className={`px-2 py-px rounded-full border text-[11px] font-semibold whitespace-nowrap ${ACTION_STYLE[r.action] || 'border-border'}`}>{r.action}</span>
+                  </td>
+                  <td className="px-2 truncate" title={r.section}>{highlight(r.section, search)}</td>
+                  <td className="px-2 truncate" title={r.description}>{highlight(r.description, search)}</td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{loading ? 'Загрузка...' : 'Записей нет'}</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
+          <DialogContent className="max-w-2xl bg-card border-2 border-accent max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-accent">Запись № {detail?.id}</DialogTitle>
+            </DialogHeader>
+            {detail && (
+              <div className="flex flex-col gap-2 text-sm text-foreground">
+                <div><span className="text-muted-foreground">Дата/время: </span>{detail.created_at}</div>
+                <div><span className="text-muted-foreground">Пользователь: </span>{userText(detail)}{detail.user_login ? ` (логин ${detail.user_login})` : ''}</div>
+                <div><span className="text-muted-foreground">IP / Компьютер: </span>{deviceText(detail) || '—'}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Операция: </span>
+                  <span className={`px-2 py-0.5 rounded-full border-2 text-xs font-semibold ${ACTION_STYLE[detail.action] || 'border-border'}`}>{detail.action}</span>
+                  <span className="text-muted-foreground">Раздел: </span>{detail.section}
+                </div>
+                <div className="rounded-md border-2 border-border bg-secondary/40 p-3 whitespace-pre-wrap break-words">{detail.description}</div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {rows.length > 0 && (
-          <div className="flex justify-between items-center flex-wrap gap-3">
+          <div className="flex justify-between items-center flex-wrap gap-2">
             <div className="flex items-center gap-2 text-sm text-foreground">
               <span>Показывать по</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="h-8 rounded-md border-2 border-border bg-input text-foreground px-2"
+                className="h-7 rounded-md border-2 border-border bg-input text-foreground px-2 text-sm"
               >
                 {PAGE_SIZES.map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                  <option key={n} value={n}>{n === 0 ? 'Авто' : n}</option>
                 ))}
               </select>
               <span className="text-muted-foreground">{fromIdx}–{toIdx} из {rows.length}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(1)} className={btn} title="В начало">
+              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(1)} className={btn + " h-7 px-2"} title="В начало">
                 <Icon name="ChevronsLeft" size={16} />
               </Button>
-              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className={btn} title="Назад">
+              <Button size="sm" variant="outline" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className={btn + " h-7 px-2"} title="Назад">
                 <Icon name="ChevronLeft" size={16} />
               </Button>
               {pageNumbers.map((n, idx) =>
@@ -545,16 +592,16 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
                     size="sm"
                     variant="outline"
                     onClick={() => setPage(n)}
-                    className={`border-2 border-accent min-w-8 ${n === safePage ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                    className={`border-2 border-accent h-7 px-2 min-w-7 ${n === safePage ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}
                   >
                     {n}
                   </Button>
                 )
               )}
-              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)} className={btn} title="Вперёд">
+              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)} className={btn + " h-7 px-2"} title="Вперёд">
                 <Icon name="ChevronRight" size={16} />
               </Button>
-              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)} className={btn} title="В конец">
+              <Button size="sm" variant="outline" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)} className={btn + " h-7 px-2"} title="В конец">
                 <Icon name="ChevronsRight" size={16} />
               </Button>
             </div>
