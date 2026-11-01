@@ -19,6 +19,8 @@ interface Station {
   address: string;
 }
 
+const OP_BG = { backgroundImage: "linear-gradient(rgba(6,26,18,0.45), rgba(6,26,18,0.6)), url('/bg-operator.webp')" };
+
 interface CardInfo {
   id: number;
   card_code: string;
@@ -461,7 +463,7 @@ export default function OperatorPanel() {
 
   if (stage === 'login') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col items-center justify-center px-4" style={OP_BG}>
         <h1 className="text-3xl font-bold text-accent mb-8 text-center">Панель оператора</h1>
         <Card className="w-full max-w-sm border-2 border-accent shadow-xl bg-card/95">
           <CardContent className="pt-6">
@@ -568,7 +570,7 @@ export default function OperatorPanel() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex flex-col">
+      <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col" style={OP_BG}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80">
           <div>
             <h1 className="text-2xl font-bold text-accent tracking-wide">Панель оператора</h1>

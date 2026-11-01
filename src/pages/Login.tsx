@@ -57,22 +57,17 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex flex-col items-center px-8 pt-5 relative overflow-hidden">
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col items-center px-8 pt-5 relative overflow-hidden"
+      style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.35), rgba(6,26,18,0.55)), url('/bg-login.webp')" }}
+    >
       
       <div className="w-full max-w-4xl flex flex-col items-center">
         <h1 className="md:text-4xl font-bold text-center text-accent drop-shadow-2xl tracking-tight text-3xl">
           СЕТЬ АВТОЗАПРАВОЧНЫХ СТАНЦИЙ
         </h1>
         
-        <div className="mt-[30px] flex justify-center">
-          <img 
-            src="https://cdn.poehali.dev/files/сеть азс 3.png" 
-            alt="Сеть АЗС" 
-            className="w-[80%] h-auto max-w-md"
-          />
-        </div>
-
-        <div className="mt-[30px] flex justify-center w-full">
+        <div className="mt-[60px] flex justify-center w-full">
           <Card className="w-full max-w-md border-2 border-accent shadow-xl bg-card/95 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl text-foreground">Вход в кабинет</CardTitle>
