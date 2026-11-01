@@ -28,9 +28,10 @@ interface Rec {
 
 const ACTIONS = ['добавление', 'изменение', 'удаление', 'вход', 'выход', 'печать', 'в эксель', 'действия оператора'];
 const ROLES: Record<string, string> = { admin: 'Администратор', operator: 'Оператор', client: 'Клиент' };
+const ROLE_KEYS = Object.keys(ROLES);
 const STORAGE_KEY = 'audit_log_pass';
 const FILTERS_KEY = 'audit_log_filters';
-const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; search?: string; user?: string; ip?: string; section?: string; pageSize?: number } => {
+const savedFilters = (): { dateFrom?: string; dateTo?: string; actions?: string[]; roles?: string[]; search?: string; user?: string; ip?: string; section?: string; pageSize?: number } => {
   try {
     return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || '{}');
   } catch {
@@ -107,11 +108,12 @@ export default function AuditLog() {
   const [dateTo, setDateTo] = useState(() => savedFilters().dateTo ?? isoDay(0));
   const [actions, setActions] = useState<string[]>(() => (savedFilters().actions || ACTIONS).filter((a) => ACTIONS.includes(a)));
   const [search, setSearch] = useState(() => savedFilters().search || '');
+  const [roles, setRoles] = useState<string[]>(() => (savedFilters().roles || ROLE_KEYS).filter((r) => ROLE_KEYS.includes(r)));
   const [userF, setUserF] = useState(() => savedFilters().user || '');
   const [ipF, setIpF] = useState(() => savedFilters().ip || '');
   const [sectionF, setSectionF] = useState(() => savedFilters().section || '');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState({ actions: ACTIONS, search: '', user: '', ip: '', section: '' });
+  const [draft, setDraft] = useState({ actions: ACTIONS, roles: ROLE_KEYS, search: '', user: '', ip: '', section: '' });
 
   const call = useCallback(async (p: string, init?: RequestInit, qs = '') => {
     const res = await fetch(`${AUDIT_API}${qs}`, {
@@ -123,12 +125,12 @@ export default function AuditLog() {
 
   const load = useCallback(async () => {
     if (!pass) return;
-    if (actions.length === 0) {
+    if (actions.length === 0 || roles.length === 0) {
       setRows([]);
       return;
     }
     setLoading(true);
-    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.length === ACTIONS.length ? '' : actions.join(','), q: search, user: userF, ip: ipF, section: sectionF });
+    const qs = new URLSearchParams({ date_from: dateFrom, date_to: dateTo, action: actions.length === ACTIONS.length ? '' : actions.join(','), q: search, role: roles.length === ROLE_KEYS.length ? '' : roles.join(','), user: userF, ip: ipF, section: sectionF });
     try {
       const { ok, data } = await call(pass, undefined, `?${qs.toString()}`);
       if (ok) setRows(data.records || []);
@@ -139,11 +141,11 @@ export default function AuditLog() {
     } finally {
       setLoading(false);
     }
-  }, [pass, dateFrom, dateTo, actions, search, userF, ipF, sectionF, call]);
+  }, [pass, dateFrom, dateTo, actions, roles, search, userF, ipF, sectionF, call]);
 
   useEffect(() => {
-    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ dateFrom, dateTo, actions, search, user: userF, ip: ipF, section: sectionF, pageSize }));
-  }, [dateFrom, dateTo, actions, search, userF, ipF, sectionF, pageSize]);
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ dateFrom, dateTo, actions, roles, search, user: userF, ip: ipF, section: sectionF, pageSize }));
+  }, [dateFrom, dateTo, actions, roles, search, userF, ipF, sectionF, pageSize]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -213,9 +215,11 @@ export default function AuditLog() {
     return out;
   })();
   const allActions = actions.length === ACTIONS.length;
-  const hasFilters = !!(search || userF || ipF || sectionF || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
+  const allRoles = roles.length === ROLE_KEYS.length;
+  const hasFilters = !!(!allRoles || search || userF || ipF || sectionF || dateFrom !== isoDay(0) || dateTo !== isoDay(0) || !allActions);
   const chips: string[] = [];
   if (!allActions) chips.push(`Операции: ${actions.length} из ${ACTIONS.length}`);
+  if (!allRoles) chips.push(`Роли: ${roles.map((r) => ROLES[r]).join(', ') || 'не выбраны'}`);
   if (userF) chips.push(`Пользователь: ${userF}`);
   if (ipF) chips.push(`IP: ${ipF}`);
   if (sectionF) chips.push(`Раздел: ${sectionF}`);
@@ -224,11 +228,12 @@ export default function AuditLog() {
   const setPeriod = (days: number) => { setDateFrom(isoDay(days)); setDateTo(isoDay(0)); };
 
   const openFilters = () => {
-    setDraft({ actions, search, user: userF, ip: ipF, section: sectionF });
+    setDraft({ actions, roles, search, user: userF, ip: ipF, section: sectionF });
     setFiltersOpen(true);
   };
   const applyFilters = () => {
     setActions(draft.actions);
+    setRoles(draft.roles);
     setSearch(draft.search);
     setUserF(draft.user.trim());
     setIpF(draft.ip.trim());
@@ -237,11 +242,13 @@ export default function AuditLog() {
   };
   const resetFilters = () => {
     setSearch(''); setUserF(''); setIpF(''); setSectionF('');
-    setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS);
+    setDateFrom(isoDay(0)); setDateTo(isoDay(0)); setActions(ACTIONS); setRoles(ROLE_KEYS);
     setFiltersOpen(false);
   };
   const toggleDraftAction = (a: string) =>
     setDraft((d) => ({ ...d, actions: d.actions.includes(a) ? d.actions.filter((x) => x !== a) : ACTIONS.filter((x) => x === a || d.actions.includes(x)) }));
+  const toggleDraftRole = (r: string) =>
+    setDraft((d) => ({ ...d, roles: d.roles.includes(r) ? d.roles.filter((x) => x !== r) : ROLE_KEYS.filter((x) => x === r || d.roles.includes(x)) }));
   const userOptions = useMemo(() => Array.from(new Set(rows.map((r) => r.user_name).filter(Boolean))).sort(), [rows]);
   const sectionOptions = useMemo(() => Array.from(new Set(rows.map((r) => r.section).filter(Boolean))).sort(), [rows]);
 
@@ -250,12 +257,13 @@ export default function AuditLog() {
     if (dateFrom) f.push(`с ${dateFrom}`);
     if (dateTo) f.push(`по ${dateTo}`);
     if (!allActions) f.push(`виды: ${actions.join(', ') || 'не выбраны'}`);
+    if (!allRoles) f.push(`роли: ${roles.map((r) => ROLES[r]).join(', ') || 'не выбраны'}`);
     if (userF) f.push(`пользователь: ${userF}`);
     if (ipF) f.push(`IP/компьютер: ${ipF}`);
     if (sectionF) f.push(`раздел: ${sectionF}`);
     if (search.trim()) f.push(`описание: ${search.trim()}`);
     return f.join('; ');
-  }, [dateFrom, dateTo, actions, allActions, search, userF, ipF, sectionF]);
+  }, [dateFrom, dateTo, actions, allActions, roles, allRoles, search, userF, ipF, sectionF]);
 
   const report = (type: 'печать' | 'в эксель') => {
     if (!pass) return;
@@ -404,6 +412,18 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
                 </div>
               </div>
 
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-semibold">Роль пользователя</span>
+                <div className="flex flex-wrap gap-4">
+                  {ROLE_KEYS.map((r) => (
+                    <label key={r} className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input type="checkbox" checked={draft.roles.includes(r)} onChange={() => toggleDraftRole(r)} className="w-4 h-4 accent-[hsl(var(--accent))]" />
+                      {ROLES[r]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-semibold">Пользователь</span>
@@ -434,9 +454,8 @@ col.n { width: 14mm; } col.d { width: 28mm; } col.u { width: 34mm; } col.i { wid
 
         <div className="flex justify-between items-center flex-wrap gap-2 text-sm text-muted-foreground">
           <span>
-            Записей: <b className="text-foreground">{rows.length}</b>
-            {rows.length >= 5000 ? ' (последние 5000, уточните период)' : ''}
-            {loading ? ' · обновление...' : ''}
+            {rows.length >= 5000 ? 'Показаны последние 5000 записей, уточните период' : ''}
+            {loading ? (rows.length >= 5000 ? ' · ' : '') + 'обновление...' : ''}
           </span>
           <button type="button" onClick={() => setShowClean((v) => !v)} className="flex items-center gap-1 text-foreground hover:text-accent">
             <Icon name="Trash2" size={14} />Очистка старых записей
