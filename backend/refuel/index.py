@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -154,6 +155,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """, (card_id, station_id, operation_date, quantity, price, amount, comment))
             
             conn.commit()
+            audit.log(conn, event, None, 'добавление', 'Операции', audit.fmt([
+                ('Источник', 'Интеграция 1С'), ('Вид операции', 'Заправка'), ('Карта', audit.card_info(cur, card_id)),
+                ('АЗС', '%s (код 1С %s)' % (station_name, code_1c)), ('Количество', quantity), ('Цена', price), ('Сумма', amount),
+                ('Комментарий', comment), ('Остаток', '%s → %s' % (current_balance, new_balance))]))
             
             result = {
                 'success': True,

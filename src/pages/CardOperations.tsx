@@ -11,6 +11,7 @@ import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import { useOperations } from '@/contexts/OperationsContext';
 import * as XLSX from 'xlsx';
+import { logEvent } from '@/utils/auditClient';
 import { adminApi } from '@/utils/adminApi';
 
 interface ClientData {
@@ -134,6 +135,7 @@ export default function CardOperations() {
   });
 
   const handlePrintOperations = () => {
+    logEvent('печать', 'Операции', `Карта : ${selectedCardData ? cardLabel(selectedCardData) : '—'}, Записей : ${filteredOperations.length}`);
     window.print();
   };
 
@@ -155,6 +157,7 @@ export default function CardOperations() {
     
     const fileName = `operations_card_${selectedCardData ? cardLabel(selectedCardData) : 'unknown'}_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
+    logEvent('в эксель', 'Операции', `Карта : ${selectedCardData ? cardLabel(selectedCardData) : '—'}, Записей : ${exportData.length}`);
   };
 
   const handleShowAllOperations = () => {

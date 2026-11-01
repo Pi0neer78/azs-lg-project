@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import uuid
 import psycopg2
@@ -142,6 +143,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            role_txt = 'Оператор' if row[8] else ('Администратор' if row[7] else 'Клиент')
+            audit.log(conn, event, user, 'добавление', 'Клиенты', audit.fmt([
+                ('ИНН', row[1]), ('Название', row[2]), ('Адрес', row[3]), ('Телефон', row[4]),
+                ('Email', row[5]), ('Логин', row[6]), ('Пароль', 'задан' if body_data.get('password') else 'не задан'), ('Роль', role_txt)]))
             
             client = {
                 'id': row[0],
@@ -171,6 +176,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif method == 'PUT':
             body_data = json.loads(event.get('body', '{}'))
             client_id = body_data.get('id')
+            cursor.execute("SELECT inn, name, address, phone, email, login, operator FROM clients WHERE id = %s", (client_id,))
+            o = cursor.fetchone()
+            old_client = dict(zip(['inn', 'name', 'address', 'phone', 'email', 'login', 'operator'], o)) if o else {}
             
             cursor.execute("""
                 UPDATE clients 
@@ -193,6 +201,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if row and new_password:
                 cursor.execute("UPDATE clients SET password = %s WHERE id = %s", (new_password, client_id))
             conn.commit()
+            if row:
+                changes = audit.diff(old_client, {'inn': row[1], 'name': row[2], 'address': row[3], 'phone': row[4], 'email': row[5], 'login': row[6], 'operator': bool(row[8])}, {'inn': 'ИНН', 'name': 'Название', 'address': 'Адрес', 'phone': 'Телефон', 'email': 'Email', 'login': 'Логин', 'operator': 'Оператор'})
+                if new_password:
+                    changes = (changes + ', ' if changes else '') + 'Пароль : изменён'
+                audit.log(conn, event, user, 'изменение', 'Клиенты', audit.fmt([('Клиент', '%s (ИНН %s)' % (row[2], row[1]))]) + ', ' + (changes or 'без изменений данных'))
             
             if row:
                 client = {
@@ -248,8 +261,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            cursor.execute("SELECT inn, name, address, phone, email, login, admin, operator FROM clients WHERE id = %s", (client_id,))
+            o = cursor.fetchone()
             cursor.execute("DELETE FROM clients WHERE id = %s", (client_id,))
             conn.commit()
+            if o:
+                audit.log(conn, event, user, 'удаление', 'Клиенты', audit.fmt([
+                    ('ИНН', o[0]), ('Название', o[1]), ('Адрес', o[2]), ('Телефон', o[3]), ('Email', o[4]), ('Логин', o[5]),
+                    ('Роль', 'Оператор' if o[7] else ('Администратор' if o[6] else 'Клиент'))]))
             
             cursor.close()
             conn.close()

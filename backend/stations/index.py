@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -42,6 +43,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
+        user = None
         if method != 'GET':
             user, auth_err = authz.authenticate(conn, event)
             if auth_err or not user['admin']:
@@ -95,6 +97,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            audit.log(conn, event, user, 'добавление', 'АЗС', audit.fmt([('Название', row[1]), ('Код 1С', row[2]), ('Адрес', row[3])]))
             cursor.close()
             conn.close()
             
@@ -118,6 +121,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'PUT':
             body_data = json.loads(event.get('body', '{}'))
             station_id = body_data.get('id')
+            cursor.execute("SELECT name, code_1c, address FROM stations WHERE id = %s", (station_id,))
+            o = cursor.fetchone()
             
             cursor.execute("""
                 UPDATE stations
@@ -133,6 +138,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            if row:
+                ch = audit.diff({'name': o[0], 'code_1c': o[1], 'address': o[2]} if o else {}, {'name': row[1], 'code_1c': row[2], 'address': row[3]}, {'name': 'Название', 'code_1c': 'Код 1С', 'address': 'Адрес'})
+                audit.log(conn, event, user, 'изменение', 'АЗС', audit.fmt([('АЗС', o[0] if o else row[1])]) + ', ' + (ch or 'без изменений данных'))
             cursor.close()
             conn.close()
             
@@ -180,8 +188,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            cursor.execute("SELECT name, code_1c, address FROM stations WHERE id = %s", (station_id,))
+            o = cursor.fetchone()
             cursor.execute("DELETE FROM stations WHERE id = %s", (station_id,))
             conn.commit()
+            if o:
+                audit.log(conn, event, user, 'удаление', 'АЗС', audit.fmt([('Название', o[0]), ('Код 1С', o[1]), ('Адрес', o[2])]))
             cursor.close()
             conn.close()
             

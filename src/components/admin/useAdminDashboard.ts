@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '@/utils/adminApi';
 import { formatDateForInput } from '@/utils/dateUtils';
 import { useConfirm, useAlert } from '@/components/ConfirmDialog';
+import { logEvent } from '@/utils/auditClient';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
 
 export function useAdminDashboard() {
@@ -432,6 +433,7 @@ export function useAdminDashboard() {
   };
 
   const handlePrintStations = () => {
+    logEvent('печать', 'АЗС', `Записей : ${stations.length}`);
     window.print();
   };
 
@@ -712,10 +714,12 @@ export function useAdminDashboard() {
   const uniqueOpFuelTypes = Array.from(new Set(operations.map(o => o.fuel_type).filter(Boolean)));
 
   const handlePrintClients = () => {
+    logEvent('печать', 'Клиенты', `Записей : ${clients.length}, Фильтр : ${filterClientType === 'all' ? 'все' : filterClientType}`);
     window.print();
   };
 
   const handlePrintCards = () => {
+    logEvent('печать', 'Карты', `Записей : ${filteredCards.length}`);
     window.print();
   };
 
@@ -728,6 +732,7 @@ export function useAdminDashboard() {
     if (filterOperationType !== 'all') filters.push(`операция: ${filterOperationType}`);
     if (filterDateFrom) filters.push(`с ${filterDateFrom}`);
     if (filterDateTo) filters.push(`по ${filterDateTo}`);
+    logEvent('печать', 'Операции', `Записей : ${filteredOperations.length}, Фильтр : ${filters.join('; ') || 'без фильтров'}`);
     if (!printOperations(filteredOperations, filters)) {
       showAlert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
     }
@@ -735,9 +740,11 @@ export function useAdminDashboard() {
 
   const handleExportOperations = () => {
     exportOperationsToExcel(filteredOperations);
+    logEvent('в эксель', 'Операции', `Записей : ${filteredOperations.length}`);
   };
 
   const handlePrintFuelTypes = () => {
+    logEvent('печать', 'Виды топлива', `Записей : ${fuelTypes.length}`);
     window.print();
   };
 

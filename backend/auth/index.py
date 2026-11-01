@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -68,9 +69,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(database_url)
         ip = str(((event.get('requestContext') or {}).get('identity') or {}).get('sourceIp') or '')[:64]
         user, auth_err = authz.verify(conn, login, password, ip)
-        conn.close()
         if auth_err:
+            conn.close()
             return auth_err
+        role_name = {'admin': 'Администратор', 'operator': 'Оператор', 'client': 'Клиент'}.get(user['role'], user['role'])
+        audit.log(conn, event, user, 'вход', 'Вход в кабинет', audit.fmt([('Логин', login), ('Роль', role_name)]))
+        conn.close()
         return {
             'statusCode': 200,
             'headers': {

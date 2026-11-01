@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "No auth rejected",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

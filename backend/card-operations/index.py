@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -174,6 +175,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            audit.log(conn, event, user, 'добавление', 'Операции', audit.fmt([
+                ('Карта', audit.card_info(cursor, fuel_card_id)), ('АЗС', station_name),
+                ('Дата операции', row[1].strftime('%Y-%m-%d %H:%M') if row[1] else ''), ('Вид операции', row[2]),
+                ('Количество', float(row[3]) if row[3] else 0), ('Цена', float(row[4]) if row[4] else 0),
+                ('Сумма', float(row[5]) if row[5] else 0), ('Комментарий', row[6])]))
             cursor.close()
             conn.close()
             
@@ -228,6 +234,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         except:
                             operation_date = datetime.now()
             
+            cursor.execute("SELECT fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment FROM card_operations WHERE id = %s", (operation_id,))
+            o = cursor.fetchone()
+            old_op = {}
+            old_label = '—'
+            if o:
+                old_op = {'card': audit.card_info(cursor, o[0]), 'station': audit.station_name(cursor, o[1]) if o[1] else '',
+                          'date': o[2].strftime('%Y-%m-%d %H:%M') if o[2] else '', 'type': o[3],
+                          'qty': float(o[4] or 0), 'price': float(o[5] or 0), 'amount': float(o[6] or 0), 'comment': o[7] or ''}
             cursor.execute("""
                 UPDATE card_operations
                 SET fuel_card_id = %s, station_id = %s, operation_date = %s,
@@ -248,6 +262,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            if row:
+                new_op = {'card': audit.card_info(cursor, fuel_card_id) if fuel_card_id else '—', 'station': station_name or '',
+                          'date': row[1].strftime('%Y-%m-%d %H:%M') if row[1] else '', 'type': row[2],
+                          'qty': float(row[3] or 0), 'price': float(row[4] or 0), 'amount': float(row[5] or 0), 'comment': row[6] or ''}
+                ch = audit.diff(old_op, new_op, {'card': 'Карта', 'station': 'АЗС', 'date': 'Дата операции', 'type': 'Вид операции',
+                                                 'qty': 'Количество', 'price': 'Цена', 'amount': 'Сумма', 'comment': 'Комментарий'})
+                audit.log(conn, event, user, 'изменение', 'Операции', 'Операция №%s, карта %s, ' % (operation_id, old_op.get('card', '—')) + (ch or 'без изменений данных'))
             cursor.close()
             conn.close()
             
@@ -301,8 +322,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            cursor.execute("SELECT fuel_card_id, station_id, operation_date, operation_type, quantity, price, amount, comment FROM card_operations WHERE id = %s", (operation_id,))
+            o = cursor.fetchone()
+            del_desc = ''
+            if o:
+                del_desc = audit.fmt([('Операция №', operation_id), ('Карта', audit.card_info(cursor, o[0])),
+                    ('АЗС', audit.station_name(cursor, o[1]) if o[1] else ''), ('Дата операции', o[2].strftime('%Y-%m-%d %H:%M') if o[2] else ''),
+                    ('Вид операции', o[3]), ('Количество', float(o[4] or 0)), ('Цена', float(o[5] or 0)), ('Сумма', float(o[6] or 0)), ('Комментарий', o[7])])
             cursor.execute("DELETE FROM card_operations WHERE id = %s", (operation_id,))
             conn.commit()
+            if o:
+                audit.log(conn, event, user, 'удаление', 'Операции', del_desc)
             cursor.close()
             conn.close()
             

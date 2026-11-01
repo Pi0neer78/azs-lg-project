@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -90,6 +91,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            audit.log(conn, event, user, 'добавление', 'Виды топлива', audit.fmt([('Название', row[1]), ('Код 1С', row[2]), ('Ед. изм.', row[3] or 'л')]))
             cursor.close()
             conn.close()
             
@@ -104,6 +106,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             fuel_type_id = body_data.get('id')
             unit = body_data.get('unit', 'л')
+            cursor.execute("SELECT name, code_1c, unit FROM fuel_types WHERE id = %s", (fuel_type_id,))
+            o = cursor.fetchone()
             
             cursor.execute("""
                 UPDATE fuel_types
@@ -119,6 +123,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             row = cursor.fetchone()
             conn.commit()
+            if row:
+                ch = audit.diff({'name': o[0], 'code_1c': o[1], 'unit': o[2]} if o else {}, {'name': row[1], 'code_1c': row[2], 'unit': row[3]}, {'name': 'Название', 'code_1c': 'Код 1С', 'unit': 'Ед. изм.'})
+                audit.log(conn, event, user, 'изменение', 'Виды топлива', audit.fmt([('Вид топлива', o[0] if o else row[1])]) + ', ' + (ch or 'без изменений данных'))
             cursor.close()
             conn.close()
             
@@ -151,8 +158,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            cursor.execute("SELECT name, code_1c, unit FROM fuel_types WHERE id = %s", (fuel_type_id,))
+            o = cursor.fetchone()
             cursor.execute("DELETE FROM fuel_types WHERE id = %s", (fuel_type_id,))
             conn.commit()
+            if o:
+                audit.log(conn, event, user, 'удаление', 'Виды топлива', audit.fmt([('Название', o[0]), ('Код 1С', o[1]), ('Ед. изм.', o[2] or 'л')]))
             cursor.close()
             conn.close()
             

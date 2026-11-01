@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react';
+import { logEvent } from '@/utils/auditClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,7 +105,16 @@ export default function TurnoverReportTab({ clients = [], clientLogin, showAlert
     }
   };
 
+  const reportInfo = (r: NonNullable<typeof report>) => `Отчёт : ${reportTitle(r)}, Клиент : ${r.clientLabel}, Период : ${r.from} — ${r.to}`;
+
+  const handleExcel = () => {
+    if (!report) return;
+    exportTurnoverToExcel(report);
+    logEvent('в эксель', 'Отчеты', reportInfo(report));
+  };
+
   const handlePrint = () => {
+    if (report) logEvent('печать', 'Отчеты', reportInfo(report));
     if (report && !printTurnover(report)) {
       showAlert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
     }
@@ -132,7 +142,7 @@ export default function TurnoverReportTab({ clients = [], clientLogin, showAlert
               Печать
             </Button>
             <Button
-              onClick={() => report && exportTurnoverToExcel(report)}
+              onClick={handleExcel}
               disabled={!report}
               variant="outline"
               size="sm"

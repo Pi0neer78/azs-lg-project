@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Icon from '@/components/ui/icon';
 import TablePagination from '@/components/ui/table-pagination';
 import { adminApi } from '@/utils/adminApi';
+import { logEvent } from '@/utils/auditClient';
 import { printOperations, exportOperationsToExcel } from '@/utils/operationsExport';
 
 interface Props {
@@ -90,7 +91,15 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
     return f;
   };
 
+  const describe = () => `Записей : ${filtered.length}, Фильтр : ${activeFilters().join('; ') || 'без фильтров'}`;
+
+  const handleExcel = () => {
+    exportOperationsToExcel(filtered);
+    logEvent('в эксель', 'Операции', describe());
+  };
+
   const handlePrint = () => {
+    logEvent('печать', 'Операции', describe());
     if (!printOperations(filtered, activeFilters())) {
       showAlert('Браузер заблокировал окно печати. Разрешите всплывающие окна для этого сайта.');
     }
@@ -150,7 +159,7 @@ export default function ClientOperationsTab({ clientLogin, showAlert }: Props) {
               Печать
             </Button>
             <Button
-              onClick={() => exportOperationsToExcel(filtered)}
+              onClick={handleExcel}
               variant="outline"
               size="sm"
               className="border-2 border-accent text-foreground hover:bg-accent hover:text-accent-foreground"

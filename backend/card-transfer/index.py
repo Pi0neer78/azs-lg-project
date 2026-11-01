@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from datetime import datetime, timezone, timedelta
@@ -154,6 +155,11 @@ def handler(event: dict, context) -> dict:
     cursor.execute("UPDATE fuel_cards SET balance_liters = %s WHERE id = %s", (new_to_balance, to_card_id))
 
     conn.commit()
+    audit.log(conn, event, user, 'добавление', 'Операции', audit.fmt([
+        ('Вид операции', 'Перемещение топлива между картами'),
+        ('С карты', '%s, клиент %s, топливо %s' % (from_label, from_client, from_fuel_type)), ('Списано', debit_quantity),
+        ('На карту', '%s, клиент %s, топливо %s' % (to_label, to_client, to_fuel_type)), ('Оприходовано', credit_quantity),
+        ('Остаток источника', '%s → %s' % (from_balance, new_from_balance)), ('Остаток получателя', '%s → %s' % (to_balance, new_to_balance))]))
     cursor.close()
     conn.close()
 

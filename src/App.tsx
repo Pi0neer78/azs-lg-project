@@ -10,7 +10,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CardOperations from "./pages/CardOperations";
 import OperatorPanel from "./pages/OperatorPanel";
 import ChatAdmin from "./pages/ChatAdmin";
+import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound";
+import { logoutAndGo } from "./utils/auditClient";
 import { ConfirmProvider } from "./components/ConfirmDialog";
 
 const queryClient = new QueryClient();
@@ -24,7 +26,7 @@ const ClientRoute = () => {
     return <Navigate to="/" replace />;
   }
   
-  return <ClientDashboard clientLogin={clientLogin} onLogout={() => window.location.href = '/'} />;
+  return <ClientDashboard clientLogin={clientLogin} onLogout={() => logoutAndGo('/')} />;
 };
 
 const App = () => {
@@ -40,9 +42,10 @@ const App = () => {
               <Route path="/" element={<Login onLogin={() => {}} />} />
               <Route path="/client" element={<ClientRoute />} />
               <Route path="/card-operations" element={<CardOperations />} />
-              <Route path="/admin" element={<AdminDashboard onLogout={() => window.location.href = '/'} />} />
+              <Route path="/admin" element={<AdminDashboard onLogout={() => logoutAndGo('/')} />} />
               <Route path="/operator" element={<OperatorPanel />} />
               <Route path="/chat-admin" element={<ChatAdmin />} />
+              <Route path="/audit-log" element={<AuditLog />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

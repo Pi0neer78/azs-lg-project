@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { logEvent } from '@/utils/auditClient';
 
 interface ClientMemoProps {
   client: {
@@ -22,6 +23,7 @@ export default function ClientMemo({ client, onClose }: ClientMemoProps) {
   const handlePrint = () => {
     const printContent = printRef.current?.innerHTML;
     if (!printContent) return;
+    logEvent('печать', 'Клиенты', `Памятка клиента : ${client.name} (ИНН ${client.inn}), Логин : ${client.login}`);
 
     const win = window.open('', '_blank', 'width=820,height=1000');
     if (!win) return;

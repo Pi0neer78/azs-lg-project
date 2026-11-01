@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 import psycopg2.errors
@@ -178,6 +179,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             names = cursor.fetchone()
             conn.commit()
+            audit.log(conn, event, user, 'добавление', 'Карты', audit.fmt([
+                ('Номер карты', row[1]), ('Индекс', row[2] if row[2] is not None else 0), ('Клиент', names[0] if names else row[3]),
+                ('Вид топлива', names[1] if names else row[4]), ('Остаток', float(row[5]) if row[5] else 0),
+                ('ПИН-код', row[6]), ('Статус', row[7] or 'активна'), ('Причина блокировки', row[8]), ('Дневной лимит', float(row[9]) if row[9] else 0)]))
             cursor.close()
             conn.close()
             
@@ -258,6 +263,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             'isBase64Encoded': False
                         }
 
+            cursor.execute("SELECT card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit FROM fuel_cards WHERE id = %s", (card_id,))
+            o = cursor.fetchone()
+            old_card = dict(zip(['card_code', 'card_index', 'client_id', 'fuel_type_id', 'balance_liters', 'pin_code', 'status', 'block_reason', 'daily_limit'], o)) if o else {}
+            old_label = audit.card_info(cursor, card_id)
             cursor.execute(
                 "UPDATE fuel_cards SET " + ', '.join(update_parts) + " WHERE id = %s "
                 "RETURNING id, card_code, card_index, client_id, fuel_type_id, balance_liters, pin_code, status, block_reason, daily_limit",
@@ -275,6 +284,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 names = cursor.fetchone()
                 conn.commit()
+                new_card = {'card_code': row[1], 'card_index': row[2], 'client_id': row[3], 'fuel_type_id': row[4],
+                            'balance_liters': float(row[5]) if row[5] is not None else 0, 'pin_code': row[6], 'status': row[7],
+                            'block_reason': row[8], 'daily_limit': float(row[9]) if row[9] is not None else 0}
+                for k in ('balance_liters', 'daily_limit'):
+                    if old_card.get(k) is not None:
+                        old_card[k] = float(old_card[k])
+                ch = audit.diff(old_card, new_card, {'card_code': 'Номер карты', 'card_index': 'Индекс', 'client_id': 'ID клиента', 'fuel_type_id': 'ID вида топлива', 'balance_liters': 'Остаток', 'pin_code': 'ПИН-код', 'status': 'Статус', 'block_reason': 'Причина блокировки', 'daily_limit': 'Дневной лимит'})
+                audit.log(conn, event, user, 'изменение', 'Карты', 'Карта : ' + old_label + ', ' + (ch or 'без изменений данных'))
                 cursor.close()
                 conn.close()
                 
@@ -313,9 +330,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             card_id = body_data.get('id')
             
+            del_label = audit.card_info(cursor, card_id) if card_id else '—'
+            cursor.execute("SELECT balance_liters, status, daily_limit FROM fuel_cards WHERE id = %s", (card_id,))
+            o = cursor.fetchone()
             cursor.execute("DELETE FROM fuel_cards WHERE id = %s RETURNING id", (card_id,))
             row = cursor.fetchone()
             conn.commit()
+            if row:
+                audit.log(conn, event, user, 'удаление', 'Карты', audit.fmt([
+                    ('Карта', del_label), ('Остаток', float(o[0]) if o and o[0] is not None else 0), ('Статус', o[1] if o else ''),
+                    ('Дневной лимит', float(o[2]) if o and o[2] is not None else 0)]))
             cursor.close()
             conn.close()
             

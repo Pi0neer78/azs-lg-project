@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { logEvent } from '@/utils/auditClient';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -555,7 +556,7 @@ export default function OperatorPanel() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => { localStorage.removeItem('operator_session'); navigate('/'); }}
+              onClick={async () => { await logEvent('выход', 'Вход в кабинет', 'Роль : Оператор'); localStorage.removeItem('operator_session'); navigate('/'); }}
               className="border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold px-6 h-10"
             >
               <Icon name="LogOut" size={16} className="mr-2" />

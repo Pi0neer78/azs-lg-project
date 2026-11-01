@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -266,6 +267,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         VALUES (%s, %s, %s, 'заправка', %s, %s, %s, 'Заправка с рублевой карты (с баланса не списывается)', %s)
                     """, (card_id, station_id, operation_date, quantity, price, amount, fuel_type_id))
                     conn.commit()
+                    audit.log(conn, event, user, 'добавление', 'Операции', audit.fmt([
+                        ('Вид операции', 'Заправка с рублёвой карты (панель оператора)'), ('Карта', audit.card_info(cur, card_id)),
+                        ('АЗС', audit.station_name(cur, station_id)), ('Количество', quantity), ('Цена', price), ('Сумма', amount),
+                        ('Остаток', '%s → %s' % (current_balance, new_balance))]))
                     return {
                         'statusCode': 200,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -302,6 +307,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 """, (card_id, station_id, operation_date, quantity))
 
                 conn.commit()
+                audit.log(conn, event, user, 'добавление', 'Операции', audit.fmt([
+                    ('Вид операции', 'Заправка (панель оператора)'), ('Карта', audit.card_info(cur, card_id)),
+                    ('АЗС', audit.station_name(cur, station_id)), ('Количество', quantity),
+                    ('Остаток', '%s → %s' % (current_balance, new_balance))]))
 
                 return {
                     'statusCode': 200,

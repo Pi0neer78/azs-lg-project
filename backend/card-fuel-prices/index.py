@@ -1,5 +1,6 @@
 import json
 import authz
+import audit
 import os
 import psycopg2
 from typing import Dict, Any
@@ -85,6 +86,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         """, (card_id, fuel_type_id, price))
         new_id = cur.fetchone()[0]
         conn.commit()
+        audit.log(conn, event, user, 'добавление', 'Цены по картам', audit.fmt([('Карта', audit.card_info(cur, card_id)), ('Вид топлива', ft[0]), ('Цена', price)]))
         cur.close()
         conn.close()
         return resp(201, {'price': {'id': new_id, 'fuel_card_id': card_id, 'fuel_type_id': fuel_type_id, 'fuel_type': ft[0], 'price': price}})
@@ -93,16 +95,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body = json.loads(event.get('body') or '{}')
         item_id = int(body.get('id', 0))
         price = float(body.get('price', 0))
+        cur.execute("SELECT fuel_card_id, fuel_type_id, price FROM card_fuel_prices WHERE id = %s", (item_id,))
+        o = cur.fetchone()
         cur.execute("UPDATE card_fuel_prices SET price = %s WHERE id = %s", (price, item_id))
         conn.commit()
+        if o:
+            cur.execute("SELECT name FROM fuel_types WHERE id = %s", (o[1],))
+            fn = cur.fetchone()
+            audit.log(conn, event, user, 'изменение', 'Цены по картам', audit.fmt([('Карта', audit.card_info(cur, o[0])), ('Вид топлива', fn[0] if fn else ''), ('Цена', '%s → %s' % (float(o[2]), price))]))
         cur.close()
         conn.close()
         return resp(200, {'success': True})
 
     if method == 'DELETE':
         item_id = int(params.get('id', 0))
+        cur.execute("SELECT fuel_card_id, fuel_type_id, price FROM card_fuel_prices WHERE id = %s", (item_id,))
+        o = cur.fetchone()
         cur.execute("DELETE FROM card_fuel_prices WHERE id = %s", (item_id,))
         conn.commit()
+        if o:
+            cur.execute("SELECT name FROM fuel_types WHERE id = %s", (o[1],))
+            fn = cur.fetchone()
+            audit.log(conn, event, user, 'удаление', 'Цены по картам', audit.fmt([('Карта', audit.card_info(cur, o[0])), ('Вид топлива', fn[0] if fn else ''), ('Цена', float(o[2]))]))
         cur.close()
         conn.close()
         return resp(200, {'success': True})
