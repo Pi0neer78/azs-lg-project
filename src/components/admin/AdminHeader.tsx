@@ -3,7 +3,7 @@ import Icon from '@/components/ui/icon';
 
 export default function AdminHeader({ onLogout }: { onLogout: () => void }) {
   return (
-      <header className="bg-card border-b-4 border-accent shadow-lg no-print">
+      <header className="bg-transparent border-b-4 border-accent shadow-lg no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">

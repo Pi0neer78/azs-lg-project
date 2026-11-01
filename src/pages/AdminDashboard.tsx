@@ -13,7 +13,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const dash = useAdminDashboard();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: "linear-gradient(rgba(6,26,18,0.5), rgba(6,26,18,0.65)), url('/bg-admin.webp')" }}
+    >
       <ChatLauncher />
       <AdminHeader onLogout={onLogout} />
       <AdminTabs dash={dash} />
