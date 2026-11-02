@@ -1,0 +1,1 @@
+{"tests": [{"name": "No auth", "method": "GET", "path": "/?action=check", "expectedStatus": 401, "expectedBody": {"error": "string"}, "bodyMatcher": "partial"}]}
