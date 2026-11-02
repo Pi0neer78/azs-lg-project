@@ -284,7 +284,7 @@ export function useAdminDashboard() {
         quantity: parseFloat(topupQuantity),
         price: parseFloat(topupPrice),
         amount: parseFloat(topupAmount),
-        comment: topupComment || 'Пополнение баланса'
+        comment: `пополнение баланса карта ${card.card_code}/${card.card_index ?? 0} топливо ${card.fuel_type}${topupComment ? `. ${topupComment}` : ''}`
       };
       
       await adminApi.operations.create(topupOperation);
