@@ -625,7 +625,7 @@ export function useAdminDashboard() {
   const [editingOperation, setEditingOperation] = useState<any>(null);
   const [isOperationDialogOpen, setIsOperationDialogOpen] = useState(false);
   const [isAddOperationDialogOpen, setIsAddOperationDialogOpen] = useState(false);
-  const [newOperation, setNewOperation] = useState({card_code: '', station_name: '', operation_date: '', operation_type: 'пополнение', quantity: 0, price: 0, amount: 0, comment: ''});
+  const [newOperation, setNewOperation] = useState<any>({fuel_card_id: null, card_code: '', station_name: '', operation_date: '', operation_type: 'пополнение', quantity: 0, price: 0, amount: 0, comment: ''});
   const [filterCard, setFilterCard] = useState<string>('all');
   const [filterStation, setFilterStation] = useState<string>('all');
   const [filterOperationType, setFilterOperationType] = useState<string>('all');
@@ -686,7 +686,7 @@ export function useAdminDashboard() {
       await adminApi.operations.create(newOperation);
       await loadOperations();
       await loadCards();
-      setNewOperation({card_code: '', station_name: '', operation_date: '', operation_type: 'пополнение', quantity: 0, price: 0, amount: 0, comment: ''});
+      setNewOperation({fuel_card_id: null, card_code: '', station_name: '', operation_date: '', operation_type: 'пополнение', quantity: 0, price: 0, amount: 0, comment: ''});
       setIsAddOperationDialogOpen(false);
     } catch (error) {
       console.error('Error creating operation:', error);

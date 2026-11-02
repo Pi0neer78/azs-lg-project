@@ -622,13 +622,13 @@ export default function AdminTabs({ dash }: { dash: AdminState }) {
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="new-op-card" className="text-right text-foreground">Карта</Label>
-                            <Select value={newOperation.card_code} onValueChange={(value) => setNewOperation({...newOperation, card_code: value})}>
+                            <Select value={newOperation.fuel_card_id ? newOperation.fuel_card_id.toString() : ''} onValueChange={(value) => { const c = cards.find((x) => x.id.toString() === value); if (c) setNewOperation({...newOperation, fuel_card_id: c.id, card_code: c.card_code}); }}>
                               <SelectTrigger id="new-op-card" className="col-span-3">
                                 <SelectValue placeholder="Выберите карту" />
                               </SelectTrigger>
                               <SelectContent>
                                 {cards.map((card) => (
-                                  <SelectItem key={card.id} value={card.card_code}>
+                                  <SelectItem key={card.id} value={card.id.toString()}>
                                     {cardLabel(card)} - {card.client_name} ({card.fuel_type})
                                   </SelectItem>
                                 ))}
