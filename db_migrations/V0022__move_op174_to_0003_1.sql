@@ -1,0 +1,2 @@
+UPDATE card_operations SET fuel_card_id = 45 WHERE id = 174;
+UPDATE fuel_cards fc SET balance_liters = COALESCE((SELECT sum(CASE WHEN operation_type IN ('пополнение','оприходование') THEN quantity WHEN (operation_type='заправка' AND fuel_type_id IS NULL) OR operation_type='списание' THEN -quantity ELSE 0 END) FROM card_operations WHERE fuel_card_id = fc.id), 0) WHERE fc.id IN (45,46);
