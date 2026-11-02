@@ -319,7 +319,7 @@ export function useAdminDashboard() {
     if (!card) return;
 
     const cardOperations = operations
-      .filter(op => op.card_code === card.card_code)
+      .filter(op => op.fuel_card_id === card.id)
       .sort((a, b) => new Date(a.operation_date).getTime() - new Date(b.operation_date).getTime());
 
     let calculatedBalance = 0;

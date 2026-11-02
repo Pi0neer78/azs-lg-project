@@ -124,7 +124,7 @@ export default function CardOperations() {
   
   const cardOperations = operations.filter(op => {
     const opCardId = (op as any).fuel_card_id || op.card_id;
-    return opCardId === selectedCard || (selectedCardData && (op as any).card_code === selectedCardData.card_code);
+    return opCardId === selectedCard;
   });
 
   const uniqueStations = Array.from(new Set(cardOperations.map(op => op.station_name)));
