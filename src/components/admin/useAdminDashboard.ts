@@ -276,6 +276,7 @@ export function useAdminDashboard() {
       const dateStr = formatDateForInput();
       
       const topupOperation = {
+        fuel_card_id: card.id,
         card_code: card.card_code,
         station_name: 'Склад',
         operation_date: dateStr,

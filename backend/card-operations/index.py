@@ -120,7 +120,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             
             card_code = str(body_data.get('card_code', ''))
-            cursor.execute("SELECT id FROM fuel_cards WHERE card_code = %s", (card_code,))
+            if body_data.get('fuel_card_id'):
+                cursor.execute("SELECT id FROM fuel_cards WHERE id = %s", (int(body_data['fuel_card_id']),))
+            else:
+                cursor.execute("SELECT id FROM fuel_cards WHERE card_code = %s", (card_code,))
             card_row = cursor.fetchone()
             
             if not card_row:
