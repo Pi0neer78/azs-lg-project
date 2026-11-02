@@ -10,6 +10,7 @@ import type { AdminState } from './useAdminDashboard';
 export default function AdminDialogs({ dash }: { dash: AdminState }) {
   const {
     stations,
+    cards,
     editingClient,
     setEditingClient,
     isClientDialogOpen,
@@ -221,8 +222,23 @@ export default function AdminDialogs({ dash }: { dash: AdminState }) {
           {editingOperation && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-op-card" className="text-right text-foreground">Код карты</Label>
-                <Input id="edit-op-card" value={editingOperation.card_code} onChange={(e) => setEditingOperation({...editingOperation, card_code: e.target.value})} className="col-span-3" />
+                <Label htmlFor="edit-op-card" className="text-right text-foreground">Карта</Label>
+                <Select
+                  value={editingOperation.fuel_card_id?.toString() || ''}
+                  onValueChange={(value) => {
+                    const c = cards.find((x: any) => x.id.toString() === value);
+                    if (c) setEditingOperation({...editingOperation, fuel_card_id: c.id, card_code: c.card_code, card_index: c.card_index, fuel_type: c.fuel_type});
+                  }}
+                >
+                  <SelectTrigger id="edit-op-card" className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cards.filter((c: any) => c.card_code === editingOperation.card_code || c.id === editingOperation.fuel_card_id).map((c: any) => (
+                      <SelectItem key={c.id} value={c.id.toString()}>{c.card_code}/{c.card_index ?? 0} — {c.fuel_type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-op-station" className="text-right text-foreground">АЗС</Label>

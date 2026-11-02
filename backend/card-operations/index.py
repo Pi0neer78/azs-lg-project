@@ -213,7 +213,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             operation_id = body_data.get('id')
             
             card_code = body_data.get('card_code')
-            cursor.execute("SELECT id FROM fuel_cards WHERE card_code = %s", (card_code,))
+            if body_data.get('fuel_card_id'):
+                cursor.execute("SELECT id FROM fuel_cards WHERE id = %s", (int(body_data['fuel_card_id']),))
+            else:
+                cursor.execute("SELECT id FROM fuel_cards WHERE card_code = %s ORDER BY card_index", (card_code,))
             card_row = cursor.fetchone()
             fuel_card_id = card_row[0] if card_row else None
             
@@ -264,6 +267,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             ))
             
             row = cursor.fetchone()
+            old_card_id = o[0] if o else None
+            if row and old_card_id and fuel_card_id and old_card_id != fuel_card_id:
+                for cid in (old_card_id, fuel_card_id):
+                    cursor.execute("""
+                        UPDATE fuel_cards fc SET balance_liters = COALESCE((
+                            SELECT sum(CASE WHEN operation_type IN ('пополнение','оприходование') THEN quantity
+                                WHEN (operation_type = 'заправка' AND fuel_type_id IS NULL) OR operation_type = 'списание' THEN -quantity
+                                ELSE 0 END)
+                            FROM card_operations WHERE fuel_card_id = fc.id), 0)
+                        WHERE fc.id = %s
+                    """, (cid,))
             conn.commit()
             if row:
                 new_op = {'card': audit.card_info(cursor, fuel_card_id) if fuel_card_id else '—', 'station': station_name or '',
