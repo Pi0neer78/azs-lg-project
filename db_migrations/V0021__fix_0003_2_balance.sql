@@ -1,0 +1,1 @@
+UPDATE fuel_cards SET balance_liters = 311.75 WHERE id = 46;
